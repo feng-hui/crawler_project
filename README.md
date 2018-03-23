@@ -5,3 +5,9 @@
 富宝废有色抓取项目，可以通过phantomjs或headless chrome进行模拟登录，然后序列化登录获取到的session到本地文件，每次抓取前判断是否登录。
 
 直接执行命令python main.py。
+
+# xici
+
+单机抓取xicidaili.com网站所有的代理ip
+
+使用python3.5+、scrapy>=1.4,抓取数据超过60w+。
