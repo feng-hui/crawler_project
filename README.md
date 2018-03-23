@@ -10,4 +10,8 @@
 
 单机抓取xicidaili.com网站所有的代理ip
 
-使用python3.5+、scrapy>=1.4,抓取数据超过60w+。
+使用python3.5+、scrapy>=1.4,抓取数据超过62w+。
+
+抓取过程截图如下：
+
+![](https://github.com/feng-hui/crawler_project/blob/master/xici/crawler_process.png)
