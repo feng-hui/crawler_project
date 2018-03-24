@@ -4,6 +4,7 @@
 # @email = 'fengh@asto-inc.com'
 import requests
 import telnetlib
+import pymongo
 
 
 class CheckProxy(object):
@@ -26,15 +27,31 @@ class CheckProxy(object):
         print(status)
 
     @staticmethod
-    def check2():
+    def check2(ip, port):
         try:
-            telnetlib.Telnet('110.73.33.3', port='8123', timeout=10)
+            telnetlib.Telnet(ip, port=port, timeout=5)
         except:
             print('failed')
         else:
             print('success')
 
+    def get_ip(self):
+        client = pymongo.MongoClient(host='192.168.2.4', port=27017)
+        db = client['richangts']
+        doc = db['a66ip']
+        one_record = doc.find()
+        for each_record in one_record[0:30]:
+            print(each_record)
+            ip = each_record['ip']
+            port = each_record['port']
+            style = each_record['style'].lower()
+            ip_dict = {'{}'.format(style): '{}://{}:{}'.format(style, ip, port)}
+            timestamp = each_record['_id']
+            # print(ip_dict)
+            self.check2(ip, port)
+
 
 if __name__ == "__main__":
     check_proxy = CheckProxy()
-    check_proxy.check2()
+    # check_proxy.check2()
+    check_proxy.get_ip()
