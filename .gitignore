@@ -99,3 +99,6 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# f139/cookies
+f139_cookies.config

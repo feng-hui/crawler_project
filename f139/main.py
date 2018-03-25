@@ -21,7 +21,7 @@ def main():
         except Exception as e:
             logging.info("抓取过程中出错了,报错的原因是：{}".format(str(e)))
             continue
-    # save_cookies(session.cookies)
+    save_cookies(session.cookies)
 
 
 def get_f139_session():

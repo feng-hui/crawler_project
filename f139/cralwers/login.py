@@ -21,8 +21,7 @@ class F139Login(object):
         """
         登录模块1:使用selenium、PhantomJS
         """
-        driver = webdriver.PhantomJS(executable_path='C:\\Users\\Administrator\\AppData\\Roaming\\npm\\'
-                                                     'node_modules\\phantomjs\\lib\\phantom\\bin\\phantomjs.exe')
+        driver = webdriver.PhantomJS()
         driver.get('http://passport.f139.com/')
         # print(driver.get_cookies())
         f139_cookies = self.to_login(driver)
@@ -35,9 +34,7 @@ class F139Login(object):
         chrome_options = Options()
         chrome_options.add_argument('--headless')
         chrome_options.add_argument('--disable-gpu')
-        driver = webdriver.Chrome(executable_path='E:\\wksp\\test_module\\python3_test\\f139\\cralwers'
-                                                  '\\chromedriver_win32\\chromedriver.exe',
-                                  chrome_options=chrome_options)
+        driver = webdriver.Chrome(chrome_options=chrome_options)
         driver.get('http://passport.f139.com/')
         # print(driver.get_cookies())
         f139_cookies = self.to_login(driver)
@@ -61,7 +58,7 @@ class F139Login(object):
 
         driver.find_element_by_name("Submit").click()
         cookies = [(item['name'], item['value']) for item in driver.get_cookies()]
-        # print(cookies)
+        print(cookies)
         # cookies = ';'.join(cookies)
         f139_cookies = {name: value for name, value in cookies}
         return f139_cookies
