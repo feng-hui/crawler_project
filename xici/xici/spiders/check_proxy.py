@@ -38,7 +38,7 @@ class CheckProxy(object):
     def get_ip(self):
         client = pymongo.MongoClient(host='192.168.2.4', port=27017)
         db = client['richangts']
-        doc = db['a66ip']
+        doc = db['xici_proxies2']
         one_record = doc.find()
         for each_record in one_record[0:30]:
             print(each_record)

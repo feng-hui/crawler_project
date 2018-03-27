@@ -11,7 +11,9 @@ class SegmentSpider(scrapy.Spider):
     allowed_domains = ['segment.com']
     start_urls = [
         'https://segmentfault.com/t/python2',
-        'https://segmentfault.com/t/python4'
+        'https://segmentfault.com/t/python4',
+        'https://segmentfault.com/t/python/questions',
+        'https://segmentfault.com/t/python/blogs',
     ]
     # scrapy只处理200~300的response，其他的均忽略
     # 设置可以参考http://scrapy-chs.readthedocs.io/zh_CN/stable/topics/spider-middleware.html
@@ -33,3 +35,4 @@ class SegmentSpider(scrapy.Spider):
             self.crawler.stats.inc_value("failed_url")
         title = response.xpath('//title/text()').extract()[0]
         logger.info("正在抓取的页面的标题是：{0}".format(title))
+        
