@@ -5,4 +5,4 @@
 # @email  : capricorn1203@126.com
 from scrapy.cmdline import execute
 # execute("scrapy crawl job_bole".split())
-execute("scrapy crawl segment".split())
+execute("scrapy crawl segment_redis".split())

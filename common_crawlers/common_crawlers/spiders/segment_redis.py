@@ -9,9 +9,13 @@ logger = logging.getLogger(__name__)
 class SegmentRedisSpider(RedisSpider):
     name = "segment_redis"
     allowed_domains = ["segment.com"]
-    start_urls = ['https://segmentfault.com/t/python/questions']
+    # start_urls = ['https://segmentfault.com/t/python/questions']
     redis_key = "segment_redis:start_urls"
     host_url = "https://segmentfault.com"
+    custom_settings = {
+        'SCHEDULER': "scrapy_redis.scheduler.Scheduler",
+        'DUPEFILTER_CLASS': "scrapy_redis.dupefilter.RFPDupeFilter"
+    }
 
     def parse(self, response):
         selector = response.xpath('//div[@class="stream-list question-stream "]/section')

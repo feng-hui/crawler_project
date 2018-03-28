@@ -9,6 +9,9 @@ logger = logging.getLogger(__name__)
 
 
 class JobBoleSpider(scrapy.Spider):
+    """
+    主要测试scrapy与selenium的配合使用,同时使用signal
+    """
     name = "job_bole"
     allowed_domains = ["jobbole.com"]
     start_urls = ['http://blog.jobbole.com/all-posts/']

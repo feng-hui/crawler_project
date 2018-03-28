@@ -7,6 +7,9 @@ logger = logging.getLogger(__name__)
 
 
 class SegmentSpider(scrapy.Spider):
+    """
+    主要测试404状态页面的收集,收集器的使用
+    """
     name = 'segment'
     allowed_domains = ['segment.com']
     start_urls = [
@@ -35,4 +38,4 @@ class SegmentSpider(scrapy.Spider):
             self.crawler.stats.inc_value("failed_url")
         title = response.xpath('//title/text()').extract()[0]
         logger.info("正在抓取的页面的标题是：{0}".format(title))
-        
+
