@@ -12,4 +12,8 @@ class CommonCrawlersItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
     title = scrapy.Field()
-    link = scrapy.Field()
+    create_time = scrapy.Field()
+    content = scrapy.Field()
+    like_num = scrapy.Field()
+    comment_num = scrapy.Field()
+    tags = scrapy.Field()
