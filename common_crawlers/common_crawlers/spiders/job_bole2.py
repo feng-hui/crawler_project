@@ -5,13 +5,15 @@ import re
 from scrapy.http import Request
 from urllib import parse
 from common_crawlers.items import CommonCrawlersItem
+from scrapy.spidermiddlewares.httperror import HttpError
+from twisted.internet.error import DNSLookupError, TimeoutError, TCPTimedOutError
 logger = logging.getLogger(__name__)
 
 
 class JobBole2Spider(scrapy.Spider):
     name = 'job_bole2'
     allowed_domains = ['jobbole.com']
-    start_urls = ['http://blog.jobbole.com/all-posts/']
+    start_urls = ['http://blog.jobbole.com/all-posts123/']
 
     def parse(self, response):
         all_links = response.xpath('//a[@class="archive-title"]/@href').extract()
@@ -20,9 +22,9 @@ class JobBole2Spider(scrapy.Spider):
             for each_link in all_links:
                 yield Request(parse.urljoin(response.url, each_link), callback=self.parse_detail)
 
-        next_page = response.xpath('//a[@class="next page-numbers"]/@href').extract_first()
-        if next_page and next_page == 'http://blog.jobbole.com/all-posts/page/2/':
-            yield Request(next_page, callback=self.parse)
+        # next_page = response.xpath('//a[@class="next page-numbers"]/@href').extract_first()
+        # if next_page:
+        #     yield Request(next_page, callback=self.parse)
 
     @staticmethod
     def parse_detail(response):
