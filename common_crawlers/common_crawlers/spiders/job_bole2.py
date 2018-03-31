@@ -9,14 +9,17 @@ from common_crawlers.items import CommonCrawlersItem
 class JobBole2Spider(scrapy.Spider):
     name = 'job_bole2'
     allowed_domains = ['jobbole.com']
-    start_urls = ['http://blog.jobbole.com/all-posts123/']
+    start_urls = ['http://blog.jobbole.com/all-posts/']
 
     def parse(self, response):
-        all_links = response.xpath('//a[@class="archive-title"]/@href').extract()
-        print(all_links)
+        all_links = response.xpath('//a[@class="archive-title"]')
         if all_links:
             for each_link in all_links:
-                yield Request(parse.urljoin(response.url, each_link), callback=self.parse_detail)
+                each_url = each_link.xpath('@href')
+                img_url = each_link.xpath('img/@src')
+                if img_url:
+                    self.logger.info('缩略图的地址为：{}'.format(img_url.extract()[0]))
+                yield Request(parse.urljoin(response.url, each_url.extract()[0]), callback=self.parse_detail)
 
         # next_page = response.xpath('//a[@class="next page-numbers"]/@href').extract_first()
         # if next_page:

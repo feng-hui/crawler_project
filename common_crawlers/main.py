@@ -4,4 +4,4 @@
 # @author : Feng_Hui
 # @email  : capricorn1203@126.com
 from scrapy.cmdline import execute
-execute("scrapy crawl segment_link_extractor2".split())
+execute("scrapy crawl job_bole2".split())
