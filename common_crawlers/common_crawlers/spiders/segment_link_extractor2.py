@@ -11,7 +11,7 @@ class SegmentLinkExtractor2Spider(CrawlSpider):
     start_urls = [
         # 'https://segmentfault.com/q/1010000014100380'
         'https://segmentfault.com/questions',
-        # 'https://segmentfault.com/t/python/questions',
+        'https://segmentfault.com/t/python/questions',
         # 'http://www.jianshu.com'
     ]
 
