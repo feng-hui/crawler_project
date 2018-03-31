@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 import scrapy
-from scrapy.linkextractor import LinkExtractor
-import logging
-logger = logging.getLogger(__name__)
+# from scrapy.linkextractor import LinkExtractor
+from scrapy.linkextractors import LinkExtractor
 
 
 class SegmentLinkExtractorSpider(scrapy.Spider):
     name = 'segment_link_extractor'
     allowed_domains = ['segment.com']
-    start_urls = ['https://segmentfault.com/t/python/blogs']
+    start_urls = ['https://segmentfault.com/t/python/questions']
 
     def parse(self, response):
         """获取列表里指定方式下的所有链接"""
+        self.logger.info('正在抓取的url：{0}'.format(response.url))
 
         # 方法1：restrict_xpaths
         # link = LinkExtractor(restrict_xpaths='//div[@class="stream-list blog-stream"]/section/div/h2')
@@ -41,4 +41,4 @@ class SegmentLinkExtractorSpider(scrapy.Spider):
         all_links = link.extract_links(response)
         if all_links:
             for each_link in all_links:
-                logger.info('符合要求的链接：{}'.format(each_link.url))
+                self.logger.info('符合要求的链接：{}'.format(each_link.url))

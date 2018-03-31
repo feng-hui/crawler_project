@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
 import scrapy
-import logging
 import re
 from scrapy.http import Request
 from urllib import parse
 from common_crawlers.items import CommonCrawlersItem
-from scrapy.spidermiddlewares.httperror import HttpError
-from twisted.internet.error import DNSLookupError, TimeoutError, TCPTimedOutError
-logger = logging.getLogger(__name__)
 
 
 class JobBole2Spider(scrapy.Spider):
@@ -26,13 +22,12 @@ class JobBole2Spider(scrapy.Spider):
         # if next_page:
         #     yield Request(next_page, callback=self.parse)
 
-    @staticmethod
-    def parse_detail(response):
+    def parse_detail(self, response):
         """
         使用xpath方法
         获取文章页面的标题、发布时间、内容、点赞数、评论数、文章标签等
         """
-        logger.info('正在抓取的url是：{0}'.format(response.url))
+        self.logger.info('正在抓取的url是：{0}'.format(response.url))
         item = CommonCrawlersItem()
         title = response.xpath('//div[@class="entry-header"]/h1/text()').extract_first("")
         create_time = response.xpath('//p[@class="entry-meta-hide-on-mobile"]/text()').extract()
@@ -53,13 +48,12 @@ class JobBole2Spider(scrapy.Spider):
         item['tags'] = tags
         yield item
 
-    @staticmethod
-    def parse_detail2(response):
+    def parse_detail2(self, response):
         """
         使用css方法
         获取文章页面的标题、发布时间、内容、点赞数、评论数、文章标签等
         """
-        logger.info('正在抓取的url是：{0}'.format(response.url))
+        self.logger.info('正在抓取的url是：{0}'.format(response.url))
         title = response.css('.entry-header h1::text').extract_first()
         create_time = response.css('p.entry-meta-hide-on-mobile::text').extract()
         content = response.css('div.entry').extract_first("")
@@ -70,5 +64,5 @@ class JobBole2Spider(scrapy.Spider):
         comment_num = re.search(r'(\d+)', comment_num[0]).group(1).strip() \
             if comment_num and comment_num[0].strip() != "评论" else '0'
         tags = ','.join(tags).strip() if tags else ""
-        logger.info('标题为：{0}， 发布时间为：{1}， 点赞数为：{2}， 留言数为：{3}， 标签为：{4}'.
+        self.logger.info('标题为：{0}， 发布时间为：{1}， 点赞数为：{2}， 留言数为：{3}， 标签为：{4}'.
                     format(title, create_time, like_num, comment_num, tags))
