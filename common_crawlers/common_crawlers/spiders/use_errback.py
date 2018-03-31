@@ -7,9 +7,16 @@ from twisted.internet.error import DNSLookupError, TimeoutError, TCPTimedOutErro
 
 class UseErrbackSpider(scrapy.Spider):
     """
-    how to use errback
-    referenced url:
+    1、how to use errback
+
+    2、referenced url:
     https://doc.scrapy.org/en/latest/topics/request-response.html#topics-request-response-ref-errbacks
+
+    3、explanation of errback:
+    errback (callable)
+    a function that will be called if any exception was raised while processing the request.
+    This includes pages that failed with 404 HTTP errors and such.
+    It receives a Twisted Failure instance as first parameter.
     """
     name = 'use_errback'
     allowed_domains = ['www.httpbin.org']
