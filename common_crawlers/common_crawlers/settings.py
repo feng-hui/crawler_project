@@ -66,9 +66,11 @@ COOKIES_ENABLED = False
 
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'common_crawlers.pipelines.CommonCrawlersPipeline': 300,
-#}
+ITEM_PIPELINES = {
+    'common_crawlers.pipelines.CommonCrawlersPipeline': 300,
+    # 'scrapy.pipelines.images.ImagesPipeline': 1,
+    'common_crawlers.pipelines.ThumbnailImagePipeline': 1
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html

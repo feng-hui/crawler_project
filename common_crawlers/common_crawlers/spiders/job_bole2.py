@@ -4,22 +4,33 @@ import re
 from scrapy.http import Request
 from urllib import parse
 from common_crawlers.items import CommonCrawlersItem
+from common_crawlers.utils.common import get_md5
+import os
 
 
 class JobBole2Spider(scrapy.Spider):
     name = 'job_bole2'
     allowed_domains = ['jobbole.com']
     start_urls = ['http://blog.jobbole.com/all-posts/']
+    par_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+    custom_settings = {
+        'IMAGES_URLS_FIELD': 'thumbnail_url',
+        'IMAGES_STORE': os.path.join(par_dir, 'images')
+    }
 
     def parse(self, response):
-        all_links = response.xpath('//a[@class="archive-title"]')
+        all_links = response.xpath('//div[@id="archive"]/div/div[@class="post-thumb"]/a')
         if all_links:
             for each_link in all_links:
+                item = CommonCrawlersItem()
                 each_url = each_link.xpath('@href')
                 img_url = each_link.xpath('img/@src')
                 if img_url:
-                    self.logger.info('缩略图的地址为：{}'.format(img_url.extract()[0]))
-                yield Request(parse.urljoin(response.url, each_url.extract()[0]), callback=self.parse_detail)
+                    item['thumbnail_url'] = [img_url.extract()[0]]
+                else:
+                    item['thumbnail_url'] = []
+                yield Request(parse.urljoin(response.url, each_url.extract()[0]),
+                              callback=self.parse_detail, meta={'item': item})
 
         # next_page = response.xpath('//a[@class="next page-numbers"]/@href').extract_first()
         # if next_page:
@@ -31,7 +42,7 @@ class JobBole2Spider(scrapy.Spider):
         获取文章页面的标题、发布时间、内容、点赞数、评论数、文章标签等
         """
         self.logger.info('正在抓取的url是：{0}'.format(response.url))
-        item = CommonCrawlersItem()
+        item = response.meta['item']
         title = response.xpath('//div[@class="entry-header"]/h1/text()').extract_first("")
         create_time = response.xpath('//p[@class="entry-meta-hide-on-mobile"]/text()').extract()
         content = response.xpath('//div[@class="entry"]').extract_first("")
@@ -45,6 +56,8 @@ class JobBole2Spider(scrapy.Spider):
         tags = ','.join(tags).strip() if tags else ""
         item['title'] = title
         item['create_time'] = create_time
+        item['article_url'] = response.url
+        item['article_url_id'] = get_md5(response.url)
         # item['content'] = content
         item['like_num'] = like_num
         item['comment_num'] = comment_num
