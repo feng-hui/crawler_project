@@ -67,9 +67,10 @@ COOKIES_ENABLED = False
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    'common_crawlers.pipelines.CommonCrawlersPipeline': 300,
+    # 'common_crawlers.pipelines.CommonCrawlersPipeline': 300,
+    'common_crawlers.pipelines.MysqlPipeline': 2,
     # 'scrapy.pipelines.images.ImagesPipeline': 1,
-    'common_crawlers.pipelines.ThumbnailImagePipeline': 1
+    # 'common_crawlers.pipelines.ThumbnailImagePipeline': 1
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -98,3 +99,10 @@ ITEM_PIPELINES = {
 #
 # # Ensure all spiders share same duplicates filter through redis.
 # DUPEFILTER_CLASS = "scrapy_redis.dupefilter.RFPDupeFilter"
+
+# MySQL
+MYSQL_HOST = 'you ip'
+MYSQL_PORT = 3306
+MYSQL_DB = 'your database name'
+MYSQL_USER = 'your user name'
+MYSQL_PASSWORD = 'your password'
