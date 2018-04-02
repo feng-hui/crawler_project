@@ -102,11 +102,11 @@ COOKIES_ENABLED = False
 # DUPEFILTER_CLASS = "scrapy_redis.dupefilter.RFPDupeFilter"
 
 # MySQL
-MYSQL_HOST = '101.132.105.200'
+MYSQL_HOST = 'your ip'
 MYSQL_PORT = 3306
 MYSQL_DB = 'hzcyzs'
 MYSQL_USER = 'cyzs'
-MYSQL_PASSWORD = 'zj88friend'
+MYSQL_PASSWORD = 'your password'
 
 # timeout
 # DOWNLOAD_TIMEOUT = 10
