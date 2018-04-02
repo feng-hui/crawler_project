@@ -2,9 +2,8 @@
 import re
 import scrapy
 from scrapy.http import Request
-from scrapy.loader import ItemLoader
 from common_crawlers.utils.common import get_md5
-from common_crawlers.items import CommonCrawlersItem
+from common_crawlers.items import JobBoleItem, CustomItemLoader
 from urllib import parse
 
 
@@ -37,13 +36,13 @@ class JobBole3Spider(scrapy.Spider):
         获取文章页面的标题、发布时间、内容、点赞数、评论数、文章标签等
         """
         self.logger.info('正在抓取的url是：{0}'.format(response.url))
-        l = ItemLoader(item=CommonCrawlersItem(), response=response)
+        l = CustomItemLoader(item=JobBoleItem(), response=response)
         l.add_xpath('title', '//div[@class="entry-header"]/h1/text()')
         l.add_value('thumbnail_url', response.meta['thumbnail_url'])
         l.add_value('article_url', response.url)
         l.add_value('article_url_id', get_md5(response.url))
         l.add_xpath('create_time', '//p[@class="entry-meta-hide-on-mobile"]/text()')
-        l.add_xpath('content', '//div[@class="entry"]')
+        # l.add_xpath('content', '//div[@class="entry"]')
         l.add_xpath('like_num', '//h10[contains(@id,"votetotal")]/text()')
         l.add_xpath('comment_num', '//a[@href="#article-comment"]/span/text()')
         l.add_xpath('tags', '//p[@class="entry-meta-hide-on-mobile"]/a[not(contains(text(),"评论"))]/text()')
