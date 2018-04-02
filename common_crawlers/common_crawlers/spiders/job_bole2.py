@@ -11,12 +11,16 @@ import os
 class JobBole2Spider(scrapy.Spider):
     name = 'job_bole2'
     allowed_domains = ['jobbole.com']
-    start_urls = ['http://blog.jobbole.com/all-posts/']
+    start_urls = [
+        # 'http://blog.jobbole.com/all-posts/',
+        'http://blog.jobbole.com/all-posts/page/2/',
+        'http://blog.jobbole.com/all-posts/page/3/'
+    ]
     par_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-    custom_settings = {
-        'IMAGES_URLS_FIELD': 'thumbnail_url',
-        'IMAGES_STORE': os.path.join(par_dir, 'images')
-    }
+    # custom_settings = {
+    #     'IMAGES_URLS_FIELD': 'thumbnail_url',
+    #     'IMAGES_STORE': os.path.join(par_dir, 'images')
+    # }
 
     def parse(self, response):
         all_links = response.xpath('//div[@id="archive"]/div/div[@class="post-thumb"]/a')
@@ -33,6 +37,7 @@ class JobBole2Spider(scrapy.Spider):
                               callback=self.parse_detail, meta={'item': item})
 
         # next_page = response.xpath('//a[@class="next page-numbers"]/@href').extract_first()
+        # self.logger.info('下一页的链接是：{}'.format(next_page))
         # if next_page:
         #     yield Request(next_page, callback=self.parse)
 
@@ -80,5 +85,5 @@ class JobBole2Spider(scrapy.Spider):
         comment_num = re.search(r'(\d+)', comment_num[0]).group(1).strip() \
             if comment_num and comment_num[0].strip() != "评论" else '0'
         tags = ','.join(tags).strip() if tags else ""
-        self.logger.info('标题为：{0}， 发布时间为：{1}， 点赞数为：{2}， 留言数为：{3}， 标签为：{4}'.
-                    format(title, create_time, like_num, comment_num, tags))
+        self.logger.info('标题为：{0}， 发布时间为：{1}， 点赞数为：{2}， 留言数为：{3}， '
+                         '标签为：{4}'.format(title, create_time, like_num, comment_num, tags))

@@ -8,10 +8,11 @@ from scrapy.pipelines.images import ImagesPipeline
 import codecs
 import json
 from scrapy.exporters import JsonItemExporter
-from scrapy.conf import settings
 from twisted.enterprise import adbapi
 import MySQLdb
+from MySQLdb.cursors import DictCursor
 from scrapy.conf import settings
+import datetime
 
 
 class CommonCrawlersPipeline(object):
@@ -62,7 +63,7 @@ class ThumbnailImagePipeline(ImagesPipeline):
 
 
 class MysqlPipeline(object):
-    """自定义mysql存储items"""
+    """同步操作：自定义mysql存储items"""
     def __init__(self):
         params = dict(
             host=settings.get('MYSQL_HOST'),
@@ -81,3 +82,41 @@ class MysqlPipeline(object):
         self.conn.commit()
         return item
 
+
+class TwistedMysqlPipeline(object):
+    """异步操作：通过twisted接口调用mysql存储items"""
+
+    def __init__(self, db_pool):
+        self.db_pool = db_pool
+
+    @classmethod
+    def from_settings(cls, settings):
+        params = dict(
+            host=settings.get('MYSQL_HOST'),
+            port=settings.get('MYSQL_PORT'),
+            db=settings.get('MYSQL_DB'),
+            user=settings.get('MYSQL_USER'),
+            password=settings.get('MYSQL_PASSWORD'),
+            charset='utf8',
+            cursorclass=DictCursor,
+            use_unicode=True
+        )
+        db_pool = adbapi.ConnectionPool('MySQLdb', **params)
+        return cls(db_pool)
+
+    def process_item(self, item, spider):
+        query = self.db_pool.runInteraction(self.do_insert, item)
+        query.addErrback(self.on_error, spider)
+        return item
+
+    @staticmethod
+    def do_insert(cursor, item):
+        sql = "insert into crawler(title,thumbnail_url,article_url,article_url_id,create_time," \
+              "like_num,comment_num,tags) values(%s,%s,%s,%s,%s,%s,%s,%s)"
+        gmt_created = datetime.datetime.strptime(item['create_time'], '%Y/%m/%d').date()
+        cursor.execute(sql, [item['title'], item['thumbnail_url'][0], item['article_url'], item['article_url_id'],
+                             gmt_created, item['like_num'], item['comment_num'], item['tags']])
+
+    @staticmethod
+    def on_error(failure, spider):
+        spider.logger.error(failure)

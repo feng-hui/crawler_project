@@ -68,7 +68,8 @@ COOKIES_ENABLED = False
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     # 'common_crawlers.pipelines.CommonCrawlersPipeline': 300,
-    'common_crawlers.pipelines.MysqlPipeline': 2,
+    # 'common_crawlers.pipelines.MysqlPipeline': 2,TwistedMysqlPipeline
+    'common_crawlers.pipelines.TwistedMysqlPipeline': 2,
     # 'scrapy.pipelines.images.ImagesPipeline': 1,
     # 'common_crawlers.pipelines.ThumbnailImagePipeline': 1
 }
@@ -101,8 +102,11 @@ ITEM_PIPELINES = {
 # DUPEFILTER_CLASS = "scrapy_redis.dupefilter.RFPDupeFilter"
 
 # MySQL
-MYSQL_HOST = 'you ip'
+MYSQL_HOST = '101.132.105.200'
 MYSQL_PORT = 3306
-MYSQL_DB = 'your database name'
-MYSQL_USER = 'your user name'
-MYSQL_PASSWORD = 'your password'
+MYSQL_DB = 'hzcyzs'
+MYSQL_USER = 'cyzs'
+MYSQL_PASSWORD = 'zj88friend'
+
+# timeout
+DOWNLOAD_TIMEOUT = 10
