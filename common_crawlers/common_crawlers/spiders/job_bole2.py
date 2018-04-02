@@ -13,14 +13,19 @@ class JobBole2Spider(scrapy.Spider):
     allowed_domains = ['jobbole.com']
     start_urls = [
         # 'http://blog.jobbole.com/all-posts/',
-        'http://blog.jobbole.com/all-posts/page/2/',
-        'http://blog.jobbole.com/all-posts/page/3/'
+        'http://blog.jobbole.com/all-posts/page/222/',
+        # 'http://blog.jobbole.com/all-posts/page/3/'
     ]
-    par_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-    # custom_settings = {
-    #     'IMAGES_URLS_FIELD': 'thumbnail_url',
-    #     'IMAGES_STORE': os.path.join(par_dir, 'images')
-    # }
+
+    # 配置图片下载路径
+    # par_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+
+    # 自定义settings配置
+    custom_settings = {
+        # 'IMAGES_URLS_FIELD': 'thumbnail_url',
+        # 'IMAGES_STORE': os.path.join(par_dir, 'images'),
+        'DOWNLOAD_TIMEOUT': 10
+    }
 
     def parse(self, response):
         all_links = response.xpath('//div[@id="archive"]/div/div[@class="post-thumb"]/a')
