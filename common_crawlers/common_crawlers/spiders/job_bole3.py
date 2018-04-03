@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import re
 import scrapy
 from scrapy.http import Request
 from common_crawlers.utils.common import get_md5
@@ -10,7 +9,7 @@ from urllib import parse
 class JobBole3Spider(scrapy.Spider):
     name = 'job_bole3'
     allowed_domains = ['jobbole.com']
-    start_urls = ['http://blog.jobbole.com/all-posts/page/21/']
+    start_urls = ['http://blog.jobbole.com/all-posts/page/166/']
 
     def parse(self, response):
         all_links = response.xpath('//div[@id="archive"]/div/div[@class="post-thumb"]/a')
@@ -47,7 +46,3 @@ class JobBole3Spider(scrapy.Spider):
         l.add_xpath('comment_num', '//a[@href="#article-comment"]/span/text()')
         l.add_xpath('tags', '//p[@class="entry-meta-hide-on-mobile"]/a[not(contains(text(),"评论"))]/text()')
         return l.load_item()
-        # create_time = re.search(r'(\d{4}/\d{2}/\d{2})', create_time[0].strip()).group(1) if create_time else ""
-        # comment_num = re.search(r'(\d+)', comment_num[0]).group(1).strip() \
-        #     if comment_num and comment_num[0].strip() != "评论" else '0'
-        # tags = ','.join(tags).strip() if tags else ""
