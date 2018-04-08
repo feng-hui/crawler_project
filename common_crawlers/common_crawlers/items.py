@@ -4,7 +4,6 @@
 #
 # See documentation in:
 # http://doc.scrapy.org/en/latest/topics/items.html
-import re
 import scrapy
 from scrapy.loader.processors import MapCompose, TakeFirst, Join
 from scrapy.loader import ItemLoader
@@ -14,16 +13,7 @@ from common_crawlers.utils.common import get_number, standard_time
 class CommonCrawlersItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
-    title = scrapy.Field()
-    thumbnail_url = scrapy.Field()
-    thumbnail_path = scrapy.Field()
-    article_url = scrapy.Field()
-    article_url_id = scrapy.Field()
-    create_time = scrapy.Field()
-    content = scrapy.Field()
-    like_num = scrapy.Field()
-    comment_num = scrapy.Field()
-    tags = scrapy.Field()
+    pass
 
 
 class JobBoleItem(scrapy.Item):

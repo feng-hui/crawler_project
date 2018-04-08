@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import scrapy
 from scrapy_redis.spiders import RedisSpider
 import logging
 from common_crawlers.items import CommonCrawlersItem
