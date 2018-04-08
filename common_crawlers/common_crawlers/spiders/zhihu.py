@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
+import re
 import time
 import scrapy
 import hmac
 import json
 from scrapy.http import Request, FormRequest
+from scrapy.loader import ItemLoader
+from common_crawlers.items import ZhiHuQuestionsItem
+from scrapy.linkextractors import LinkExtractor
 
 
 class ZhihuSpider(scrapy.Spider):
@@ -13,6 +17,7 @@ class ZhihuSpider(scrapy.Spider):
     login_url = "https://www.zhihu.com/signup"
     login_url2 = "https://www.zhihu.com/api/v3/oauth/sign_in"
     test_url = "https://www.zhihu.com/inbox"
+    test_url2 = "https://www.zhihu.com/question/266491546"
     host_url = "https://www.zhihu.com/"
     captcha_url = "https://www.zhihu.com/api/v3/oauth/captcha?lang=en"
     client_id = 'c3cef7c66a1843f8b3a9e6a1e3160e20'
@@ -30,7 +35,22 @@ class ZhihuSpider(scrapy.Spider):
     }
 
     def parse(self, response):
-        self.logger.info(response.text)
+        # self.logger.info(response.text)
+        self.logger.info('正在抓取的url是：{}'.format(response.url))
+        pattern = ''
+        yield Request(self.test_url2, callback=self.parse_questions, headers=self.headers)
+
+    def parse_questions(self, response):
+        self.logger.info('正在抓取的url是：{}'.format(response.url))
+        l = ItemLoader(item=ZhiHuQuestionsItem(), response=response)
+        l.add_xpath('title', '//h1[@class="QuestionHeader-title"]/text()')
+        l.add_xpath('content', '//div[@class="QuestionHeader-detail"]/div/div/span/text()')
+        l.add_value('question_id', re.search(r'(\d+)', response.url).group(1))
+        l.add_value('question_url', response.url)
+        l.add_xpath('comment_nums', '//div[@class="QuestionHeader-Comment"]/button/text()')
+        l.add_xpath('focused_nums', '//strong[@class="NumberBoard-itemValue"]/text()')
+        l.add_xpath('viewed_nums', '//strong[@class="NumberBoard-itemValue"]/text()')
+        return l.load_item()
 
     def get_signature(self, grant_type, source, timestamp):
         """获取签名"""
@@ -85,5 +105,6 @@ class ZhihuSpider(scrapy.Spider):
         """检测是否登录成功"""
         # login_json = json.loads(response.text)
         # print(login_json)
+        self.logger.info('正在抓取的url是：{}'.format(response.url))
         for url in self.start_urls:
             yield Request(url, headers=self.headers)

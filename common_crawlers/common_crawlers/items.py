@@ -36,3 +36,25 @@ class CustomItemLoader(ItemLoader):
     create_time_in = MapCompose(standard_time)
     like_num_in = comment_num_in = MapCompose(get_number)
     tags_out = Join(',')
+
+
+class ZhiHuQuestionsItem(scrapy.Item):
+    """
+    知乎问题items
+    问题标题、问题内容、问题id、问题url、问题评论数、问题关注数、问题浏览数
+    """
+    title = scrapy.Field()
+    content = scrapy.Field()
+    question_id = scrapy.Field()
+    question_url = scrapy.Field()
+    comment_nums = scrapy.Field()
+    focused_nums = scrapy.Field()
+    viewed_nums = scrapy.Field()
+
+
+class ZhiHuAnswersItem(scrapy.Item):
+    """
+    知乎答案items
+    问题标题、问题内容、问题id、问题url、问题评论数、问题关注数、问题浏览数
+    """
+    pass
