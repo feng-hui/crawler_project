@@ -50,6 +50,8 @@ class ZhiHuQuestionsItem(scrapy.Item):
     comment_nums = scrapy.Field()
     focused_nums = scrapy.Field()
     viewed_nums = scrapy.Field()
+    answer_nums = scrapy.Field()
+    topics = scrapy.Field()
 
 
 class ZhiHuAnswersItem(scrapy.Item):
