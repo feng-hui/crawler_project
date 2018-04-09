@@ -52,6 +52,8 @@ class ZhiHuQuestionsItem(scrapy.Item):
     viewed_nums = scrapy.Field()
     answer_nums = scrapy.Field()
     topics = scrapy.Field()
+    crawl_time = scrapy.Field()
+    crawl_update_time = scrapy.Field()
 
 
 class ZhiHuAnswersItem(scrapy.Item):
@@ -59,4 +61,13 @@ class ZhiHuAnswersItem(scrapy.Item):
     知乎答案items
     问题标题、问题内容、问题id、问题url、问题评论数、问题关注数、问题浏览数
     """
-    pass
+    answer_id = scrapy.Field()
+    answer_url = scrapy.Field()
+    question_id = scrapy.Field()
+    author_id = scrapy.Field()
+    answer_content = scrapy.Field()
+    answer_praise_nums = scrapy.Field()
+    answer_comments_nums = scrapy.Field()
+    answer_create_time = scrapy.Field()
+    crawl_time = scrapy.Field()
+    crawl_update_time = scrapy.Field()
