@@ -6,9 +6,10 @@ import hmac
 import json
 from scrapy.http import Request, FormRequest
 from scrapy.loader import ItemLoader
-from common_crawlers.items import ZhiHuQuestionsItem
+from common_crawlers.items import ZhiHuQuestionsItem, ZhiHuAnswersItem
 from scrapy.linkextractors import LinkExtractor
 from urllib import parse
+from common_crawlers.utils.common import timestamp_to_date
 
 
 class ZhihuSpider(scrapy.Spider):
@@ -30,8 +31,10 @@ class ZhihuSpider(scrapy.Spider):
                      "%2Cquestion%2Cexcerpt%2Crelationship.is_authorized%2Cis_author%2Cvoting" \
                      "%2Cis_thanked%2Cis_nothelp%2Cupvoted_followees%3Bdata%5B%2A%5D.mark_infos" \
                      "%5B%2A%5D.url%3Bdata%5B%2A%5D.author.follower_count%2Cbadge%5B%3F%28type" \
-                     "%3Dbest_answerer%29%5D.topics&limit=20&offset={}"
+                     "%3Dbest_answerer%29%5D.topics&limit={}&offset={}"
     client_id = 'c3cef7c66a1843f8b3a9e6a1e3160e20'
+    limit = 20
+    offset = 0
     headers = {
         'authorization': 'oauth {}'.format(client_id),
         'host': 'www.zhihu.com',
@@ -46,34 +49,72 @@ class ZhihuSpider(scrapy.Spider):
     }
 
     def parse(self, response):
-        # self.logger.info(response.text)
-        self.logger.info('正在抓取的url是：{}'.format(response.url))
-        pattern = '.*/question/(\d+)[/|$]'
-        link_extractor = LinkExtractor(allow=pattern, attrs=('href',), tags='a')
-        all_links = link_extractor.extract_links(response)
-        for each_link in all_links:
-            each_link = parse.urljoin(self.host_url, each_link.url)
-            question_link = re.search(r'(.*/question/(\d+)[/|$])', each_link)
-            yield Request(question_link.group(1), callback=self.parse_questions, headers=self.headers)
+        # self.logger.info('正在抓取的url是：{}'.format(response.url))
+        # pattern = '.*/question/(\d+)[/|$]'
+        # link_extractor = LinkExtractor(allow=pattern, attrs=('href',), tags='a')
+        # all_links = link_extractor.extract_links(response)
+        # for each_link in all_links:
+        #     each_link = parse.urljoin(self.host_url, each_link.url)
+        #     question_link = re.search(r'(.*/question/(\d+)[/|$])', each_link)
+        #     question_id = question_link.group(2)
+        #     yield Request(question_link.group(1),
+        #                   callback=self.parse_questions,
+        #                   headers=self.headers,
+        #                   meta={'question_id': question_id})
+        # 测试用
+        yield Request(self.test_url2,
+                      callback=self.parse_questions,
+                      headers=self.headers,
+                      meta={'question_id': 266491546})
 
     def parse_questions(self, response):
         """问题页面的抓取items"""
         self.logger.info('正在抓取的url是：{}'.format(response.url))
+        question_id = response.meta['question_id']
         loader = ItemLoader(item=ZhiHuQuestionsItem(), response=response)
         loader.add_xpath('title', '//h1[@class="QuestionHeader-title"]/text()')
         loader.add_xpath('content', '//div[@class="QuestionHeader-detail"]/div/div/span/text()')
-        loader.add_value('question_id', re.search(r'(\d+)', response.url).group(1))
+        # loader.add_value('question_id', re.search(r'(\d+)', response.url).group(1))
+        loader.add_value('question_id', question_id)
         loader.add_value('question_url', response.url)
         loader.add_xpath('comment_nums', '//div[@class="QuestionHeader-Comment"]/button/text()')
         loader.add_xpath('focused_nums', '//strong[@class="NumberBoard-itemValue"]/text()')
         loader.add_xpath('viewed_nums', '//strong[@class="NumberBoard-itemValue"]/text()')
         loader.add_xpath('answer_nums', '//h4[@class="List-headerText"]/span/text()')
         loader.add_xpath('topics', '//a[@class="TopicLink"]/div/div/text()')
-        return loader.load_item()
+        question_item = loader.load_item()
+        yield question_item
+
+        # 回答api的抓取
+        answer_url = self.answer_api_url.format(str(question_id), self.limit, self.offset)
+        # yield Request(answer_url,
+        #               callback=self.parse_answers,
+        #               headers=self.headers)
+
+
 
     def parse_answers(self, response):
         """回答api抓取items"""
-        pass
+        self.logger.info('正在抓取的url是：{}'.format(response.url))
+        answer_api_json = json.loads(response.text)
+        is_end = answer_api_json['paging']['is_end']
+        next_url = answer_api_json['paging']['next']
+        all_answer_data = answer_api_json['data']
+        for each_answer in all_answer_data:
+            loader = ItemLoader(item=ZhiHuAnswersItem(), response=response)
+            loader.add_value('answer_id', each_answer['id'])
+            loader.add_value('answer_url', each_answer['url'])
+            loader.add_value('question_id', each_answer['question']['id'])
+            loader.add_value('author_id', each_answer['author']['id'])
+            loader.add_value('answer_content', each_answer['content'])
+            loader.add_value('answer_praise_nums', each_answer['voteup_count'])
+            loader.add_value('answer_comments_nums', each_answer['comment_count'])
+            loader.add_value('answer_create_time', timestamp_to_date(each_answer['created_time']))
+            return loader.load_item()
+        if not is_end:
+            yield Request(next_url,
+                          headers=self.headers,
+                          callback=self.parse_answers)
 
     def get_signature(self, grant_type, source, timestamp):
         """获取签名"""

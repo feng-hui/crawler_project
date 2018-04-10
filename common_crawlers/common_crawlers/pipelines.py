@@ -111,12 +111,10 @@ class TwistedMysqlPipeline(object):
 
     @staticmethod
     def do_insert(cursor, item):
-        sql = "insert into crawler(title,thumbnail_url,article_url,article_url_id,create_time," \
-              "like_num,comment_num,tags) values(%s,%s,%s,%s,%s,%s,%s,%s)"
-        gmt_created = datetime.datetime.strptime(item['create_time'], '%Y/%m/%d').date()
-        cursor.execute(sql, [item['title'], item['thumbnail_url'][0], item['article_url'], item['article_url_id'],
-                             gmt_created, item['like_num'], item['comment_num'], item['tags']])
+        sql, params = item.get_sql_info()
+        cursor.execute(sql, params)
 
     @staticmethod
     def on_error(failure, spider):
+        print(failure)
         spider.logger.error(failure)

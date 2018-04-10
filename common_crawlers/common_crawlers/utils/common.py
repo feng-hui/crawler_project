@@ -6,6 +6,7 @@
 import re
 import hashlib
 import datetime
+from datetime import datetime as dt
 
 
 def get_md5(url):
@@ -35,5 +36,13 @@ def standard_time(values_text):
         return datetime.datetime.now().date()
 
 
+def timestamp_to_date(value):
+    """时间戳转化字符串时间"""
+    value = input(value) if isinstance(value, str) else value
+    assert isinstance(value, int)
+    return dt.strftime(dt.fromtimestamp(value), '%Y-%m-%d %H:%M:%S')
+
+
 if __name__ == "__main__":
-    print(get_md5("http://jobbole.com"))
+    # print(get_md5("http://jobbole.com"))
+    print(timestamp_to_date(1520822831))
