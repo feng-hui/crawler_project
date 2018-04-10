@@ -8,7 +8,7 @@ import scrapy
 import datetime
 from scrapy.loader.processors import MapCompose, TakeFirst, Join
 from scrapy.loader import ItemLoader
-from common_crawlers.utils.common import get_number, standard_time
+from common_crawlers.utils.common import get_number, standard_time, str_to_int
 
 
 class CommonCrawlersItem(scrapy.Item):
@@ -59,12 +59,11 @@ class ZhiHuQuestionsItem(scrapy.Item):
     def get_sql_info(self):
         """返回sql语句与参数信息"""
         now_time = datetime.datetime.now()
-        insert_sql = "insert into zhihu_questions(title,content,question_id,question_url,comment_nums" \
-                     "focused_nums,viewed_nums,answer_nums,topics,crawl_time,crawl_update_time) " \
-                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-        params = [self['title'][0], self['content'][0], int(self['question_id'][0]), self['question_url'][0],
-                  get_number(self['comment_nums'][0]), int(self['focused_nums'][0]), int(self['viewed_nums'][1]),
-                  int(self['answer_nums'][0]), ','.join(self['topics']), now_time, now_time]
+        # insert_sql = "insert into zhihu_questions(title,content,question_id,question_url,comment_nums" \
+        #              "focused_nums,viewed_nums,answer_nums,topics,crawl_time,crawl_update_time) " \
+        #              "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        insert_sql = "insert into zhihu_questions(title) values(%s)"
+        params = [self['title'][0]]
         return insert_sql, params
 
 

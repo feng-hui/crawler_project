@@ -83,10 +83,10 @@ class ZhihuSpider(scrapy.Spider):
         loader.add_xpath('answer_nums', '//h4[@class="List-headerText"]/span/text()')
         loader.add_xpath('topics', '//a[@class="TopicLink"]/div/div/text()')
         question_item = loader.load_item()
-        yield question_item
+        return question_item
 
         # 回答api的抓取
-        answer_url = self.answer_api_url.format(str(question_id), self.limit, self.offset)
+        # answer_url = self.answer_api_url.format(str(question_id), self.limit, self.offset)
         # yield Request(answer_url,
         #               callback=self.parse_answers,
         #               headers=self.headers)

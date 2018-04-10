@@ -43,6 +43,12 @@ def timestamp_to_date(value):
     return dt.strftime(dt.fromtimestamp(value), '%Y-%m-%d %H:%M:%S')
 
 
+def str_to_int(value):
+    """如139,99,88格式的数字转化为数字"""
+    assert isinstance(value, str)
+    return int(''.join(value.split(',')))
+
+
 if __name__ == "__main__":
     # print(get_md5("http://jobbole.com"))
     print(timestamp_to_date(1520822831))
