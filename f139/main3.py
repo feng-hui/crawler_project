@@ -15,6 +15,7 @@ class MainFunc(object):
     """
     session = Session()
     session.cookies = cookiejar.LWPCookieJar('./data/f139_cookies2.config')
+    session.cookies.load()
 
     def __init__(self):
         super(MainFunc, self).__init__()
