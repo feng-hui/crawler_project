@@ -91,8 +91,6 @@ class ZhihuSpider(scrapy.Spider):
         #               callback=self.parse_answers,
         #               headers=self.headers)
 
-
-
     def parse_answers(self, response):
         """回答api抓取items"""
         self.logger.info('正在抓取的url是：{}'.format(response.url))
@@ -110,7 +108,8 @@ class ZhihuSpider(scrapy.Spider):
             loader.add_value('answer_praise_nums', each_answer['voteup_count'])
             loader.add_value('answer_comments_nums', each_answer['comment_count'])
             loader.add_value('answer_create_time', timestamp_to_date(each_answer['created_time']))
-            return loader.load_item()
+            answer_item = loader.load_item()
+            yield answer_item
         if not is_end:
             yield Request(next_url,
                           headers=self.headers,

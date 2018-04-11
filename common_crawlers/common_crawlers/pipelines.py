@@ -107,7 +107,7 @@ class TwistedMysqlPipeline(object):
     def process_item(self, item, spider):
         query = self.db_pool.runInteraction(self.do_insert, item)
         query.addErrback(self.on_error, spider)
-        return item
+        # return item
 
     @staticmethod
     def do_insert(cursor, item):

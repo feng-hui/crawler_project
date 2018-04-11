@@ -102,11 +102,7 @@ ITEM_PIPELINES = {
 # DUPEFILTER_CLASS = "scrapy_redis.dupefilter.RFPDupeFilter"
 
 # MySQL
-MYSQL_HOST = ''
-MYSQL_PORT = 3306
-MYSQL_DB = ''
-MYSQL_USER = ''
-MYSQL_PASSWORD = ''
+
 
 # timeout
 # DOWNLOAD_TIMEOUT = 10
