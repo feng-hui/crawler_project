@@ -9,7 +9,7 @@ LOG_FORMAT = '%(asctime)s %(name)s [%(module)s] %(levelname)s: %(message)s'
 logging.basicConfig(format=LOG_FORMAT, level='INFO')
 
 
-class F139Login(object):
+class F139Login2(object):
     """单独的富宝登录模块，可搭配使用，整合一下项目即可"""
 
     login_url = "http://passport.f139.com/doLogin.do"
@@ -26,7 +26,7 @@ class F139Login(object):
     data_url = "http://news.f139.com/list.do?channelID=79&categoryID=6"
 
     def __init__(self):
-        super(F139Login, self).__init__()
+        super(F139Login2, self).__init__()
         self.session = requests.Session()
         self.logger = logging.getLogger(__name__)
         self.timeout = 10
@@ -69,6 +69,22 @@ class F139Login(object):
         else:
             return ""
 
+    def get_cookies(self):
+        """登录获取cookies"""
+        self.logger.info('>>>>>>正在模拟登录获取需要的cookies……')
+        data = {
+            'url': 'http://member.f139.com/center/index.do',
+            'token': self.get_token(),
+            'userName': 'judyhe',
+            'passWord': '123456'
+        }
+        html = self.session.post(self.login_url, data=data, headers=self.headers2, allow_redirects=False)
+        status_code = html.status_code
+        if status_code == 302:
+            return self.session.cookies
+        else:
+            return ""
+
     def is_login(self):
         """判断是否登录"""
         html = self.session.get(self.data_url, headers=self.headers, allow_redirects=False)
@@ -96,7 +112,7 @@ class F139Login(object):
 
 
 if __name__ == "__main__":
-    f139_login = F139Login()
+    f139_login = F139Login2()
     try:
         redirect_url = f139_login.get_location_url()
         if redirect_url:

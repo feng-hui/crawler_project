@@ -25,7 +25,7 @@ class F139Price(object):
         logging.debug("未登录成功，开始登录……")
         try:
             f139_login = F139Login(f139_config.account['username'], f139_config.account['password'])
-            f139_cookies = f139_login.login2()
+            f139_cookies = f139_login.login3()
             self.session.cookies.update(f139_cookies)
         except KeyError:
             logging.info("获取用户名、密码错误,请检查配置文件")

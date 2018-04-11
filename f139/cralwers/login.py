@@ -6,6 +6,7 @@ from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 import logging
+from .login_f139 import F139Login2
 
 
 class F139Login(object):
@@ -38,6 +39,13 @@ class F139Login(object):
         driver.get('http://passport.f139.com/')
         # print(driver.get_cookies())
         f139_cookies = self.to_login(driver)
+        return f139_cookies
+
+    @staticmethod
+    def login3():
+        """登录模块3：使用requests的post方法进行模拟登录"""
+        f139_login2 = F139Login2()
+        f139_cookies = f139_login2.get_cookies()
         return f139_cookies
 
     def to_login(self, driver):
