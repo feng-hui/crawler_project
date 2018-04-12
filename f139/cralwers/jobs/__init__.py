@@ -15,9 +15,5 @@ from .f139_feidianping import F139Fdp  # 全国各地废电瓶
 from .f139_huanyuanqian import F139Hyq  # 全国各地还原铅
 
 # 所有的废有色抓取类
-all_fys_crawlers = [F139CqFl, F139GdFl, F139HbFl, F139SdFl, F139ZjFl,F139ShFl,
-                    F139HbFt, F139JsFt, F139ShFt, F139SdFt,
-                    F139SdFx, F139GdFx,
-                    F139GdFx2,
-                    F139Fdp, F139Hyq]
+all_fys_crawlers = [F139CqFl]
 
