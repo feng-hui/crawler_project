@@ -58,14 +58,25 @@ class ZhiHuQuestionsItem(scrapy.Item):
 
     def get_sql_info(self):
         """返回sql语句与参数信息"""
-        now_time = datetime.datetime.now()
+        # now_time = datetime.datetime.now()
         insert_sql = "insert into zhihu_questions(title,content,question_id,question_url,comment_nums," \
                      "focused_nums,viewed_nums,answer_nums,topics,crawl_time,crawl_update_time) " \
-                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-        params = [self['title'][0], self['content'][0], int(self['question_id'][0]), self['question_url'][0],
-                  get_number(self['comment_nums'][0]), str_to_int(self['focused_nums'][0]),
-                  str_to_int(self['viewed_nums'][1]), int(self['answer_nums'][0]),
-                  ','.join(self['topics']), now_time, now_time]
+                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) on duplicate key update " \
+                     "content=values(content),comment_nums=values(comment_nums)," \
+                     "focused_nums=values(focused_nums),viewed_nums=values(viewed_nums)," \
+                     "crawl_update_time=values(crawl_update_time)" \
+                     ""
+        params = [self['title'][0],
+                  self['content'][0],
+                  int(self['question_id'][0]),
+                  self['question_url'][0],
+                  get_number(self['comment_nums'][0]),
+                  str_to_int(self['focused_nums'][0]),
+                  str_to_int(self['viewed_nums'][1]),
+                  int(self['answer_nums'][0]),
+                  ','.join(self['topics']),
+                  self['crawl_time'][0],
+                  self['crawl_update_time'][0]]
         return insert_sql, params
 
 
@@ -82,16 +93,29 @@ class ZhiHuAnswersItem(scrapy.Item):
     answer_praise_nums = scrapy.Field()
     answer_comments_nums = scrapy.Field()
     answer_create_time = scrapy.Field()
+    answer_update_time = scrapy.Field()
     crawl_time = scrapy.Field()
     crawl_update_time = scrapy.Field()
 
     def get_sql_info(self):
         """返回sql语句与参数信息"""
-        now_time = datetime.datetime.now()
-        insert_sql = "insert into zhihu_answers(answer_id,answer_url,question_id,author_id,answer_content" \
-                     "answer_praise_nums,answer_comments_nums,answer_create_time,crawl_time," \
-                     "crawl_update_time) values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-        params = [int(self.answer_id[0]), self.answer_url[0], int(self.question_id[0]), self.author_id[0],
-                  self.answer_content[0], int(self.answer_praise_nums[0]), int(self.answer_comments_nums[0]),
-                  self.answer_create_time[0], now_time, now_time]
+        # now_time = datetime.datetime.now()
+        insert_sql = "insert into zhihu_answers(answer_id,answer_url,question_id,author_id,answer_content," \
+                     "answer_praise_nums,answer_comments_nums,answer_create_time,answer_update_time," \
+                     "crawl_time,crawl_update_time) values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) " \
+                     "on duplicate key update answer_content=values(answer_content)," \
+                     "answer_praise_nums=values(answer_praise_nums)," \
+                     "answer_comments_nums=values(answer_comments_nums)," \
+                     "crawl_update_time=values(crawl_update_time)"
+        params = [int(self['answer_id'][0]),
+                  self['answer_url'][0],
+                  int(self['question_id'][0]),
+                  self['author_id'][0],
+                  self['answer_content'][0],
+                  int(self['answer_praise_nums'][0]),
+                  int(self['answer_comments_nums'][0]),
+                  self['answer_create_time'][0],
+                  self['answer_update_time'][0],
+                  self['crawl_time'][0],
+                  self['crawl_update_time'][0]]
         return insert_sql, params

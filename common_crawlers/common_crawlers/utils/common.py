@@ -43,6 +43,11 @@ def timestamp_to_date(value):
     return dt.strftime(dt.fromtimestamp(value), '%Y-%m-%d %H:%M:%S')
 
 
+def now_time():
+    """返回当前时间"""
+    return datetime.datetime.now()
+
+
 def str_to_int(value):
     """如139,99,88格式的数字转化为数字"""
     assert isinstance(value, str)

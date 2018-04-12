@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 import time
+import random
 import scrapy
 import hmac
 import json
@@ -9,7 +10,7 @@ from scrapy.loader import ItemLoader
 from common_crawlers.items import ZhiHuQuestionsItem, ZhiHuAnswersItem
 from scrapy.linkextractors import LinkExtractor
 from urllib import parse
-from common_crawlers.utils.common import timestamp_to_date
+from common_crawlers.utils.common import timestamp_to_date, now_time
 
 
 class ZhihuSpider(scrapy.Spider):
@@ -45,11 +46,11 @@ class ZhihuSpider(scrapy.Spider):
     }
     custom_settings = {
         'COOKIES_ENABLED': True,
-        'DOWNLOAD_DELAY': 1.5
+        'DOWNLOAD_DELAY': random.randint(1, 5)
     }
 
     def parse(self, response):
-        # self.logger.info('正在抓取的url是：{}'.format(response.url))
+        self.logger.info('正在抓取的url是：{}'.format(response.url))
         # pattern = '.*/question/(\d+)[/|$]'
         # link_extractor = LinkExtractor(allow=pattern, attrs=('href',), tags='a')
         # all_links = link_extractor.extract_links(response)
@@ -82,14 +83,16 @@ class ZhihuSpider(scrapy.Spider):
         loader.add_xpath('viewed_nums', '//strong[@class="NumberBoard-itemValue"]/text()')
         loader.add_xpath('answer_nums', '//h4[@class="List-headerText"]/span/text()')
         loader.add_xpath('topics', '//a[@class="TopicLink"]/div/div/text()')
+        loader.add_value('crawl_time', now_time())
+        loader.add_value('crawl_update_time', now_time())
         question_item = loader.load_item()
         yield question_item
 
         # 回答api的抓取
-        # answer_url = self.answer_api_url.format(str(question_id), self.limit, self.offset)
-        # yield Request(answer_url,
-        #               callback=self.parse_answers,
-        #               headers=self.headers)
+        answer_url = self.answer_api_url.format(str(question_id), self.limit, self.offset)
+        yield Request(answer_url,
+                      callback=self.parse_answers,
+                      headers=self.headers)
 
     def parse_answers(self, response):
         """回答api抓取items"""
@@ -108,6 +111,9 @@ class ZhihuSpider(scrapy.Spider):
             loader.add_value('answer_praise_nums', each_answer['voteup_count'])
             loader.add_value('answer_comments_nums', each_answer['comment_count'])
             loader.add_value('answer_create_time', timestamp_to_date(each_answer['created_time']))
+            loader.add_value('answer_update_time', timestamp_to_date(each_answer['updated_time']))
+            loader.add_value('crawl_time', now_time())
+            loader.add_value('crawl_update_time', now_time())
             answer_item = loader.load_item()
             yield answer_item
         if not is_end:
