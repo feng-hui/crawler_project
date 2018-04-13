@@ -51,22 +51,22 @@ class ZhihuSpider(scrapy.Spider):
 
     def parse(self, response):
         self.logger.info('正在抓取的url是：{}'.format(response.url))
-        # pattern = '.*/question/(\d+)[/|$]'
-        # link_extractor = LinkExtractor(allow=pattern, attrs=('href',), tags='a')
-        # all_links = link_extractor.extract_links(response)
-        # for each_link in all_links:
-        #     each_link = parse.urljoin(self.host_url, each_link.url)
-        #     question_link = re.search(r'(.*/question/(\d+)[/|$])', each_link)
-        #     question_id = question_link.group(2)
-        #     yield Request(question_link.group(1),
-        #                   callback=self.parse_questions,
-        #                   headers=self.headers,
-        #                   meta={'question_id': question_id})
+        pattern = '.*/question/(\d+)[/|$]'
+        link_extractor = LinkExtractor(allow=pattern, attrs=('href',), tags='a')
+        all_links = link_extractor.extract_links(response)
+        for each_link in all_links:
+            each_link = parse.urljoin(self.host_url, each_link.url)
+            question_link = re.search(r'(.*/question/(\d+)[/|$])', each_link)
+            question_id = question_link.group(2)
+            yield Request(question_link.group(1),
+                          callback=self.parse_questions,
+                          headers=self.headers,
+                          meta={'question_id': question_id})
         # 测试用
-        yield Request(self.test_url2,
-                      callback=self.parse_questions,
-                      headers=self.headers,
-                      meta={'question_id': 266491546})
+        # yield Request(self.test_url2,
+        #               callback=self.parse_questions,
+        #               headers=self.headers,
+        #               meta={'question_id': 266491546})
 
     def parse_questions(self, response):
         """问题页面的抓取items"""

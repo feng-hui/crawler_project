@@ -119,3 +119,24 @@ class ZhiHuAnswersItem(scrapy.Item):
                   self['crawl_time'][0],
                   self['crawl_update_time'][0]]
         return insert_sql, params
+
+    class LaGouJobItem(scrapy.Item):
+        """拉勾职位item"""
+        job_url = scrapy.Field()
+        job_url_id = scrapy.Field()
+        job_title = scrapy.Field()
+        min_job_salary = scrapy.Field()
+        max_job_salary = scrapy.Field()
+        job_city = scrapy.Field()
+        job_work_years = scrapy.Field()
+        job_degree_need = scrapy.Field()
+        job_type = scrapy.Field()
+        job_publish_time = scrapy.Field()
+        job_tags = scrapy.Field()
+        job_advantage = scrapy.Field()
+        job_desc = scrapy.Field()
+        job_addr = scrapy.Field()
+        job_comp_url = scrapy.Field()
+        job_comp_name = scrapy.Field()
+        crawl_time = scrapy.Field()
+        crawl_update_time = scrapy.Field()
