@@ -54,6 +54,15 @@ def str_to_int(value):
     return int(''.join(value.split(',')))
 
 
+def remove_splash(value):
+    """
+    去除字符串中的反斜杠/
+    需求来源于：拉勾中职位所在的城市
+    """
+    assert isinstance(value, str)
+    return value.replace('/', '').strip()
+
+
 if __name__ == "__main__":
     # print(get_md5("http://jobbole.com"))
     print(timestamp_to_date(1520822831))
