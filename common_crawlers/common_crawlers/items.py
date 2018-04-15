@@ -8,6 +8,7 @@ import scrapy
 from scrapy.loader.processors import MapCompose, TakeFirst, Join
 from scrapy.loader import ItemLoader
 from common_crawlers.utils.common import get_number, standard_time, str_to_int
+from w3lib.html import remove_tags
 
 
 class CommonCrawlersItem(scrapy.Item):
