@@ -124,6 +124,8 @@ class ZhiHuAnswersItem(scrapy.Item):
 class LaGouItemLoader(ItemLoader):
     """拉勾custom item loader"""
     default_output_processor = TakeFirst()
+    job_tags_in = Join(',')
+    job_addr_in = MapCompose(remove_tags)
 
 
 class LaGouJobItem(scrapy.Item):
