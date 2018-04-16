@@ -148,3 +148,30 @@ class LaGouJobItem(scrapy.Item):
     job_comp_name = scrapy.Field()
     crawl_time = scrapy.Field()
     crawl_update_time = scrapy.Field()
+
+    def get_sql_info(self):
+        """return sql info"""
+        sql = "insert into lagou_jobs(job_url,job_url_id,job_title,min_job_salary,max_job_salary," \
+              "job_city,job_work_years,job_degree_need,job_type,job_publish_time,job_tags,job_advantage," \
+              "job_desc,job_addr,job_comp_url,job_comp_name,crawl_time,crawl_update_time) " \
+              "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        params = [self['job_url'],
+                  self['job_url_id'],
+                  self['job_title'],
+                  self['min_job_salary'],
+                  self['max_job_salary'],
+                  self['job_city'],
+                  self['job_work_years'],
+                  self['job_degree_need'],
+                  self['job_type'],
+                  self['job_publish_time'],
+                  self['job_tags'],
+                  self['job_advantage'],
+                  self['job_desc'],
+                  self['job_addr'],
+                  self['job_comp_url'],
+                  self['job_comp_name'],
+                  self['crawl_time'],
+                  self['crawl_update_time']
+                  ]
+        return sql, params
