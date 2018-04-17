@@ -63,6 +63,17 @@ def remove_splash(value):
     return value.replace('/', '').strip()
 
 
+def split_str(value, separator='-'):
+    """
+    切割字符串
+    需求来源于：拉勾中最低薪资和最高薪资要求划分入库
+    """
+    assert isinstance(value, str)
+    if not '-' in value:
+        assert 'the value is not like: "a-b"'
+    return value.split(separator)
+
+
 if __name__ == "__main__":
     # print(get_md5("http://jobbole.com"))
     print(timestamp_to_date(1520822831))
