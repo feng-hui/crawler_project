@@ -1,0 +1,31 @@
+testdb index test data
+
+PUT testdb
+{
+  "settings":{
+    "index":{
+      "number_of_shards":10,
+      "number_of_replicas":2
+    }
+  }
+}
+
+PUT testdb/job1/1 
+{
+  "title":"job1_1"
+}
+
+PUT testdb/job1/2 
+{
+  "title":"job1_2"
+}
+
+PUT testdb/job2/1 
+{
+  "title":"job2_1"
+}
+
+PUT testdb/job2/2 
+{
+  "title":"job2_2"
+}
