@@ -7,7 +7,7 @@
 import scrapy
 from scrapy.loader.processors import MapCompose, TakeFirst, Join
 from scrapy.loader import ItemLoader
-from common_crawlers.utils.common import get_number, standard_time, str_to_int
+from common_crawlers.utils.common import get_number, standard_time, str_to_int, remove_splash
 from w3lib.html import remove_tags
 
 
@@ -125,7 +125,10 @@ class LaGouItemLoader(ItemLoader):
     """拉勾custom item loader"""
     default_output_processor = TakeFirst()
     job_tags_in = Join(',')
-    job_addr_in = MapCompose(remove_tags)
+    job_addr_in = MapCompose(remove_tags, remove_splash)
+    job_degree_need_in = job_city_in = job_comp_name_in = \
+        job_work_years_in = job_publish_time_in = MapCompose(remove_splash)
+    job_desc_in = Join()
 
 
 class LaGouJobItem(scrapy.Item):

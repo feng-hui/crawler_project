@@ -56,11 +56,13 @@ def str_to_int(value):
 
 def remove_splash(value):
     """
-    去除字符串中的反斜杠/
+    no：not only
+    去除字符串中的反斜杠/或其他不需要的字符
     需求来源于：拉勾中职位所在的城市
     """
     assert isinstance(value, str)
-    return value.replace('/', '').strip()
+    value = value.replace('查看地图', '').replace('经验', '').replace('发布于拉勾网', '')
+    return re.sub(r'-|/|\s+', '', value).strip()
 
 
 def split_str(value, separator='-'):
