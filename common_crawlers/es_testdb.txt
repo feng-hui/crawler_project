@@ -1,4 +1,95 @@
-testdb index test data
+PUT lagou 
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 5,
+      "number_of_replicas": 1
+    }
+  }
+}
+GET lagou/_settings
+GET _all/_settings
+GET _settings
+GET .kibana,lagou/_settings
+
+PUT lagou/_settings 
+{
+  "number_of_replicas": 2
+}
+
+PUT lagou/_settings
+{
+  "number_of_shards": 10
+}
+
+GET _all
+GET lago
+
+PUT lagou/job/1
+{
+"title":"python分布式爬虫开发",
+"salary":15000,
+"city":"北京",
+"company":{
+"name":"百度",
+"company_addr":"北京市软件园"
+},
+"publish_date":"2018-4-17",
+"comments":15
+}
+
+POST lagou/job
+{
+"title":"python django开发工程师",
+"salary":30000,
+"city":"上海",
+"company":{
+"name":"美团科技",
+"company_addr":"北京市软件园"
+},
+"publish_date":"2018-4-17",
+"comments":20
+}
+
+GET lagou/job/1
+GET lagou/job/1?_source=
+GET lagou/job/1?_source=title
+GET lagou/job/1?_source=title,city
+
+PUT lagou/job/1
+{
+"title":"python分布式爬虫开发",
+"salary":15000,
+"city":"北京",
+"company":{
+"name":"百度",
+"company_addr":"北京市软件园"
+},
+"publish_date":"2018-4-18",
+"comments":120
+}
+
+POST lagou/job/1/_update
+{
+  "doc":{
+    "comments":300
+  }
+}
+
+DELETE lagou/job/1
+
+PUT testdb
+{
+  "settings": {
+    "index":{
+      "number_of_shards":10,
+      "number_of_replicas":2
+    }
+  }
+}
+
+GET testdb/_settings
+DELETE testdb
 
 PUT testdb
 {
@@ -25,7 +116,64 @@ PUT testdb/job2/1
   "title":"job2_1"
 }
 
+
+# 批量操作 bulk
+
+POST _bulk
+{"index":{"_index":"lagou","_type":"job","_id":"1"}}
+{"title":"python分布式爬虫开发","salary":15000,"city":"北京","company":{"name":"百度","company_addr":"北京市软件园"},"publish_date":"2018-4-17","comments":15}
+{"index":{"_index":"lagou","_type":"job","_id":"2"}}
+{"title":"python django开发工程师","salary":30000,"city":"上海","company":{"name":"美团科技","company_addr":"北京市软件园"},"publish_date":"2018-4-17","comments":20}
 PUT testdb/job2/2 
 {
   "title":"job2_2"
 }
+
+GET _mget
+{
+  "docs":[
+    {
+      "_index":"testdb",
+      "_type":"job1",
+      "_id":1
+    },
+    {
+      "_index":"testdb",
+      "_type":"job2",
+      "_id":1
+    }
+    ]
+}
+
+GET testdb/_mget
+{
+  "docs":[
+    {
+      "_type":"job1",
+      "_id":1
+    },
+    {
+      "_type":"job2",
+      "_id":2
+    }
+    ]
+}
+
+GET testdb/job2/_mget
+{
+  "docs":[
+    {
+      "_id":1
+    },
+    {
+      "_id":2
+    }
+    ]
+}
+
+GET testdb/job1/_mget
+{
+  "ids":[1,2]
+}
+
+
