@@ -117,13 +117,6 @@ PUT testdb/job2/1
 }
 
 
-# 批量操作 bulk
-
-POST _bulk
-{"index":{"_index":"lagou","_type":"job","_id":"1"}}
-{"title":"python分布式爬虫开发","salary":15000,"city":"北京","company":{"name":"百度","company_addr":"北京市软件园"},"publish_date":"2018-4-17","comments":15}
-{"index":{"_index":"lagou","_type":"job","_id":"2"}}
-{"title":"python django开发工程师","salary":30000,"city":"上海","company":{"name":"美团科技","company_addr":"北京市软件园"},"publish_date":"2018-4-17","comments":20}
 PUT testdb/job2/2 
 {
   "title":"job2_2"
@@ -176,4 +169,11 @@ GET testdb/job1/_mget
   "ids":[1,2]
 }
 
+# 批量操作 bulk
+
+POST _bulk
+{"index":{"_index":"lagou","_type":"job","_id":"1"}}
+{"title":"python分布式爬虫开发","salary":15000,"city":"北京","company":{"name":"百度","company_addr":"北京市软件园"},"publish_date":"2018-4-17","comments":15}
+{"index":{"_index":"lagou","_type":"job","_id":"2"}}
+{"title":"python django开发工程师","salary":30000,"city":"上海","company":{"name":"美团科技","company_addr":"北京市软件园"},"publish_date":"2018-4-17","comments":20}
 
