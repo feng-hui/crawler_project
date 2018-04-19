@@ -1,0 +1,52 @@
+PUT lagou
+{
+  "mappings": {
+    "job":{
+      "properties":{
+        "title":{
+          "type": "text"
+        },
+        "salay_min":{
+          "type": "integer"
+        },
+        "city":{
+          "type": "text"
+        },
+        "company":{
+          "properties":{
+            "name":{
+              "type":"text"
+            },
+            "company_addr":{
+              "type":"text"
+            },
+            "employee_count":{
+              "type":"integer"
+            }
+          }
+        },
+        "publish_date":{
+          "type": "date",
+          "format": "yyyy-mm-dd"
+        },
+        "comments":{
+          "type": "integer"
+        }
+      }
+    }
+  }
+}
+
+PUT lagou/job/1
+{
+"title":"python分布式爬虫开发",
+"salary_min":15000,
+"city":"北京",
+"company":{
+"name":"百度",
+"company_addr":"北京市软件园",
+"employee_count":50
+},
+"publish_date":"2018-4-17",
+"comments":15
+}

@@ -1,0 +1,42 @@
+#1、简单查询相关数据 2018.04.19
+
+POST lagou/job
+{
+"title":"python django 开发工程师",
+"company_name":"美团科技有限公司",
+"desc":"对django的概念熟悉， 	熟悉python基础知识",
+"comments":20,
+"add_time":"2018-4-19"
+}
+
+
+POST lagou/job
+{
+"title":"python scrapy redis 分布式爬虫基本",
+"company_name":"百度科技有限公司",
+"desc":"对scrapy的概念熟悉， 	熟悉redis基本操作",
+"comments":5,
+"add_time":"2017-4-15"
+}
+
+POST lagou/job
+{
+"title":"elasticsearch打造搜索引擎",
+"company_name":"阿里巴巴科技有限公司",
+"desc":"熟悉数据结构算法， 	熟悉python的基本开发",
+"comments":15,
+"add_time":"2018-6-15"
+}
+
+
+POST lagou/job
+{
+"title":"python打造推荐引擎系统",
+"company_name":"阿里巴巴科技有限公司",
+"desc":"熟悉推荐引擎的原理以及算法， 	掌握C语言",
+"comments":60,
+"add_time":"2019-09-09"
+}
+
+
+# 常见的简单查询示例 2018.04.19

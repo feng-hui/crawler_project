@@ -1,0 +1,26 @@
+# 复杂的es查询测试数据1 2018.04.19【复杂的bool查询】
+
+POST lagou/testjob/_bulk
+{"index":{"_id":1}}
+{"salay":10,"title":"Python"}
+{"index":{"_id":2}}
+{"salay":20,"title":"Scrapy"}
+{"index":{"_id":3}}
+{"salay":30,"title":"Django"}
+{"index":{"_id":4}}
+{"salay":40,"title":"Elasticsearch"}
+
+
+# 复杂的es查询测试数据2 2018.04.19 【复杂的bool查询,过滤空和非空】
+
+POST lagou/testjob2/_bulk
+{"index":{"_id":1}}
+{"tags":["search","python"]}
+{"index":{"_id":2}}
+{"tags":["search"]}
+{"index":{"_id":3}}
+{"other_field":["some data"]}
+{"index":{"_id":4}}
+{"tags":null}
+{"index":{"_id":5}}
+{"tags":["search",null]}
