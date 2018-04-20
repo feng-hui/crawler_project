@@ -1,10 +1,44 @@
 #1、简单查询相关数据 2018.04.19
 
+# 建立mapping
+
+PUT lagou
+{
+  "mappings": {
+    "job":{
+      "properties": {
+        "title":{
+          "type": "text",
+          "store": true,
+          "analyzer": "ik_max_word"
+        },
+        "company_name":{
+          "store": true,
+          "type": "keyword"
+        },
+        "desc":{
+          "type": "text"
+        },
+        "comments":{
+          "type": "integer"
+        },
+        "add_time":{
+          "type":"date",
+          "format": "yyyy-MM-dd"
+        }
+      }
+    }
+  }
+}
+
+
+# 写入数据
+
 POST lagou/job
 {
 "title":"python django 开发工程师",
 "company_name":"美团科技有限公司",
-"desc":"对django的概念熟悉， 	熟悉python基础知识",
+"desc":"对django的概念熟悉， 熟悉python基础知识",
 "comments":20,
 "add_time":"2018-4-19"
 }
@@ -14,7 +48,7 @@ POST lagou/job
 {
 "title":"python scrapy redis 分布式爬虫基本",
 "company_name":"百度科技有限公司",
-"desc":"对scrapy的概念熟悉， 	熟悉redis基本操作",
+"desc":"对scrapy的概念熟悉， 熟悉redis基本操作",
 "comments":5,
 "add_time":"2017-4-15"
 }
@@ -23,7 +57,7 @@ POST lagou/job
 {
 "title":"elasticsearch打造搜索引擎",
 "company_name":"阿里巴巴科技有限公司",
-"desc":"熟悉数据结构算法， 	熟悉python的基本开发",
+"desc":"熟悉数据结构算法， 熟悉python的基本开发",
 "comments":15,
 "add_time":"2018-6-15"
 }
@@ -33,10 +67,179 @@ POST lagou/job
 {
 "title":"python打造推荐引擎系统",
 "company_name":"阿里巴巴科技有限公司",
-"desc":"熟悉推荐引擎的原理以及算法， 	掌握C语言",
+"desc":"熟悉推荐引擎的原理以及算法， 掌握C语言",
 "comments":60,
 "add_time":"2019-09-09"
 }
 
 
-# 常见的简单查询示例 2018.04.19
+# 2、常见的简单查询示例 2018.04.19，用的最多为match、range等
+
+# match
+
+GET lagou/job/_search
+{
+  "query": {
+    "match": {
+      "title": "python"
+    }
+  }
+}
+
+# term
+
+GET lagou/job/_search
+{
+  "query": {
+    "term": {
+      "title": "python"
+    }
+  }
+}
+
+# terms
+
+GET lagou/job/_search
+{
+  "query": {
+    "terms": {
+      "title": [
+        "python",
+        "scrapy"
+      ]
+    }
+  }
+}
+
+# 控制返回的数量
+
+GET lagou/_search
+{
+  "query": {
+    "match": {
+      "title": "python"
+    }
+  },
+  "from": 1,
+  "size": 20
+}
+
+
+# 返回所有数据
+
+GET lagou/job/_search
+{
+  "query": {
+    "match_all": {}
+  }
+}
+
+# match phrase
+# 短语查询,必须满足短语里的所有词语
+
+# slop，设置短语里两个词之间的距离
+
+
+GET lagou/job/_search
+{
+  "query": {
+    "match_phrase": {
+      "title": {
+        "query": "python系统",
+        "slop":6
+      }
+    }
+  }
+}
+
+
+# multi match
+# 可以制定指定多个字段
+# ^3 表示title的权重是desc的3倍
+
+GET lagou/job/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "python",
+      "fields": ["title^3","desc"]
+    }
+  }
+}
+
+
+# 指定返回字段
+
+GET lagou/job/_search
+{
+  "stored_fields": ["title","company_name"], 
+  "query": {
+    "match": {
+      "title": "python"
+    }
+  }
+}
+
+
+
+# 通过sort对结果进行排序
+
+GET lagou/job/_search
+{
+  "query": {
+    "match_all": {}
+  },
+  "sort": [
+    {
+      "comments": {
+        "order": "desc"
+      }
+    }
+  ]
+}
+
+# 查询范围
+
+# range查询，boost表示权重
+
+GET lagou/job/_search
+{
+  "query": {
+    "range": {
+      "comments": {
+        "gte": 10,
+        "lte": 20,
+        "boost": 2.0
+      }
+    }
+  }
+}
+
+
+GET lagou/_search
+{
+  "query": {
+    "range": {
+      "add_time": {
+        "gte": "2018-4-19",
+        "lte": "now"
+      }
+    }
+  }
+}
+
+
+# wildcard查询，支持通配符
+
+GET lagou/_search
+{
+  "query": {
+    "wildcard": {
+      "title": {
+        "value": "pyth*n",
+        "boost": 2
+      }
+    }
+  }
+}
+
