@@ -85,7 +85,7 @@ GET _analyze
 }
 
 
-C、
+C、组合过滤查询，嵌套查询
 
 # select * from testjob where (salary=20 or title="python") and (salary!=10)
 
@@ -105,8 +105,30 @@ GET lagou/_search
 }
 
 
+# select * from testjob where title="python" or (title="django" and salary=30)
 
-
+GET lagou/_search
+{
+  "query": {
+    "bool": {
+      "should": [
+        {"term": {
+          "title": {
+            "value": "python"
+          }
+        }},
+        {
+          "bool": {
+            "must": [
+              {"term":{"title":"django"}},
+              {"term":{"salay":30}}
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
 
 
 # 2、复杂的es查询测试数据2 2018.04.19 【复杂的bool查询,过滤空和非空】
@@ -122,4 +144,35 @@ POST lagou/testjob2/_bulk
 {"tags":null}
 {"index":{"_id":5}}
 {"tags":["search",null]}
+
+
+A、处理null空值的方法
+
+GET lagou/testjob2/_search
+{
+  "query": {
+    "bool": {
+      "filter": {
+        "exists": {
+          "field": "tags"
+        }
+      }
+    }
+  }
+}
+
+
+GET lagou/testjob2/_search
+{
+  "query": {
+    "bool": {
+      "must_not": {
+        "exists": {
+          "field": "tags"
+        }
+      }
+    }
+  }
+}
+
 
