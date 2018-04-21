@@ -39,12 +39,12 @@ PUT lagou
 
 PUT lagou/job/1
 {
-"title":"python·Ö²¼Ê½ÅÀ³æ¿ª·¢",
+"title":"pythonåˆ†å¸ƒå¼çˆ¬è™«å¼€å‘",
 "salary_min":15000,
-"city":"±±¾©",
+"city":"åŒ—äº¬",
 "company":{
-"name":"°Ù¶È",
-"company_addr":"±±¾©ÊĞÈí¼şÔ°",
+"name":"ç™¾åº¦",
+"company_addr":"åŒ—äº¬å¸‚è½¯ä»¶å›­",
 "employee_count":50
 },
 "publish_date":"2018-4-17",

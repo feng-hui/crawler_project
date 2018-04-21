@@ -1,4 +1,4 @@
-# 1�����ӵ�es��ѯ��������1 2018.04.19�����ӵ�bool��ѯ��
+# 1、复杂的es查询测试数据1 2018.04.19【复杂的bool查询】
 
 POST lagou/testjob/_bulk
 {"index":{"_id":1}}
@@ -10,13 +10,13 @@ POST lagou/testjob/_bulk
 {"index":{"_id":4}}
 {"salay":40,"title":"Elasticsearch"}
 
-# �򵥵Ĺ��˲�ѯ
+# 简单的过滤查询
 
-A����򵥵�filter��ѯ
+A、最简单的filter查询
 
 # select * from testjob where salary=20
 
-# ��ѯн��Ϊ20�Ĺ���
+# 查询薪资为20的工作
 
 
 GET lagou/_search
@@ -56,9 +56,9 @@ GET lagou/_search
 
 # select * from testjob where title="Python"
 
-# �����д��python�鲻������Ϊpython�����ݣ���Ҫԭ����titleΪһ��text���͵����ݣ��ڴ���es��ʱ�򣬾����˵����������������Ա�ת��Ϊ��Сд
+# 输入大写的python查不到标题为python的数据，主要原因是title为一个text类型的数据，在传入es的时候，经过了倒排索引处理，所以被转换为了小写
 
-# �����ѯһ��Ҫʹ��Сд����Ҫ�������Ϊtext�����ݣ�����ʹ��match
+# 建议查询一定要使用小写，主要针对类型为text的数据，或者使用match
 
 GET lagou/_search
 {
@@ -76,16 +76,16 @@ GET lagou/_search
   }
 }
 
-B���鿴�����������Ľ��
+B、查看分析器分析的结果
 
 GET _analyze
 {
   "analyzer": "ik_max_word",
-  "text": ["python��������ʦ","python web ��������ʦ"]
+  "text": ["python开发工程师","python web 开发工程师"]
 }
 
 
-C����Ϲ��˲�ѯ��Ƕ�ײ�ѯ
+C、组合过滤查询，嵌套查询
 
 # select * from testjob where (salary=20 or title="python") and (salary!=10)
 
@@ -131,7 +131,7 @@ GET lagou/_search
 }
 
 
-# 2�����ӵ�es��ѯ��������2 2018.04.19 �����ӵ�bool��ѯ,���˿պͷǿա�
+# 2、复杂的es查询测试数据2 2018.04.19 【复杂的bool查询,过滤空和非空】
 
 POST lagou/testjob2/_bulk
 {"index":{"_id":1}}
@@ -146,7 +146,7 @@ POST lagou/testjob2/_bulk
 {"tags":["search",null]}
 
 
-A������null��ֵ�ķ���
+A、处理null空值的方法
 
 GET lagou/testjob2/_search
 {

@@ -1,4 +1,4 @@
-PUT lagou 
+PUT lagou
 {
   "settings": {
     "index": {
@@ -12,7 +12,7 @@ GET _all/_settings
 GET _settings
 GET .kibana,lagou/_settings
 
-PUT lagou/_settings 
+PUT lagou/_settings
 {
   "number_of_replicas": 2
 }
@@ -27,12 +27,12 @@ GET lago
 
 PUT lagou/job/1
 {
-"title":"python·Ö²¼Ê½ÅÀ³æ¿ª·¢",
+"title":"pythonåˆ†å¸ƒå¼çˆ¬è™«å¼€å‘",
 "salary":15000,
-"city":"±±¾©",
+"city":"åŒ—äº¬",
 "company":{
-"name":"°Ù¶È",
-"company_addr":"±±¾©ÊĞÈí¼şÔ°"
+"name":"ç™¾åº¦",
+"company_addr":"åŒ—äº¬å¸‚è½¯ä»¶å›­"
 },
 "publish_date":"2018-4-17",
 "comments":15
@@ -40,12 +40,12 @@ PUT lagou/job/1
 
 POST lagou/job
 {
-"title":"python django¿ª·¢¹¤³ÌÊ¦",
+"title":"python djangoå¼€å‘å·¥ç¨‹å¸ˆ",
 "salary":30000,
-"city":"ÉÏº£",
+"city":"ä¸Šæµ·",
 "company":{
-"name":"ÃÀÍÅ¿Æ¼¼",
-"company_addr":"±±¾©ÊĞÈí¼şÔ°"
+"name":"ç¾å›¢ç§‘æŠ€",
+"company_addr":"åŒ—äº¬å¸‚è½¯ä»¶å›­"
 },
 "publish_date":"2018-4-17",
 "comments":20
@@ -58,12 +58,12 @@ GET lagou/job/1?_source=title,city
 
 PUT lagou/job/1
 {
-"title":"python·Ö²¼Ê½ÅÀ³æ¿ª·¢",
+"title":"pythonåˆ†å¸ƒå¼çˆ¬è™«å¼€å‘",
 "salary":15000,
-"city":"±±¾©",
+"city":"åŒ—äº¬",
 "company":{
-"name":"°Ù¶È",
-"company_addr":"±±¾©ÊĞÈí¼şÔ°"
+"name":"ç™¾åº¦",
+"company_addr":"åŒ—äº¬å¸‚è½¯ä»¶å›­"
 },
 "publish_date":"2018-4-18",
 "comments":120
@@ -101,23 +101,23 @@ PUT testdb
   }
 }
 
-PUT testdb/job1/1 
+PUT testdb/job1/1
 {
   "title":"job1_1"
 }
 
-PUT testdb/job1/2 
+PUT testdb/job1/2
 {
   "title":"job1_2"
 }
 
-PUT testdb/job2/1 
+PUT testdb/job2/1
 {
   "title":"job2_1"
 }
 
 
-PUT testdb/job2/2 
+PUT testdb/job2/2
 {
   "title":"job2_2"
 }
@@ -169,11 +169,11 @@ GET testdb/job1/_mget
   "ids":[1,2]
 }
 
-# ÅúÁ¿²Ù×÷ bulk
+# æ‰¹é‡æ“ä½œ bulk
 
 POST _bulk
 {"index":{"_index":"lagou","_type":"job","_id":"1"}}
-{"title":"python·Ö²¼Ê½ÅÀ³æ¿ª·¢","salary":15000,"city":"±±¾©","company":{"name":"°Ù¶È","company_addr":"±±¾©ÊĞÈí¼şÔ°"},"publish_date":"2018-4-17","comments":15}
+{"title":"pythonåˆ†å¸ƒå¼çˆ¬è™«å¼€å‘","salary":15000,"city":"åŒ—äº¬","company":{"name":"ç™¾åº¦","company_addr":"åŒ—äº¬å¸‚è½¯ä»¶å›­"},"publish_date":"2018-4-17","comments":15}
 {"index":{"_index":"lagou","_type":"job","_id":"2"}}
-{"title":"python django¿ª·¢¹¤³ÌÊ¦","salary":30000,"city":"ÉÏº£","company":{"name":"ÃÀÍÅ¿Æ¼¼","company_addr":"±±¾©ÊĞÈí¼şÔ°"},"publish_date":"2018-4-17","comments":20}
+{"title":"python djangoå¼€å‘å·¥ç¨‹å¸ˆ","salary":30000,"city":"ä¸Šæµ·","company":{"name":"ç¾å›¢ç§‘æŠ€","company_addr":"åŒ—äº¬å¸‚è½¯ä»¶å›­"},"publish_date":"2018-4-17","comments":20}
 

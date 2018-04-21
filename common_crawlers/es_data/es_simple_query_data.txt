@@ -1,6 +1,6 @@
-#1¡¢¼òµ¥²éÑ¯Ïà¹ØÊı¾İ 2018.04.19
+#1ã€ç®€å•æŸ¥è¯¢ç›¸å…³æ•°æ® 2018.04.19
 
-# ½¨Á¢mapping
+# å»ºç«‹mapping
 
 PUT lagou
 {
@@ -32,13 +32,13 @@ PUT lagou
 }
 
 
-# Ğ´ÈëÊı¾İ
+# å†™å…¥æ•°æ®
 
 POST lagou/job
 {
-"title":"python django ¿ª·¢¹¤³ÌÊ¦",
-"company_name":"ÃÀÍÅ¿Æ¼¼ÓĞÏŞ¹«Ë¾",
-"desc":"¶ÔdjangoµÄ¸ÅÄîÊìÏ¤£¬ ÊìÏ¤python»ù´¡ÖªÊ¶",
+"title":"python django å¼€å‘å·¥ç¨‹å¸ˆ",
+"company_name":"ç¾å›¢ç§‘æŠ€æœ‰é™å…¬å¸",
+"desc":"å¯¹djangoçš„æ¦‚å¿µç†Ÿæ‚‰ï¼Œ ç†Ÿæ‚‰pythonåŸºç¡€çŸ¥è¯†",
 "comments":20,
 "add_time":"2018-4-19"
 }
@@ -46,18 +46,18 @@ POST lagou/job
 
 POST lagou/job
 {
-"title":"python scrapy redis ·Ö²¼Ê½ÅÀ³æ»ù±¾",
-"company_name":"°Ù¶È¿Æ¼¼ÓĞÏŞ¹«Ë¾",
-"desc":"¶ÔscrapyµÄ¸ÅÄîÊìÏ¤£¬ ÊìÏ¤redis»ù±¾²Ù×÷",
+"title":"python scrapy redis åˆ†å¸ƒå¼çˆ¬è™«åŸºæœ¬",
+"company_name":"ç™¾åº¦ç§‘æŠ€æœ‰é™å…¬å¸",
+"desc":"å¯¹scrapyçš„æ¦‚å¿µç†Ÿæ‚‰ï¼Œ ç†Ÿæ‚‰redisåŸºæœ¬æ“ä½œ",
 "comments":5,
 "add_time":"2017-4-15"
 }
 
 POST lagou/job
 {
-"title":"elasticsearch´òÔìËÑË÷ÒıÇæ",
-"company_name":"°¢Àï°Í°Í¿Æ¼¼ÓĞÏŞ¹«Ë¾",
-"desc":"ÊìÏ¤Êı¾İ½á¹¹Ëã·¨£¬ ÊìÏ¤pythonµÄ»ù±¾¿ª·¢",
+"title":"elasticsearchæ‰“é€ æœç´¢å¼•æ“",
+"company_name":"é˜¿é‡Œå·´å·´ç§‘æŠ€æœ‰é™å…¬å¸",
+"desc":"ç†Ÿæ‚‰æ•°æ®ç»“æ„ç®—æ³•ï¼Œ ç†Ÿæ‚‰pythonçš„åŸºæœ¬å¼€å‘",
 "comments":15,
 "add_time":"2018-6-15"
 }
@@ -65,15 +65,15 @@ POST lagou/job
 
 POST lagou/job
 {
-"title":"python´òÔìÍÆ¼öÒıÇæÏµÍ³",
-"company_name":"°¢Àï°Í°Í¿Æ¼¼ÓĞÏŞ¹«Ë¾",
-"desc":"ÊìÏ¤ÍÆ¼öÒıÇæµÄÔ­ÀíÒÔ¼°Ëã·¨£¬ ÕÆÎÕCÓïÑÔ",
+"title":"pythonæ‰“é€ æ¨èå¼•æ“ç³»ç»Ÿ",
+"company_name":"é˜¿é‡Œå·´å·´ç§‘æŠ€æœ‰é™å…¬å¸",
+"desc":"ç†Ÿæ‚‰æ¨èå¼•æ“çš„åŸç†ä»¥åŠç®—æ³•ï¼Œ æŒæ¡Cè¯­è¨€",
 "comments":60,
 "add_time":"2019-09-09"
 }
 
 
-# 2¡¢³£¼ûµÄ¼òµ¥²éÑ¯Ê¾Àı 2018.04.19£¬ÓÃµÄ×î¶àÎªmatch¡¢rangeµÈ
+# 2ã€å¸¸è§çš„ç®€å•æŸ¥è¯¢ç¤ºä¾‹ 2018.04.19ï¼Œç”¨çš„æœ€å¤šä¸ºmatchã€rangeç­‰
 
 # match
 
@@ -111,7 +111,7 @@ GET lagou/job/_search
   }
 }
 
-# ¿ØÖÆ·µ»ØµÄÊıÁ¿
+# æ§åˆ¶è¿”å›çš„æ•°é‡
 
 GET lagou/_search
 {
@@ -125,7 +125,7 @@ GET lagou/_search
 }
 
 
-# ·µ»ØËùÓĞÊı¾İ
+# è¿”å›æ‰€æœ‰æ•°æ®
 
 GET lagou/job/_search
 {
@@ -135,9 +135,9 @@ GET lagou/job/_search
 }
 
 # match phrase
-# ¶ÌÓï²éÑ¯,±ØĞëÂú×ã¶ÌÓïÀïµÄËùÓĞ´ÊÓï
+# çŸ­è¯­æŸ¥è¯¢,å¿…é¡»æ»¡è¶³çŸ­è¯­é‡Œçš„æ‰€æœ‰è¯è¯­
 
-# slop£¬ÉèÖÃ¶ÌÓïÀïÁ½¸ö´ÊÖ®¼äµÄ¾àÀë
+# slopï¼Œè®¾ç½®çŸ­è¯­é‡Œä¸¤ä¸ªè¯ä¹‹é—´çš„è·ç¦»
 
 
 GET lagou/job/_search
@@ -145,7 +145,7 @@ GET lagou/job/_search
   "query": {
     "match_phrase": {
       "title": {
-        "query": "pythonÏµÍ³",
+        "query": "pythonç³»ç»Ÿ",
         "slop":6
       }
     }
@@ -154,8 +154,8 @@ GET lagou/job/_search
 
 
 # multi match
-# ¿ÉÒÔÖÆ¶¨Ö¸¶¨¶à¸ö×Ö¶Î
-# ^3 ±íÊ¾titleµÄÈ¨ÖØÊÇdescµÄ3±¶
+# å¯ä»¥åˆ¶å®šæŒ‡å®šå¤šä¸ªå­—æ®µ
+# ^3 è¡¨ç¤ºtitleçš„æƒé‡æ˜¯descçš„3å€
 
 GET lagou/job/_search
 {
@@ -168,11 +168,11 @@ GET lagou/job/_search
 }
 
 
-# Ö¸¶¨·µ»Ø×Ö¶Î
+# æŒ‡å®šè¿”å›å­—æ®µ
 
 GET lagou/job/_search
 {
-  "stored_fields": ["title","company_name"], 
+  "stored_fields": ["title","company_name"],
   "query": {
     "match": {
       "title": "python"
@@ -182,7 +182,7 @@ GET lagou/job/_search
 
 
 
-# Í¨¹ısort¶Ô½á¹û½øĞĞÅÅĞò
+# é€šè¿‡sortå¯¹ç»“æœè¿›è¡Œæ’åº
 
 GET lagou/job/_search
 {
@@ -198,9 +198,9 @@ GET lagou/job/_search
   ]
 }
 
-# ²éÑ¯·¶Î§
+# æŸ¥è¯¢èŒƒå›´
 
-# range²éÑ¯£¬boost±íÊ¾È¨ÖØ
+# rangeæŸ¥è¯¢ï¼Œboostè¡¨ç¤ºæƒé‡
 
 GET lagou/job/_search
 {
@@ -229,7 +229,7 @@ GET lagou/_search
 }
 
 
-# wildcard²éÑ¯£¬Ö§³ÖÍ¨Åä·û
+# wildcardæŸ¥è¯¢ï¼Œæ”¯æŒé€šé…ç¬¦
 
 GET lagou/_search
 {
