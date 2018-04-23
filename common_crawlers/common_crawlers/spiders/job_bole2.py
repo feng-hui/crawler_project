@@ -3,9 +3,8 @@ import scrapy
 import re
 from scrapy.http import Request
 from urllib import parse
-from common_crawlers.items import CommonCrawlersItem
+from common_crawlers.items import JobBoleItem
 from common_crawlers.utils.common import get_md5
-import os
 
 
 class JobBole2Spider(scrapy.Spider):
@@ -13,7 +12,7 @@ class JobBole2Spider(scrapy.Spider):
     allowed_domains = ['jobbole.com']
     start_urls = [
         # 'http://blog.jobbole.com/all-posts/',
-        'http://blog.jobbole.com/all-posts/page/222/',
+        'http://blog.jobbole.com/all-posts/page/11/',
         # 'http://blog.jobbole.com/all-posts/page/3/'
     ]
 
@@ -31,7 +30,7 @@ class JobBole2Spider(scrapy.Spider):
         all_links = response.xpath('//div[@id="archive"]/div/div[@class="post-thumb"]/a')
         if all_links:
             for each_link in all_links:
-                item = CommonCrawlersItem()
+                item = JobBoleItem()
                 each_url = each_link.xpath('@href')
                 img_url = each_link.xpath('img/@src')
                 if img_url:
@@ -68,7 +67,7 @@ class JobBole2Spider(scrapy.Spider):
         item['create_time'] = create_time
         item['article_url'] = response.url
         item['article_url_id'] = get_md5(response.url)
-        # item['content'] = content
+        item['content'] = content
         item['like_num'] = like_num
         item['comment_num'] = comment_num
         item['tags'] = tags

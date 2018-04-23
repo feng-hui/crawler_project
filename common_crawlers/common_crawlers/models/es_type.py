@@ -7,15 +7,12 @@ from elasticsearch_dsl.connections import create_connection
 create_connection(hosts=["localhost"])
 
 
-class CreateEsType(DocType):
-
-    def __init__(self):
-        super(DocType, self).__init__()
+class JobBoleEsType(DocType):
 
     title = Text(analyzer="ik_max_word")
     thumbnail_url = Keyword()
     article_url = Keyword()
-    article_url_id = Integer()
+    article_url_id = Keyword()
     create_time = Date()
     content = Text(analyzer="ik_max_word")
     like_num = Integer()
@@ -27,4 +24,4 @@ class CreateEsType(DocType):
 
 
 if __name__ == "__main__":
-    CreateEsType.init()
+    JobBoleEsType.init()
