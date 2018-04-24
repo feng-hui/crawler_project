@@ -37,4 +37,11 @@ class JobBoleEsType(DocType):
 
 
 if __name__ == "__main__":
+    # 初始化映射
     JobBoleEsType.init()
+    # 保存数据的方式
+    # first = JobBoleEsType(title="My first blog")
+    # print(first.meta.index)
+    # first.article_url = 'http://www.baidu.com'
+    # first.meta.id = 1
+    # first.save()
