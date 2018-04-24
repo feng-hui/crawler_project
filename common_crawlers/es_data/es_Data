@@ -1,0 +1,186 @@
+{
+	"state": "open",
+	"settings": {
+		"index": {
+			"number_of_shards": "5",
+			"provided_name": "job_bole",
+			"creation_date": "1524567248358",
+			"analysis": {
+				"analyzer": {
+					"my_analyzer": {
+						"filter": [
+							"lowercase"
+						],
+						"type": "custom",
+						"tokenizer": "trigram"
+					}
+				},
+				"tokenizer": {
+					"trigram": {
+						"type": "nGram",
+						"min_gram": "3",
+						"max_gram": "3"
+					}
+				}
+			},
+			"number_of_replicas": "1",
+			"uuid": "Csscsq04SW6-XG7wQXeIWg",
+			"version": {
+				"created": "5010199"
+			}
+		}
+	},
+	"mappings": {
+		"doc": {
+			"properties": {
+				"comment_num": {
+					"type": "integer"
+				},
+				"like_num": {
+					"type": "integer"
+				},
+				"create_time": {
+					"type": "date"
+				},
+				"suggest": {
+					"max_input_length": 50,
+					"analyzer": "my_analyzer",
+					"preserve_position_increments": true,
+					"type": "completion",
+					"preserve_separators": true
+				},
+				"article_url": {
+					"type": "keyword"
+				},
+				"thumbnail_url": {
+					"type": "keyword"
+				},
+				"title": {
+					"analyzer": "ik_max_word",
+					"type": "text"
+				},
+				"article_url_id": {
+					"type": "keyword"
+				},
+				"content": {
+					"analyzer": "ik_max_word",
+					"type": "text"
+				},
+				"tags": {
+					"analyzer": "ik_max_word",
+					"type": "text"
+				}
+			}
+		}
+	},
+	"aliases": [],
+	"primary_terms": {
+		"0": 1,
+		"1": 1,
+		"2": 1,
+		"3": 1,
+		"4": 1
+	},
+	"in_sync_allocations": {
+		"0": [
+			"TeO5y3qKTreLBOHEEIwoLw"
+		],
+		"1": [
+			"9BYYeN2WTI61SW4SF2FLhA"
+		],
+		"2": [
+			"hq10tCuLTqGhaBdDa_kP2Q"
+		],
+		"3": [
+			"4PfmxMrrTLKlr4jXzDRqtw"
+		],
+		"4": [
+			"KH6AYV33S4eyXFbFjT-ygQ"
+		]
+	}
+}
+
+
+{
+	"state": "open",
+	"settings": {
+		"index": {
+			"creation_date": "1524567508387",
+			"number_of_shards": "5",
+			"number_of_replicas": "1",
+			"uuid": "Owx_KIr7Q3CAam9CfwaT8Q",
+			"version": {
+				"created": "5010199"
+			},
+			"provided_name": "job_bole"
+		}
+	},
+	"mappings": {
+		"doc": {
+			"properties": {
+				"comment_num": {
+					"type": "integer"
+				},
+				"like_num": {
+					"type": "integer"
+				},
+				"create_time": {
+					"type": "date"
+				},
+				"suggest": {
+					"max_input_length": 50,
+					"analyzer": "ik_max_word",
+					"preserve_position_increments": true,
+					"type": "completion",
+					"preserve_separators": true
+				},
+				"article_url": {
+					"type": "keyword"
+				},
+				"thumbnail_url": {
+					"type": "keyword"
+				},
+				"title": {
+					"analyzer": "ik_max_word",
+					"type": "text"
+				},
+				"article_url_id": {
+					"type": "keyword"
+				},
+				"content": {
+					"analyzer": "ik_max_word",
+					"type": "text"
+				},
+				"tags": {
+					"analyzer": "ik_max_word",
+					"type": "text"
+				}
+			}
+		}
+	},
+	"aliases": [],
+	"primary_terms": {
+		"0": 1,
+		"1": 1,
+		"2": 1,
+		"3": 1,
+		"4": 1
+	},
+	"in_sync_allocations": {
+		"0": [
+			"2ylMlNeVSw2K2hAtlm47Uw"
+		],
+		"1": [
+			"icwUwVZuTjueHdS5Tv4zVQ"
+		],
+		"2": [
+			"N7qu3cHGTGK_wpxAWZAs-g"
+		],
+		"3": [
+			"wr7p28g-SoOXbp4xb7ObJg"
+		],
+		"4": [
+			"dNIs2SoISKS8su3xVsYV2A"
+		]
+	}
+}
