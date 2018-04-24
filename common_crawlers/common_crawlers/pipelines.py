@@ -122,21 +122,10 @@ class TwistedMysqlPipeline(object):
 
 class JobBoleEsPipeline(object):
 
-    def __init__(self):
-        self.job_bole = JobBoleEsType()
-
     def process_item(self, item, spider):
         """
         如果需要多个项目都写到es中，可以把如下过程保存到items中，
         例如：save_to_es()
         """
-        self.job_bole.title = item['title']
-        self.job_bole.thumbnail_url = ''.join(item['thumbnail_url'])
-        self.job_bole.article_url = item['article_url']
-        self.job_bole.article_url_id = item['article_url_id']
-        self.job_bole.content = remove_tags(item['content'])
-        self.job_bole.like_num = item['like_num']
-        self.job_bole.comment_num = item['comment_num']
-        self.job_bole.tags = item['tags']
-        self.job_bole.save()
+        item.save_to_es()
         return item

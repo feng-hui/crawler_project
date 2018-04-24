@@ -9,6 +9,28 @@ from scrapy.loader.processors import MapCompose, TakeFirst, Join
 from scrapy.loader import ItemLoader
 from common_crawlers.utils.common import get_number, standard_time, str_to_int, remove_splash
 from w3lib.html import remove_tags
+from common_crawlers.models.es_type import JobBoleEsType
+from elasticsearch_dsl import connections
+es = connections.create_connection()
+
+
+def es_suggests(index, info_tuple):
+    """获取搜索建议"""
+    used_words = set()
+    suggest_info = []
+    for text, weight in info_tuple:
+        if text:
+            words = es.indices.analyze(index=index,
+                                       analyzer="ik_max_word",
+                                       body=text,
+                                       params=[{'filter': ['lowercase']}])
+            new_words = set([r['token'] for r in words['tokens'] if len(r['token'] > 1)])
+            if new_words:
+                suggest_words = new_words - used_words
+            else:
+                suggest_words = set()
+            suggest_info.append({"input": list(suggest_words), "weight": weight})
+    return suggest_info
 
 
 class CommonCrawlersItem(scrapy.Item):
@@ -29,6 +51,19 @@ class JobBoleItem(scrapy.Item):
     like_num = scrapy.Field()
     comment_num = scrapy.Field()
     tags = scrapy.Field()
+
+    def save_to_es(self):
+        job_bole = JobBoleEsType()
+        job_bole.suggest = es_suggests(JobBoleEsType._doc_type_.index, ((self.title, 10), (self.tags, 5)))
+        job_bole.title = self.title
+        job_bole.thumbnail_url = ''.join(self.thumbnail_url)
+        job_bole.article_url = self.article_url
+        job_bole.article_url_id = self.article_url_id
+        job_bole.content = remove_tags(self.content)
+        job_bole.like_num = self.like_num
+        job_bole.comment_num = self.comment_num
+        job_bole.tags = self.tags
+        job_bole.save()
 
 
 class CustomItemLoader(ItemLoader):
