@@ -1,0 +1,32 @@
+# 模糊查询
+GET job_bole/_search
+{
+  "query": {
+    "fuzzy": {
+      "title": {
+        "value": "linux",
+        "fuzziness": 2,
+        "prefix_length": 4
+      }
+    }
+  }
+  , "_source": ["title"]
+}
+
+# 搜索建议
+GET job_bole/_search?pretty
+{
+  "suggest":{
+    "my-suggest":{
+      "prefix":"linx",
+      "completion":{
+        "field":"suggest",
+        "fuzzy":{
+          "fuzziness":1
+        },
+        "size": 5
+      }
+    }
+  }
+  , "_source": ["title"]
+}

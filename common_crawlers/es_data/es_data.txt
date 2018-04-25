@@ -1,3 +1,5 @@
+# 通过python程序自定义生成出来的带有completion的数据格式
+# 一个是自定义的，一个是官方文档给出的方法
 {
 	"state": "open",
 	"settings": {
