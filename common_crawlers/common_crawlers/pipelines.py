@@ -12,8 +12,6 @@ from twisted.enterprise import adbapi
 import MySQLdb
 from MySQLdb.cursors import DictCursor
 from scrapy.conf import settings
-from common_crawlers.models.es_type import JobBoleEsType
-from w3lib.html import remove_tags
 
 
 class CommonCrawlersPipeline(object):

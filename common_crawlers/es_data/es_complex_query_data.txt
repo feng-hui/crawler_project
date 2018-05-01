@@ -175,4 +175,28 @@ GET lagou/testjob2/_search
   }
 }
 
+# 3、multi_match的使用 2018.05.01 15:08
+
+# 配合使用条数限制以及高亮的设置，来源于在搜索引擎的时候显示下拉搜索建议
+
+POST job_bole/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "linux",
+      "fields": ["title", "tags", "content"]
+    }
+  },
+  "from": 0,
+  "size": 20,
+  "highlight": {
+    "pre_tags": ["<span class='keyword'>"],
+    "post_tags": ["</span>"],
+    "fields": {
+      "title": {},
+      "content": {}
+    }
+  },
+  "_source": ["title"]
+}
 
