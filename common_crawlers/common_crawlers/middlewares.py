@@ -9,6 +9,8 @@ from scrapy import signals
 from scrapy.http import HtmlResponse
 import time
 import logging
+import random
+from fake_useragent import UserAgent
 logger = logging.getLogger(__name__)
 
 
@@ -69,3 +71,46 @@ class JsMiddleWare(object):
             logger.info("正在访问的页面链接为：{0}".format(request.url))
             return HtmlResponse(url=spider.browser.current_url, body=spider.browser.page_source,
                                 encoding='utf-8', request=request)
+
+
+class RandomUserAgentMiddleWare(object):
+    """随机切换user-agent，需要自己维护"""
+
+    def __init__(self, crawler):
+        super(RandomUserAgentMiddleWare, self).__init__()
+        self.user_agent_list = crawler.settings.get('USER_AGENT_LIST', [])
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(crawler)
+
+    def process_request(self, request, spider):
+        request.headers.setdefault('User-Agent', random.choice(self.user_agent_list))
+
+
+class RandomUserAgentMiddleWare2(object):
+    """
+    利用fake-useragent来获取对应的user-agent
+    安装方法: pip install fake-useragent，使用方法可参考github上的说明或者如下所写的方法都可以
+    缺陷：第一次使用会比较慢，会有一个加载的过程
+    """
+
+    def __init__(self, crawler):
+        super(RandomUserAgentMiddleWare2, self).__init__()
+        self.ua = UserAgent()
+        self.ua_type = crawler.settings.get('RANDOM_UA_TYPE', 'random')
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(crawler)
+
+    def process_request(self, request, spider):
+
+        def get_ua():
+            """随机获取设置号的ua"""
+            return getattr(self.ua, self.ua_type)
+
+        random_agent = get_ua()
+
+        request.headers.setdefault('User-Agent', random_agent)
+

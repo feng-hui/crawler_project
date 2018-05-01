@@ -54,9 +54,10 @@ COOKIES_ENABLED = False
 
 # Enable or disable downloader middlewares
 # See http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
-# DOWNLOADER_MIDDLEWARES = {
-#    'common_crawlers.middlewares.JsMiddleWare': 543,
-# }
+DOWNLOADER_MIDDLEWARES = {
+   # 'common_crawlers.middlewares.JsMiddleWare': 543,
+   'common_crawlers.middlewares.RandomUserAgentMiddleWare2': 543,
+}
 
 # Enable or disable extensions
 # See http://scrapy.readthedocs.org/en/latest/topics/extensions.html
@@ -106,3 +107,6 @@ ITEM_PIPELINES = {
 
 # timeout
 # DOWNLOAD_TIMEOUT = 10
+
+# random user-agent
+USER_AGENT_LIST = []
