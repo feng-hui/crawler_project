@@ -113,4 +113,3 @@ class RandomUserAgentMiddleWare2(object):
         random_agent = get_ua()
 
         request.headers.setdefault('User-Agent', random_agent)
-
