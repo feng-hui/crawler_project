@@ -6,6 +6,7 @@
 # https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
+from scrapy.downloadermiddlewares.redirect import RedirectMiddleware
 
 
 class WxBitcoinSpiderMiddleware(object):
@@ -101,3 +102,7 @@ class WxBitcoinDownloaderMiddleware(object):
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
+
+
+class WxRedirectMiddleWare(RedirectMiddleware):
+    pass
