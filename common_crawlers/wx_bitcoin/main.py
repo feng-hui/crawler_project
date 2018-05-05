@@ -5,3 +5,4 @@
 # @email  : capricorn1203@126.com
 from scrapy.cmdline import execute
 execute("scrapy crawl wx_btc".split())
+# execute("scrapy crawl wx_btc -o wx_btc.csv -t csv".split())

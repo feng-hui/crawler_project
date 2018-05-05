@@ -48,8 +48,8 @@ DEFAULT_REQUEST_HEADERS = {
   'Host': 'weixin.sogou.com',
   'Referer': 'http://weixin.sogou.com/weixin?query=btc&_sug_type_=&s_from=input&_sug_=n&type=2&page=9&ie=utf8',
   'Upgrade-Insecure-Requests': '1',
-  'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                'Chrome/65.0.3325.181 Safari/537.36'
+  'User-Agent': 'Mozilla/5.0 (iPad; CPU OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) '
+                'Version/9.0 Mobile/13B143 Safari/601.1'
 }
 
 # Enable or disable spider middlewares
@@ -72,9 +72,9 @@ DEFAULT_REQUEST_HEADERS = {
 
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-ITEM_PIPELINES = {
-   'wx_bitcoin.pipelines.CustomJsonPipeline': 300,
-}
+# ITEM_PIPELINES = {
+#    'wx_bitcoin.pipelines.CustomJsonPipeline': 300,
+# }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html
@@ -96,4 +96,7 @@ ITEM_PIPELINES = {
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
-USER_AGENT_LIST = []
+USER_AGENT_LIST = [
+    'Mozilla/5.0 (iPad; CPU OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) '
+    'Version/9.0 Mobile/13B143 Safari/601.1'
+]

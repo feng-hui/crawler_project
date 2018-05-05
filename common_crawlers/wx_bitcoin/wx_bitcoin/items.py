@@ -17,6 +17,7 @@ class WxBitcoinItem(scrapy.Item):
     title = scrapy.Field()
     link = scrapy.Field()
     author = scrapy.Field()
+    keyword = scrapy.Field()
 
 
 class WxBtcItemLoader(ItemLoader):
