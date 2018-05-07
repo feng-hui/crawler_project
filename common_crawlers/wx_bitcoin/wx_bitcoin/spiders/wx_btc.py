@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import scrapy
+import datetime
 from wx_bitcoin.items import WxBitcoinItem, WxBtcItemLoader
 from scrapy.http.request import Request
 from wx_bitcoin.common.utils import get_keyword
@@ -14,6 +15,7 @@ class WxBtcSpider(scrapy.Spider):
         'http://weixin.sogou.com/weixin?type=2&s_from=input&query=eos&ie=utf8&_sug_=n&_sug_type_='
     ]
     host_url = "http://weixin.sogou.com/weixin"
+    # handle_httpstatus_list = [301, 302, 303, 307, 308]
 
     def parse(self, response):
         self.logger.info('正在抓取的链接为：{}'.format(response.url))
@@ -26,6 +28,7 @@ class WxBtcSpider(scrapy.Spider):
             wx_item.add_xpath('link', 'div[@class="txt-box"]/h3/a/@href')
             wx_item.add_xpath('author', 'div[@class="txt-box"]/div/a/text()')
             wx_item.add_value('keyword', keyword)
+            wx_item.add_value('crawl_time', datetime.datetime.now())
             yield wx_item.load_item()
 
         # 下一页,未登录获取前10页数据

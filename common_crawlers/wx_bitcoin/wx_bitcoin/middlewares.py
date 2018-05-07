@@ -7,6 +7,11 @@
 
 from scrapy import signals
 from scrapy.downloadermiddlewares.redirect import RedirectMiddleware
+import base64
+import random
+from scrapy.conf import settings
+import logging
+logger = logging.getLogger(__name__)
 
 
 class WxBitcoinSpiderMiddleware(object):
@@ -105,4 +110,36 @@ class WxBitcoinDownloaderMiddleware(object):
 
 
 class WxRedirectMiddleWare(RedirectMiddleware):
-    pass
+
+    def process_response(self, request, response, spider):
+        pass
+
+
+class ProxyMiddleWare(object):
+    """阿布云的代理ip配置"""
+
+    # 代理服务器
+    proxyServer = "http://http-dyn.abuyun.com:9020"
+
+    # 代理隧道验证信息
+    proxyUser = "H1XT04Y4YCT5524D"
+    proxyPass = "84FECBB1864EF67A"
+
+    proxyAuth = "Basic " + base64.urlsafe_b64encode(bytes((proxyUser + ":" + proxyPass), "ascii")).decode("utf8")
+
+    def __init__(self):
+        super(ProxyMiddleWare, self).__init__()
+
+    def process_request(self, request, spider):
+        request.meta['proxy'] = self.proxyServer
+        request.headers["Proxy-Authorization"] = self.proxyAuth
+
+
+class UserAgentMiddleWare(object):
+
+    user_agent_list = settings['USER_AGENT_LIST']
+
+    def process_request(self, request, spider):
+        ua = random.choice(self.user_agent_list)
+        request.headers['User-Agent'] = ua
+
