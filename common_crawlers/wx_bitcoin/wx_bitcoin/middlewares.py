@@ -6,11 +6,13 @@
 # https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
-from scrapy.downloadermiddlewares.redirect import RedirectMiddleware
 import base64
 import random
 from scrapy.conf import settings
 import logging
+from urllib.parse import urljoin
+from wx_bitcoin.common.ydm import YunDaMa
+import requests
 logger = logging.getLogger(__name__)
 
 
@@ -109,10 +111,30 @@ class WxBitcoinDownloaderMiddleware(object):
         spider.logger.info('Spider opened: %s' % spider.name)
 
 
-class WxRedirectMiddleWare(RedirectMiddleware):
+class WxRedirectMiddleWare(object):
+
+    base_url = "http://weixin.sogou.com/antispider/"
+
+    # YDM 相关配置信息
+    username = 'kapri12039'
+    password = 'kapri12039!'
+    ydm = YunDaMa(username, password)
+    post_url = "http://weixin.sogou.com/antispider/thank.php"
 
     def process_response(self, request, response, spider):
-        pass
+        res_url = response.url
+        code_img_url = response.xpath('//img[@id="seccodeImage"]/@src').extract_first("")
+        if code_img_url:
+            code_img_url = urljoin(self.base_url, code_img_url)
+            img_content = self.get_source(code_img_url)
+            captcha = self.ydm.get_captcha(img_content)
+        else:
+            return None
+
+    @staticmethod
+    def get_source(url):
+        result = requests.get(url).content
+        return result.decode(encoding='utf-8')
 
 
 class ProxyMiddleWare(object):

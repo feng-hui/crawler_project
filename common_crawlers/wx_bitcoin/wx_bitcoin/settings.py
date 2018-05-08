@@ -34,7 +34,7 @@ DOWNLOAD_DELAY = random.randint(1, 5)
 #CONCURRENT_REQUESTS_PER_IP = 16
 
 # Disable cookies (enabled by default)
-COOKIES_ENABLED = False
+COOKIES_ENABLED = True
 
 # Disable Telnet Console (enabled by default)
 #TELNETCONSOLE_ENABLED = False
@@ -60,10 +60,11 @@ DEFAULT_REQUEST_HEADERS = {
 
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
-DOWNLOADER_MIDDLEWARES = {
-   # 'wx_bitcoin.middlewares.UserAgentMiddleWare': 542,
-   'wx_bitcoin.middlewares.ProxyMiddleWare': 543
-}
+# DOWNLOADER_MIDDLEWARES = {
+#    # 'wx_bitcoin.middlewares.UserAgentMiddleWare': 542,
+#    # 'wx_bitcoin.middlewares.ProxyMiddleWare': 543,
+#    'wx_bitcoin.middlewares.WxRedirectMiddleWare': 543
+# }
 
 # Enable or disable extensions
 # See https://doc.scrapy.org/en/latest/topics/extensions.html
