@@ -41,13 +41,13 @@ class HuaweiSpider(scrapy.Spider):
 
     def start_requests(self):
         for each_url in self.start_urls:
-            yield Request(each_url, callback=self.parse)
+            yield Request(each_url, callback=self.parse, dont_filter=True)
 
     def parse(self, response):
         all_electrics_links = response.xpath('//div[@class="a-section a-spacing-none a-inline-block '
                                              's-position-relative"]/a/@href').extract()
         for each_link in all_electrics_links:
-            yield Request(each_link, callback=self.parse_detail, headers=self.headers)
+            yield Request(each_link, callback=self.parse_detail, headers=self.headers, dont_filter=True)
 
         # next_page = response.xpath('//a[@id="pagnNextLink"]/@href')
         # if next_page:
