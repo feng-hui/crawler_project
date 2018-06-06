@@ -38,9 +38,11 @@ class HuaweiSpider(scrapy.Spider):
       #               'Chrome/66.0.3359.181 Safari/537.36'
     }
     number = 1
+    page_number = 1
 
     def start_requests(self):
         for each_url in self.start_urls:
+            self.log('正在抓取的是第{}页'.format(str(self.page_number)))
             yield Request(each_url, callback=self.parse, dont_filter=True)
 
     def parse(self, response):
