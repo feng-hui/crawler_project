@@ -2,7 +2,7 @@
 import scrapy
 import datetime
 from wx_bitcoin.items import WxBitcoinItem, WxBtcItemLoader
-from scrapy.http.request import Request
+# from scrapy.http.request import Request
 from wx_bitcoin.common.utils import get_keyword
 
 
@@ -10,9 +10,8 @@ class WxBtcSpider(scrapy.Spider):
     name = 'wx_btc'
     allowed_domains = ['sogou.com']
     start_urls = [
-        # 'http://weixin.sogou.com/weixin?type=2&s_from=input&query=btc&ie=utf8&_sug_=n&_sug_type_=',
-        # 'http://weixin.sogou.com/weixin?type=2&s_from=input&query=eth&ie=utf8&_sug_=n&_sug_type_=',
-        'http://weixin.sogou.com/weixin?type=2&s_from=input&query=eos&ie=utf8&_sug_=n&_sug_type_='
+        'http://weixin.sogou.com/weixin?query={}&_sug_type_=&s_from=input&_sug_=n&type=2&page={}&ie=utf8'.format(
+            each_keyword, str(each_page)) for each_keyword in ['btc', 'eth', 'eos'] for each_page in range(1, 101)
     ]
     host_url = "http://weixin.sogou.com/weixin"
     # handle_httpstatus_list = [301, 302, 303, 307, 308]
@@ -32,7 +31,7 @@ class WxBtcSpider(scrapy.Spider):
             yield wx_item.load_item()
 
         # 下一页,未登录获取前10页数据
-        next_page = response.xpath('//a[@id="sogou_next"]/@href')
-        if next_page:
-            next_page_url = self.host_url + next_page.extract_first()
-            yield Request(next_page_url, callback=self.parse)
+        # next_page = response.xpath('//a[@id="sogou_next"]/@href')
+        # if next_page:
+        #     next_page_url = self.host_url + next_page.extract_first()
+        #     yield Request(next_page_url, callback=self.parse)

@@ -28,7 +28,7 @@ CONCURRENT_REQUESTS = 32
 # Configure a delay for requests for the same website (default: 0)
 # See https://doc.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = random.randint(1, 5)
+# DOWNLOAD_DELAY = random.randint(1, 5)
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
@@ -49,7 +49,12 @@ DEFAULT_REQUEST_HEADERS = {
   'Referer': 'http://weixin.sogou.com/weixin?query=btc&_sug_type_=&s_from=input&_sug_=n&type=2&page=9&ie=utf8',
   'Upgrade-Insecure-Requests': '1',
   'User-Agent': 'Mozilla/5.0 (iPad; CPU OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) '
-                'Version/9.0 Mobile/13B143 Safari/601.1'
+                'Version/9.0 Mobile/13B143 Safari/601.1',
+  'Cookie': 'SMYUV=1493633115778785; SUV=1519382100527513; SUID=AD152EDE3965860A58FB519000069DC2; '
+            'LSTMV=227%2C78; LCLKINT=3722; sct=6; CXID=6D0E8521D589DCBA1F90B71B02BDAF18; usid=PZLCSvduA49NEEtR; '
+            'wuid=AAFHX7B/IAAAAAqLE2Nv2gsAQAU=; ad=flllllllll2zdpsHlllllV7Y@Xllllll5a4$dkllllwlllllxCxlw@@@@@@@@@@@; '
+            'ABTEST=0|1528375734|v1; SNUID=96B692245752395AE395B82D57F77E41; IPLOC=CN3301; '
+            'JSESSIONID=aaaUd-nHS8fUzcw4dqknw'
 }
 
 # Enable or disable spider middlewares
@@ -62,8 +67,8 @@ DEFAULT_REQUEST_HEADERS = {
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 # DOWNLOADER_MIDDLEWARES = {
 #    # 'wx_bitcoin.middlewares.UserAgentMiddleWare': 542,
-#    # 'wx_bitcoin.middlewares.ProxyMiddleWare': 543,
-#    'wx_bitcoin.middlewares.WxRedirectMiddleWare': 543
+#    'wx_bitcoin.middlewares.ProxyMiddleWare': 543,
+#    # 'wx_bitcoin.middlewares.WxRedirectMiddleWare': 543
 # }
 
 # Enable or disable extensions
