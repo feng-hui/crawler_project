@@ -35,7 +35,7 @@ CONCURRENT_REQUESTS = 32
 #CONCURRENT_REQUESTS_PER_IP = 16
 
 # Disable cookies (enabled by default)
-#COOKIES_ENABLED = False
+COOKIES_ENABLED = False
 
 # Disable Telnet Console (enabled by default)
 #TELNETCONSOLE_ENABLED = False
@@ -66,9 +66,9 @@ CONCURRENT_REQUESTS = 32
 
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'dianhua.pipelines.DianhuaPipeline': 300,
-#}
+ITEM_PIPELINES = {
+   'dianhua.pipelines.DianhuaPipeline': 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html
