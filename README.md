@@ -15,3 +15,7 @@
 抓取过程截图如下：
 
 ![](https://github.com/feng-hui/crawler_project/blob/master/xici/crawler_process.png)
+
+# login_zhihu
+
+通过已经登录过的cookies来登录知乎，可以通过使用cookies参数或headers参数来登录，必须使用的参数为User-Agent，否则会报400错误
