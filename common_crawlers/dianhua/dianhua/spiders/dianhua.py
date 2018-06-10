@@ -4,6 +4,7 @@
 # @author : Feng_Hui
 # @email  : capricorn1203@126.com
 import os
+import time
 import requests
 from lxml import etree
 from urllib.parse import urljoin, urlencode
@@ -19,7 +20,8 @@ class DianHuaBang(object):
         'Connection': 'keep-alive',
         'Host': 'www.dianhua.cn',
         'Upgrade-Insecure-Requests': '1',
-        'Referer': "http://www.dianhua.cn/beijing/c16/p2",
+        'Referer': "http://www.dianhua.cn/beijing/c16",
+        'Cookie': 'eccaa0c8b712b90a76c71ee4361db60b=p3o%3D; _ga=GA1.2.2050639837.1528421351; 902c6a917f61496b91edd92dc420be53=lw%3D%3D; b93b21ff05a24fc7394f8156e7134afe=SrzMRR4O; 845615558499036799eb17494f2ffb21=p5Wey83QyA%3D%3D; be1fbbb1d015aeb570a196bf7ef24e9f=lg%3D%3D; 86e7646b4bc0edc61575805946d49c42=p3o%3D; nid=qdPf5eH2VVLaV2lyT+c2T1iUOmI=; Hm_lvt_576991240afaa91ac2b98111144c3a1a=1528420562,1528460233,1528530385,1528618496; PHPSESSID=jr30lpdusur7u2btbfvjbmfmf4; Hm_lpvt_576991240afaa91ac2b98111144c3a1a=1528618768; temcity=mianyang; city_id=73; city_name=%E7%BB%B5%E9%98%B3; Hm_lvt_c136e57774590cd52d5e684e6421f853=1528421351,1528460267,1528618861; Hm_lpvt_c136e57774590cd52d5e684e6421f853=1528618861; _gid=GA1.2.1277505859.1528618861; accesstoken=2a24c5b15b40a66d78b3a4c68481e2098eeef523; accessseed=33548142',
         'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 '
                       '(KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
     }
@@ -44,7 +46,7 @@ class DianHuaBang(object):
         'Hm_lpvt_576991240afaa91ac2b98111144c3a1a': '1528536416'
     }
     test_url = 'https://www.dianhua.cn/beijing/c16'
-    test_url2 = 'https://www.dianhua.cn/beijing/c16/p2'
+    test_url2 = 'https://www.dianhua.cn/beijing/c16/p3'
     host = 'https://www.dianhua.cn'
     auth_code_url = 'https://www.dianhua.cn/auth/code.php?'
     session = requests.Session()
@@ -92,7 +94,8 @@ class DianHuaBang(object):
             self.auth_code_url + urlencode({'code': code}),
             headers=self.headers
         )
-        # print(html.content.decode())
+        time.sleep(20)
+        print(html.content.decode())
         print(html.status_code)
         # print(html.headers['location'])
         # print(self.run(self.test_url2))
@@ -116,4 +119,4 @@ class DianHuaBang(object):
 
 if __name__ == "__main__":
     dhb = DianHuaBang()
-    dhb.run2(dhb.test_url2)
+    dhb.run(dhb.test_url2)
