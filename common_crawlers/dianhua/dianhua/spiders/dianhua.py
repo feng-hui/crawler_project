@@ -121,4 +121,4 @@ class DianHuaBang(object):
 
 if __name__ == "__main__":
     dhb = DianHuaBang()
-    dhb.run2(dhb.test_url3)
+    dhb.run(dhb.test_url3)

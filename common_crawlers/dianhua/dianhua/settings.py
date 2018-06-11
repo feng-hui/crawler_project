@@ -48,10 +48,10 @@ DEFAULT_REQUEST_HEADERS = headers = {
    'Connection': 'keep-alive',
    'Host': 'www.dianhua.cn',
    'Upgrade-Insecure-Requests': '1',
-   'Referer': "http://www.dianhua.cn/beijing/c16/p1",
+   # 'Referer': "http://www.dianhua.cn/beijing/c16/p1",
    'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 '
                 '(KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
-   'Cookie': 'eccaa0c8b712b90a76c71ee4361db60b=p3o%3D; _ga=GA1.2.2050639837.1528421351; _gid=GA1.2.1161884930.1528421351; Hm_lvt_c136e57774590cd52d5e684e6421f853=1528421351,1528460267; temcity=beijing; city_id=2; city_name=%E5%8C%97%E4%BA%AC; 902c6a917f61496b91edd92dc420be53=lw%3D%3D; b93b21ff05a24fc7394f8156e7134afe=SrzMRR4O; 845615558499036799eb17494f2ffb21=p5Wey83QyA%3D%3D; be1fbbb1d015aeb570a196bf7ef24e9f=lg%3D%3D; 86e7646b4bc0edc61575805946d49c42=p3o%3D; nid=qdPf5eH2VVLaV2lyT+c2T1iUOmI=; Hm_lvt_576991240afaa91ac2b98111144c3a1a=1528360077,1528420562,1528460233,1528530385; PHPSESSID=bu1e2af5tkbcsqv2iq463foa01; accesstoken=0e4d63fb0bc0e8557df1a350405f86d4e9f0f006; accessseed=63453463; Hm_lpvt_576991240afaa91ac2b98111144c3a1a=1528535307'
+   'Cookie': '_ga=GA1.2.2050639837.1528421351; _gid=GA1.2.1277505859.1528618861; temcity=mianyang; city_id=73; city_name=%E7%BB%B5%E9%98%B3; PHPSESSID=75oghiv683ajm3qpe6uecub431; nid=qdPf5eH2VVLaV2lyT+c2T1iUOmI=; Hm_lvt_c136e57774590cd52d5e684e6421f853=1528460267,1528618861,1528697614,1528720247; Hm_lvt_824f91d3a04800a1d320314f2fd53aad=1528421618,1528460550,1528697819,1528720273; Hm_lpvt_824f91d3a04800a1d320314f2fd53aad=1528727685; _gat=1; accesstoken=21d7534246aa21b03fc331303d949f6c24c823c5; accessseed=83574137; Hm_lpvt_c136e57774590cd52d5e684e6421f853=1528727975'
 }
 
 # Enable or disable spider middlewares
