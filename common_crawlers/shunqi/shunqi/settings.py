@@ -28,7 +28,7 @@ CONCURRENT_REQUESTS = 32
 # Configure a delay for requests for the same website (default: 0)
 # See https://doc.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = random.randint(1, 15)
+DOWNLOAD_DELAY = random.randint(1, 10)
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
@@ -72,9 +72,9 @@ DEFAULT_REQUEST_HEADERS = {
 
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-ITEM_PIPELINES = {
-   'shunqi.pipelines.ShunqiPipeline': 300,
-}
+# ITEM_PIPELINES = {
+#    'shunqi.pipelines.ShunqiPipeline': 300,
+# }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html
@@ -96,7 +96,14 @@ ITEM_PIPELINES = {
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+# MONGO_DB SETTINGS
 MONGO_HOST = 'localhost'
 MONGO_PORT = 27017
 MONGO_DB = 'crawlers'
-MONGO_DOC = 'A_11467'
+MONGO_DOC = 'A_114673'
+
+# RETRY
+#
+RETRY_TIMES = 3
+RETRY_HTTP_CODES = [500, 502, 503, 504, 408]

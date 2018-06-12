@@ -6,7 +6,8 @@
 # https://doc.scrapy.org/en/latest/topics/items.html
 
 import scrapy
-from scrapy.loader.processors import MapCompose
+from scrapy.loader.processors import MapCompose, TakeFirst
+from scrapy.loader import ItemLoader
 
 
 def remove_tags(value):
@@ -20,9 +21,13 @@ class ShunqiItem(scrapy.Item):
     address = scrapy.Field()
     tel = scrapy.Field()
     contact = scrapy.Field()
-    mobile = scrapy.Field(
-        output_processor=MapCompose(remove_tags)
-    )
+    mobile = scrapy.Field()
     email = scrapy.Field()
     postal_code = scrapy.Field()
     fax = scrapy.Field()
+    url = scrapy.Field()
+
+
+class ShunQiItemLoader(ItemLoader):
+    default_output_processor = TakeFirst()
+    mobile_in = MapCompose(remove_tags)
