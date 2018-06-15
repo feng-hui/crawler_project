@@ -22,7 +22,13 @@ class HaodfSpider(scrapy.Spider):
 
     def parse(self, response):
         """医生搜索页"""
-        pass
+        doctor_link = response.xpath('//div[@class="search-list"]/div[@class="sl-item"][1]/div/p/span/a/@href').extract()
+        if doctor_link:
+            # 存在该医生
+            doctor_link = doctor_link[0]
+        else:
+            # 不存在该医生
+            pass
 
     def parse_article(self, response):
         """

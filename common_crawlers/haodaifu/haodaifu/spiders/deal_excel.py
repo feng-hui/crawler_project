@@ -44,3 +44,4 @@ if __name__ == "__main__":
                                       value['department_name']).replace('\\N', '').strip()
                  for value in my_dict.values()]
     print(data_list)
+    print(len(data_list))
