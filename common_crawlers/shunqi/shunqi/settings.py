@@ -28,6 +28,7 @@ CONCURRENT_REQUESTS = 32
 # Configure a delay for requests for the same website (default: 0)
 # See https://doc.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
+# DOWNLOAD_DELAY = random.randint(1, 10)
 DOWNLOAD_DELAY = 1
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
@@ -105,4 +106,4 @@ MONGO_DOC = 'A_11467'
 
 # RETRY
 RETRY_TIMES = 3
-RETRY_HTTP_CODES = [500, 502, 503, 504, 408]
+RETRY_HTTP_CODES = [500, 502, 503, 504, 408, 403]

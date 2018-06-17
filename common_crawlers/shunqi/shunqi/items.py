@@ -4,14 +4,16 @@
 #
 # See documentation in:
 # https://doc.scrapy.org/en/latest/topics/items.html
-
+import re
 import scrapy
 from scrapy.loader.processors import MapCompose, TakeFirst
 from scrapy.loader import ItemLoader
 
 
 def remove_tags(value):
-    return value.replace('+86-', '')
+    """过滤手机号"""
+    value = str(value).replace(' ', '').strip()
+    return ','.join(re.findall(r'(\d{11})', value))
 
 
 class ShunqiItem(scrapy.Item):
@@ -26,6 +28,7 @@ class ShunqiItem(scrapy.Item):
     postal_code = scrapy.Field()
     fax = scrapy.Field()
     url = scrapy.Field()
+    crawl_time = scrapy.Field()
 
 
 class ShunQiItemLoader(ItemLoader):
