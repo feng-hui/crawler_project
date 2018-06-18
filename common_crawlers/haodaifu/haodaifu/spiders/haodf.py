@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
+import datetime
 import scrapy
-from haodaifu.items import DoctorItem, DoctorArticleItem
+from haodaifu.items import DoctorItem, DoctorArticleItem, DoctorArticleItemLoader
 from urllib.parse import urlencode
 from .search_keywords import ALL_KEYWORDS
 from scrapy.http import Request
+from haodaifu.utils.common import get_host
+from urllib.parse import urljoin
 
 
 class HaodfSpider(scrapy.Spider):
@@ -23,6 +26,7 @@ class HaodfSpider(scrapy.Spider):
 
     def parse(self, response):
         """医生搜索页"""
+        # self.logger.info('正在抓取医生搜索页面,搜索关键词为:')
         doctor_link = response.xpath('//div[@class="search-list"]/div[@class="sl-item"][1]/div/p/span/a/@href').extract()
         try:
             if doctor_link:
@@ -33,7 +37,8 @@ class HaodfSpider(scrapy.Spider):
                     pass
                 else:
                     # 存在个人网站,继续抓取文章内页
-                    pass
+                    article_list_link = urljoin(doctor_link.replace('//', 'https://'), 'lanmu')
+                    yield Request(article_list_link, callback=self.parse_article)
             else:
                 # 不存在该医生
                 pass
@@ -44,4 +49,17 @@ class HaodfSpider(scrapy.Spider):
         """
         文章栏目页，涉及翻页，需要的数据包括文章标题、文章链接
         """
-        pass
+        all_article_links = response.xpath('//a[@class="art_t"]')
+        for each_article in all_article_links:
+            article_loader = DoctorArticleItemLoader(item=DoctorArticleItem(), selector=each_article)
+            article_loader.add_value('doctor_hid', get_host(response.url))
+            article_loader.add_xpath('article_url', '@href')
+            article_loader.add_xpath('article_title', '@title')
+            article_loader.add_value('doctor_url', response.url)
+            article_loader.add_value('crawl_time', datetime.datetime.now())
+            article_item = article_loader.load_item()
+            yield article_item
+        next_page = response.xpath('//div[@class="page_turn"]/a[contains(text(), "下一页")]/@href').extract_first()
+        if next_page:
+            next_page_link = urljoin(response.url, next_page)
+            yield Request(next_page_link, callback=self.parse_article)

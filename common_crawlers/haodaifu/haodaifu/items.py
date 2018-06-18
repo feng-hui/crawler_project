@@ -6,6 +6,8 @@
 # https://doc.scrapy.org/en/latest/topics/items.html
 
 import scrapy
+from scrapy.loader import ItemLoader
+from scrapy.loader.processors import TakeFirst
 
 
 class HaodaifuItem(scrapy.Item):
@@ -33,7 +35,12 @@ class DoctorArticleItem(scrapy.Item):
     article_url: 好大夫上医生发布的文章链接
     """
     doctor_id = scrapy.Field()
+    doctor_hid = scrapy.Field()
     article_title = scrapy.Field()
     article_url = scrapy.Field()
     doctor_url = scrapy.Field()
     crawl_time = scrapy.Field()
+
+
+class DoctorArticleItemLoader(ItemLoader):
+    default_output_processor = TakeFirst()

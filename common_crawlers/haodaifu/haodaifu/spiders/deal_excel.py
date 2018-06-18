@@ -23,7 +23,14 @@ class ExcelToDict(object):
         file_path = os.path.join(self.now_path, self.file_name)
         if not os.path.exists(file_path):
             raise FileNotFoundError
-        data = pd.read_csv(file_path, iterator=True, sep=',')
+        data = pd.read_csv(file_path,
+                           iterator=True, sep=',',
+                           index_col='doctor_id',
+                           usecols=['doctor_id', 'doctor_name', 'h_pro', 'department_name']
+                           )
+        # data2 = pd.read_csv(file_path, index_col='doctor_id')
+        # print(data2.head())
+        # print(data2.info(memory_usage='deep'))
         chunk = data.get_chunk(1000)
         return chunk
 
@@ -38,10 +45,13 @@ if __name__ == "__main__":
     excel_to_dict = ExcelToDict('original_data.csv')
     my_data = excel_to_dict.read_file()
     my_dict = my_data.to_dict(orient='index')
-    # my_json = json.dumps(my_dict)
-    data_list = ['{0} {1} {2}'.format(value['doctor_name'],
-                                      value['h_pro'].replace('\\N', '').strip(),
-                                      value['department_name']).replace('\\N', '').strip()
-                 for value in my_dict.values()]
-    print(data_list)
-    print(len(data_list))
+    print(my_dict)
+    for index, value in my_dict.items():
+        print(index, value)
+    # # my_json = json.dumps(my_dict)
+    # data_list = ['{0} {1} {2}'.format(value['doctor_name'],
+    #                                   value['h_pro'].replace('\\N', '').strip(),
+    #                                   value['department_name']).replace('\\N', '').strip()
+    #              for value in my_dict.values()]
+    # print(data_list)
+    # print(len(data_list))
