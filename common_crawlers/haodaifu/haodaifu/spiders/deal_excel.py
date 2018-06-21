@@ -5,53 +5,40 @@
 # @email  : capricorn1203@126.com
 import pandas as pd
 import os
-# import json
 
 
-class ExcelToDict(object):
+class CsvToDict(object):
 
     now_path = os.path.dirname(__file__)
 
     def __init__(self, file_name):
-        super(ExcelToDict, self).__init__()
+        super(CsvToDict, self).__init__()
         self.file_name = file_name
 
     def read_file(self):
         """
-        read data from excel
+        read data from csv
         """
-        file_path = os.path.join(self.now_path, self.file_name)
+        file_path = os.path.join('/home/cyzs/wksp/my_env/temp_file', self.file_name)
+        # file_path = os.path.join('/home/fengh/wksp/crawler_project/common_crawlers/'
+        #                          'haodaifu/haodaifu/spiders', self.file_name)
         if not os.path.exists(file_path):
             raise FileNotFoundError
         data = pd.read_csv(file_path,
-                           iterator=True, sep=',',
-                           index_col='doctor_id',
+                           iterator=True,
                            usecols=['doctor_id', 'doctor_name', 'h_pro', 'department_name']
                            )
         # data2 = pd.read_csv(file_path, index_col='doctor_id')
         # print(data2.head())
         # print(data2.info(memory_usage='deep'))
-        chunk = data.get_chunk(1000)
-        return chunk
-
-    def exchange_type(self):
-        """
-        change file type
-        """
-        pass
+        chunk = data.get_chunk(70000)
+        return chunk[69000:-1]
 
 
 if __name__ == "__main__":
-    excel_to_dict = ExcelToDict('original_data.csv')
+    excel_to_dict = CsvToDict('original_data.csv')
     my_data = excel_to_dict.read_file()
-    my_dict = my_data.to_dict(orient='index')
+    my_dict = my_data.to_dict(orient='records')
     print(my_dict)
-    for index, value in my_dict.items():
-        print(index, value)
-    # # my_json = json.dumps(my_dict)
-    # data_list = ['{0} {1} {2}'.format(value['doctor_name'],
-    #                                   value['h_pro'].replace('\\N', '').strip(),
-    #                                   value['department_name']).replace('\\N', '').strip()
-    #              for value in my_dict.values()]
-    # print(data_list)
-    # print(len(data_list))
+    # for each_record in my_dict:
+    #     print(each_record['doctor_id'], each_record['doctor_name'])
