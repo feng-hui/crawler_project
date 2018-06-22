@@ -8,6 +8,10 @@ from .search_keywords import my_dict
 from scrapy.http import Request
 from haodaifu.utils.common import get_host, get_host2
 from urllib.parse import urljoin
+from scrapy.exceptions import IgnoreRequest
+from scrapy import signals
+from twisted.internet.error import DNSLookupError
+
 
 
 class HaodfSpider(scrapy.Spider):
@@ -15,7 +19,9 @@ class HaodfSpider(scrapy.Spider):
     allowed_domains = ['haodf.com']
     start_urls = []
     keywords = my_dict
-    base_url = 'https://so.haodf.com/index/search?type=&{}&doctor_id={}'
+    base_url = 'https://so.haodf123.com/index/search?type=&{}&doctor_id={}'
+    ignored_urls = []
+    error_urls = []
 
     def start_requests(self):
         for each_kw in self.keywords:
@@ -31,7 +37,10 @@ class HaodfSpider(scrapy.Spider):
             if doctor_id:
                 doctor_id = doctor_id.group(1)
                 each_url = re.sub(r'&doctor_id=.*', '', each_url)
-                yield Request(each_url, callback=self.parse, meta={'doctor_id': doctor_id})
+                yield Request(each_url,
+                              callback=self.parse,
+                              meta={'doctor_id': doctor_id},
+                              errback=self.err_collector)
 
     def parse(self, response):
         """医生搜索页"""
@@ -56,7 +65,10 @@ class HaodfSpider(scrapy.Spider):
                 else:
                     # 存在个人网站,继续抓取文章内页
                     article_list_link = urljoin(doctor_link.replace('//', 'https://'), 'lanmu')
-                    request = Request(article_list_link, callback=self.parse_article, meta={'doctor_id': doctor_id})
+                    request = Request(article_list_link,
+                                      callback=self.parse_article,
+                                      meta={'doctor_id': doctor_id},
+                                      errback=self.err_collector)
                     request.meta['host'] = get_host2(article_list_link)
                     request.meta['Referer'] = doctor_link.replace('//', 'https://')
                     yield request
@@ -107,7 +119,34 @@ class HaodfSpider(scrapy.Spider):
         next_page = response.xpath('//div[@class="page_turn"]/a[contains(text(), "下一页")]/@href').extract_first()
         if next_page:
             next_page_link = urljoin(response.url, next_page)
-            request = Request(next_page_link, callback=self.parse_article,  meta={'doctor_id': doctor_id})
+            request = Request(next_page_link,
+                              callback=self.parse_article,
+                              meta={'doctor_id': doctor_id},
+                              errback=self.err_collector)
             request.meta['host'] = get_host2(response.url)
             request.meta['Referer'] = response.url
             yield request
+
+    def err_collector(self, failure):
+        """错误收集"""
+        self.logger.error('发生错误的原因是:{}'.format(repr(failure)))
+        if failure.check(IgnoreRequest):
+            try:
+                response = failure.value.response
+                failure_url = response.url
+            except Exception as e:
+                failure_url = failure.request.url
+                self.logger.error('错误收集的时候,发生错误,原因是:{}'.format(str(e)))
+            self.ignored_urls.append(failure_url)
+            self.crawler.signals.connect(self.deal_error, signals.spider_closed)
+        elif failure.check(DNSLookupError):
+            request = failure.request
+            self.error_urls.append(request.url)
+            self.crawler.signals.connect(self.deal_error, signals.spider_closed)
+
+    def deal_error(self):
+        """
+        爬虫结束的时候,输出所有被忽略的url
+        """
+        self.crawler.stats.set_value('ignored_urls/all_ignored_urls_list', ','.join(self.error_urls))
+        self.crawler.stats.set_value('ignored_urls/count', len(self.error_urls))

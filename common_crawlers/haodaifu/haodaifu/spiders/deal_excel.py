@@ -19,9 +19,9 @@ class CsvToDict(object):
         """
         read data from csv
         """
-        file_path = os.path.join('/home/cyzs/wksp/my_env/temp_file', self.file_name)
-        # file_path = os.path.join('/home/fengh/wksp/crawler_project/common_crawlers/'
-        #                          'haodaifu/haodaifu/spiders', self.file_name)
+        # file_path = os.path.join('/home/cyzs/wksp/my_env/temp_file', self.file_name)
+        file_path = os.path.join('/home/fengh/wksp/crawler_project/common_crawlers/'
+                                 'haodaifu/haodaifu/spiders', self.file_name)
         if not os.path.exists(file_path):
             raise FileNotFoundError
         data = pd.read_csv(file_path,
@@ -32,7 +32,7 @@ class CsvToDict(object):
         # print(data2.head())
         # print(data2.info(memory_usage='deep'))
         chunk = data.get_chunk(70000)
-        return chunk[69000:-1]
+        return chunk[0:1]
 
 
 if __name__ == "__main__":
