@@ -31,12 +31,12 @@ class CsvToDict(object):
         # data2 = pd.read_csv(file_path, index_col='doctor_id')
         # print(data2.head())
         # print(data2.info(memory_usage='deep'))
-        chunk = data.get_chunk(70000)
-        return chunk[0:1]
+        chunk = data.get_chunk(150000)
+        return chunk[0:5000]
 
 
 if __name__ == "__main__":
-    excel_to_dict = CsvToDict('original_data.csv')
+    excel_to_dict = CsvToDict('original_data2.csv')
     my_data = excel_to_dict.read_file()
     my_dict = my_data.to_dict(orient='records')
     print(my_dict)
