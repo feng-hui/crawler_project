@@ -23,7 +23,7 @@ NEWSPIDER_MODULE = 'haodaifu.spiders'
 ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-CONCURRENT_REQUESTS = 32
+CONCURRENT_REQUESTS = 100
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://doc.scrapy.org/en/latest/topics/settings.html#download-delay
@@ -96,9 +96,9 @@ DEFAULT_REQUEST_HEADERS = {
 
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-# ITEM_PIPELINES = {
-#    'haodaifu.pipelines.HaodaifuPipeline': 300,
-# }
+ITEM_PIPELINES = {
+   'haodaifu.pipelines.HaodaifuPipeline': 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html
@@ -124,11 +124,14 @@ DEFAULT_REQUEST_HEADERS = {
 # MONGODB_SETTINGS
 MONGODB_URI = 'localhost'
 MONGODB_DATABASE = 'crawlers'
-MONGODB_DOC = 'haodf4'
+MONGODB_DOC = 'haodf_20180625_01'
 
 # RETRY_SETTINGS
-RETRY_TIMES = 2
+RETRY_TIMES = 50
 RETRY_HTTP_CODES = [500, 502, 503, 504, 408, 403]
 
 # DUPEFILTER_DEBUG
 DUPEFILTER_DEBUG = True
+
+# HTTPERROR_ALLOWED_CODES
+# HTTPERROR_ALLOWED_CODES = [403]

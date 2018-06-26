@@ -11,7 +11,7 @@ from urllib.parse import urljoin
 from scrapy.exceptions import IgnoreRequest
 from scrapy import signals
 from twisted.internet.error import DNSLookupError
-
+from scrapy.spidermiddlewares.httperror import HttpError
 
 
 class HaodfSpider(scrapy.Spider):
@@ -19,7 +19,7 @@ class HaodfSpider(scrapy.Spider):
     allowed_domains = ['haodf.com']
     start_urls = []
     keywords = my_dict
-    base_url = 'https://so.haodf123.com/index/search?type=&{}&doctor_id={}'
+    base_url = 'https://so.haodf.com/index/search?type=&{}&doctor_id={}'
     ignored_urls = []
     error_urls = []
 
@@ -132,6 +132,7 @@ class HaodfSpider(scrapy.Spider):
         self.logger.error('发生错误的原因是:{}'.format(repr(failure)))
         if failure.check(IgnoreRequest):
             try:
+                self.logger.info('错误的类型为:IgnoreRequest')
                 response = failure.value.response
                 failure_url = response.url
             except Exception as e:
@@ -143,10 +144,20 @@ class HaodfSpider(scrapy.Spider):
             request = failure.request
             self.error_urls.append(request.url)
             self.crawler.signals.connect(self.deal_error, signals.spider_closed)
+        elif failure.check(HttpError):
+            try:
+                self.logger.info('错误的类型为:HttpError')
+                response = failure.value.response
+                failure_url = response.url
+            except Exception as e:
+                failure_url = failure.request.url
+                self.logger.error('错误收集的时候,发生错误,原因是:{}'.format(str(e)))
+            self.ignored_urls.append(failure_url)
+            self.crawler.signals.connect(self.deal_error, signals.spider_closed)
 
     def deal_error(self):
         """
         爬虫结束的时候,输出所有被忽略的url
         """
-        self.crawler.stats.set_value('ignored_urls/all_ignored_urls_list', ','.join(self.error_urls))
-        self.crawler.stats.set_value('ignored_urls/count', len(self.error_urls))
+        self.crawler.stats.set_value('ignored_urls/all_ignored_urls_list', ','.join(self.ignored_urls))
+        self.crawler.stats.set_value('ignored_urls/count', len(self.ignored_urls))
