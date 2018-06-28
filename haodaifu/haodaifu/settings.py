@@ -96,9 +96,9 @@ DEFAULT_REQUEST_HEADERS = {
 
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-ITEM_PIPELINES = {
-   'haodaifu.pipelines.HaodaifuPipeline': 300,
-}
+# ITEM_PIPELINES = {
+#    'haodaifu.pipelines.HaodaifuPipeline': 300,
+# }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html
@@ -124,7 +124,7 @@ ITEM_PIPELINES = {
 # MONGODB_SETTINGS
 MONGODB_URI = 'localhost'
 MONGODB_DATABASE = 'crawlers'
-MONGODB_DOC = 'haodf_20180625_01'
+MONGODB_DOC = 'haodf_article'
 
 # RETRY_SETTINGS
 RETRY_TIMES = 50

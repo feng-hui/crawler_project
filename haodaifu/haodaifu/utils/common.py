@@ -38,8 +38,9 @@ def get_host3(value):
     改良版,可以通过urlparse函数来获取
     """
     res = urlparse(value)
-    return res
+    return res.netloc
 
 
 # if __name__ == "__main__":
-#     print(get_host('https://zgq0114.haodf.com/lanmu'))
+#     host = get_host3('https://zgq0114.haodf.com/')
+#     print(host)

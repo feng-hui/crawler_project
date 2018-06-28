@@ -4,7 +4,7 @@ import scrapy
 import datetime
 from haodaifu.items import DoctorArticleItem, DoctorArticleItemLoader
 from urllib.parse import urlencode
-from .search_keywords import my_dict
+from haodaifu.utils.search_keywords import my_dict
 from scrapy.http import Request
 from haodaifu.utils.common import get_host, get_host2
 from urllib.parse import urljoin
