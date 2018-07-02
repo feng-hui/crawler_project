@@ -39,8 +39,10 @@ class DoctorArticleItem(scrapy.Item):
     article_title = scrapy.Field()
     article_url = scrapy.Field()
     doctor_url = scrapy.Field()
-    crawl_time = scrapy.Field()
     personal_website = scrapy.Field()
+    doctor_hos = scrapy.Field()
+    doctor_dep = scrapy.Field()
+    crawl_time = scrapy.Field()
 
 
 class DoctorArticleItemLoader(ItemLoader):

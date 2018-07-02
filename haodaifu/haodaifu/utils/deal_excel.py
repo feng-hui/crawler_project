@@ -33,12 +33,12 @@ class CsvToDict(object):
         # print(data2.head())
         # print(data2.info(memory_usage='deep'))
         chunk = data.get_chunk(size=size)
-        print(len(chunk))
-        return chunk[0:1]
+        # print(len(chunk))
+        return chunk
 
 
 if __name__ == "__main__":
     excel_to_dict = CsvToDict('all_doctor_website.csv')
-    my_data = excel_to_dict.read_file(size=1000)
+    my_data = excel_to_dict.read_file(size=10)
     my_dict = my_data.to_dict(orient='records')
     print(my_dict)

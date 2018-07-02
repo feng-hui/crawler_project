@@ -12,4 +12,4 @@ my_dict = my_data.to_dict(orient='records')
 
 # from personal website to article
 csv_to_dict2 = CsvToDict('all_doctor_website.csv')
-all_personal_websites = csv_to_dict2.read_file().to_dict(orient='records')
+all_personal_websites = csv_to_dict2.read_file(1).to_dict(orient='records')

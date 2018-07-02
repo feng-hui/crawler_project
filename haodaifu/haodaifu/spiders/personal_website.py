@@ -43,6 +43,8 @@ class PersonalWebsiteSpider(scrapy.Spider):
         """
         self.logger.info(response.request.headers)
         self.logger.info('正在抓取的文章栏目页的url是{}:'.format(response.url))
+        doctor_hos = response.xpath('//div[@class="fl pr"]/p/a[1]/text()').extract_first('')
+        doctor_dep = response.xpath('//div[@class="fl pr"]/p/a[2]/text()').extract_first('')
         all_article_links = response.xpath('//a[@class="art_t"]')
         if all_article_links:
             for each_article in all_article_links:
@@ -51,8 +53,10 @@ class PersonalWebsiteSpider(scrapy.Spider):
                 article_loader.add_value('doctor_hid', get_host(response.url))
                 article_loader.add_xpath('article_url', '@href')
                 article_loader.add_xpath('article_title', '@title')
-                article_loader.add_value('personal_website', response.url)
-                article_loader.add_value('crawl_time', datetime.datetime.now())
+                article_loader.add_value('personal_website', urljoin('https://', get_host3(response.url)))
+                article_loader.add_value('doctor_hos', datetime.datetime.now())
+                article_loader.add_value('doctor_dep', doctor_hos)
+                article_loader.add_value('crawl_time', doctor_dep)
                 article_item = article_loader.load_item()
                 yield article_item
         else:
@@ -61,7 +65,9 @@ class PersonalWebsiteSpider(scrapy.Spider):
             article_loader.add_value('doctor_hid', get_host(response.url))
             article_loader.add_value('article_url', '')
             article_loader.add_value('article_title', '')
-            article_loader.add_value('personal_website', response.url)
+            article_loader.add_value('personal_website', urljoin('https://', get_host3(response.url)))
+            article_loader.add_value('doctor_hos', datetime.datetime.now())
+            article_loader.add_value('doctor_dep', doctor_hos)
             article_loader.add_value('crawl_time', datetime.datetime.now())
             article_item = article_loader.load_item()
             yield article_item
