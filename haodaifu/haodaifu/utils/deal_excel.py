@@ -38,7 +38,7 @@ class CsvToDict(object):
 
 
 if __name__ == "__main__":
-    excel_to_dict = CsvToDict('all_doctor_website.csv')
-    my_data = excel_to_dict.read_file(size=10)
+    excel_to_dict = CsvToDict('haodf_0703.csv')
+    my_data = excel_to_dict.read_file(size=10, use_cols=['doctor_url'])
     my_dict = my_data.to_dict(orient='records')
     print(my_dict)
