@@ -21,8 +21,8 @@ class CsvToDict(object):
         :param use_cols:columns needed
         :return:chunk data
         """
-        # file_path = os.path.join('/home/cyzs/wksp/my_env/temp_file', self.file_name)
-        file_path = os.path.join('/home/fengh/wksp/crawler_project/haodaifu/haodaifu/my_data', self.file_name)
+        file_path = os.path.join('/home/cyzs/wksp/my_env/temp_file', self.file_name)
+        # file_path = os.path.join('/home/fengh/wksp/crawler_project/haodaifu/haodaifu/my_data', self.file_name)
         if not os.path.exists(file_path):
             raise FileNotFoundError
         data = pd.read_csv(file_path,
@@ -34,11 +34,11 @@ class CsvToDict(object):
         # print(data2.info(memory_usage='deep'))
         chunk = data.get_chunk(size=size)
         # print(len(chunk))
-        return chunk
+        return chunk[2794:2795]
 
 
 if __name__ == "__main__":
     excel_to_dict = CsvToDict('haodf_0703.csv')
-    my_data = excel_to_dict.read_file(size=10, use_cols=['doctor_url'])
+    my_data = excel_to_dict.read_file(use_cols=['doctor_url'])
     my_dict = my_data.to_dict(orient='records')
     print(my_dict)

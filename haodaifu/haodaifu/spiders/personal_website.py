@@ -24,7 +24,7 @@ class PersonalWebsiteSpider(scrapy.Spider):
 
     def start_requests(self):
         for each_kw in all_personal_websites:
-            personal_website = urljoin('https://', each_kw['personal_website'])
+            personal_website = urljoin('https://', each_kw['doctor_url'])
             self.start_urls.append(personal_website)
         for each_url in self.start_urls:
             self.headers['Referer'] = each_url
@@ -41,7 +41,7 @@ class PersonalWebsiteSpider(scrapy.Spider):
         """
         文章栏目页，涉及翻页，需要的数据包括文章标题、文章链接
         """
-        self.logger.info(response.request.headers)
+        # self.logger.info(response.request.headers)
         self.logger.info('正在抓取的文章栏目页的url是{}:'.format(response.url))
         doctor_hos = response.xpath('//div[@class="fl pr"]/p/a[1]/text()').extract_first('')
         doctor_dep = response.xpath('//div[@class="fl pr"]/p/a[2]/text()').extract_first('')
@@ -54,9 +54,9 @@ class PersonalWebsiteSpider(scrapy.Spider):
                 article_loader.add_xpath('article_url', '@href')
                 article_loader.add_xpath('article_title', '@title')
                 article_loader.add_value('personal_website', urljoin('https://', get_host3(response.url)))
-                article_loader.add_value('doctor_hos', datetime.datetime.now())
-                article_loader.add_value('doctor_dep', doctor_hos)
-                article_loader.add_value('crawl_time', doctor_dep)
+                article_loader.add_value('doctor_hos', doctor_hos)
+                article_loader.add_value('doctor_dep', doctor_dep)
+                article_loader.add_value('crawl_time', datetime.datetime.now())
                 article_item = article_loader.load_item()
                 yield article_item
         else:
@@ -66,8 +66,8 @@ class PersonalWebsiteSpider(scrapy.Spider):
             article_loader.add_value('article_url', '')
             article_loader.add_value('article_title', '')
             article_loader.add_value('personal_website', urljoin('https://', get_host3(response.url)))
-            article_loader.add_value('doctor_hos', datetime.datetime.now())
-            article_loader.add_value('doctor_dep', doctor_hos)
+            article_loader.add_value('doctor_hos', doctor_hos)
+            article_loader.add_value('doctor_dep', doctor_dep)
             article_loader.add_value('crawl_time', datetime.datetime.now())
             article_item = article_loader.load_item()
             yield article_item
