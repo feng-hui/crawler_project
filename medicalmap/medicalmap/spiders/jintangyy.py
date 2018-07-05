@@ -29,6 +29,9 @@ class JintangyySpider(scrapy.Spider):
     hospital_name = '金堂县第一人民医院'
     hospital_id = '2f25c9624c31c190faa6bea604a03aee'
     host = 'http://www.jintangyy.com/'
+    custom_settings = {
+        'DOWNLOAD_DELAY': 5
+    }
 
     def start_requests(self):
         for each_url in self.start_urls:
@@ -71,18 +74,16 @@ class JintangyySpider(scrapy.Spider):
     def parse_hospital_dep(self, response):
         """科室信息"""
         self.logger.info('正在抓取{}:科室信息'.format(self.hospital_name))
-        dep_type = response.xpath('//div[@class="part"]/div[@class="part01"]')
+        dep_type = response.xpath('//div[@class="part"]/div[@class="part01"]/ul/li')
         for each_dep_type in dep_type:
-            dep_link = each_dep_type.xpath('//ul/li/div/a[1]/@href').extract_first('')
-            dep_doctor_link = each_dep_type.xpath('//ul/li/div/a[2]/@href').extract_first('')
+            dep_link = each_dep_type.xpath('div/a[1]/@href').extract_first('')
+            dep_doctor_link = each_dep_type.xpath('div/a[2]/@href').extract_first('')
             loader = MedicalMapLoader(item=HospitalDepItem(), selector=each_dep_type)
-            # loader.add_value('hospital_id', self.hospital_id)
-            loader.add_value('hospital_id', self.hospital_id)
-            loader.add_xpath('dep_type', '//div[@class="partTitle"]/div/text()')
-            loader.add_xpath('dep_name', '//ul/li/h3/text()')
-            self.headers['Referer'] = dep_link
+            loader.add_value('hospital_name', self.hospital_name)
+            loader.add_xpath('dep_name', 'h3/text()')
             if dep_link:
                 dep_link = urljoin(self.host, dep_link)
+                self.headers['Referer'] = dep_link
                 dep_detail_link = dep_link.replace('sectionshow', 'classsysdetail')
                 yield Request(dep_detail_link,
                               headers=self.headers,
@@ -98,7 +99,8 @@ class JintangyySpider(scrapy.Spider):
         """科室详细信息"""
         self.logger.info('正在抓取{}:科室详细信息'.format(self.hospital_name))
         loader = response.meta['loader']
-        loader.add_xpath('dep_intro', '//div[@class="baseRight-intro"]/p')
+        dep_intro = response.xpath('//div[@class="baseRight-intro"]/p').extract_first('')
+        loader.add_value('dep_intro', dep_intro)
         loader.add_value('up_date', now_day())
         hospital_dep_item = loader.load_item()
         yield hospital_dep_item
@@ -107,13 +109,14 @@ class JintangyySpider(scrapy.Spider):
         """医生信息"""
         self.logger.info('正在抓取{}:医生信息'.format(self.hospital_name))
         doctor_list = response.xpath('//div[@class="contents2"]/ul/li')
+        self.logger.info('该科室的医生个数为：{}'.format(str(len(doctor_list))))
         for each_doc in doctor_list:
             loader = MedicalMapLoader(item=DoctorInfoItem(), selector=each_doc)
-            loader.add_xpath('doctor_name', '//h4[@class="name"]/text()')
-            loader.add_value('hospital_id', self.hospital_id)
-            loader.add_xpath('dep_id', '//p[@class="office"]/text()')
+            loader.add_xpath('doctor_name', 'h4[@class="name"]/text()')
+            loader.add_value('hospital_name', self.hospital_name)
+            loader.add_xpath('dep_name', 'p[@class="office"]/text()')
             loader.add_xpath('doctor_level', 'p[@class="post"]/text()')
-            doctor_link = each_doc.xpath('//div[@class="contents2"]/ul/li/a[1]/@href')
+            doctor_link = each_doc.xpath('a[1]/@href').extract_first('')
             if doctor_link:
                 doctor_link = urljoin(self.host, doctor_link)
                 self.headers['Referer'] = response.url
@@ -126,8 +129,9 @@ class JintangyySpider(scrapy.Spider):
         """医生详细信息"""
         self.logger.info('正在抓取{}:医生详细信息'.format(self.hospital_name))
         loader = response.meta['loader']
-        loader.add_xpath('doctor_intro', '//div[@class="article"]/text()')
-        loader.add_xpath('doctor_goodat', '//div[@class="article"]/text()')
+        doctor_intro = response.xpath('//div[@class="article"]/text()').extract_first('')
+        loader.add_value('doctor_intro', doctor_intro)
+        loader.add_value('doctor_goodat', doctor_intro)
         loader.add_value('up_date', now_day())
         doctor_info_item = loader.load_item()
         yield doctor_info_item

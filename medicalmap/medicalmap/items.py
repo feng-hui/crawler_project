@@ -76,8 +76,7 @@ class HospitalDepItem(scrapy.Item):
     dep_intro       科室介绍
     up_date         更新时间
     """
-    hospital_id = scrapy.Field()
-    dep_type = scrapy.Field()
+    hospital_name = scrapy.Field()
     dep_name = scrapy.Field()
     dep_intro = scrapy.Field()
     up_date = scrapy.Field()
@@ -98,8 +97,8 @@ class DoctorInfoItem(scrapy.Item):
     """
     doctor_name = scrapy.Field()
     sex = scrapy.Field()
-    hospital_id = scrapy.Field()
-    dep_id = scrapy.Field()
+    hospital_name = scrapy.Field()
+    dep_name = scrapy.Field()
     doctor_level = scrapy.Field()
     doctor_intro = scrapy.Field()
     doctor_goodat = scrapy.Field()
