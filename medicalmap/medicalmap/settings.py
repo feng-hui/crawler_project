@@ -65,7 +65,7 @@ COOKIES_ENABLED = False
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'medicalmap.pipelines.MedicalmapPipeline': 300,
+   'medicalmap.pipelines.MysqlPipeline': 300,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -88,3 +88,19 @@ ITEM_PIPELINES = {
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+# MONGODB SETTINGS
+MONGODB_HOST = 'localhost'
+MONGODB_PORT = 127017
+MONGODB_DB = 'medical_map'
+MONGODB_DOC_HI = 'hospital_info'
+MONGODB_DOC_HD = 'hospital_dep'
+MONGODB_DOC_DI = 'doctor_info'
+MONGODB_DOC_DR = 'doctor_reg_info'
+
+# MYSQL SETTINGS
+MYSQL_HOST = '192.168.99.19'
+MYSQL_PORT = 3306
+MYSQL_DB = 'medical_map_update'
+MYSQL_USER = 'medicalmap1'
+MYSQL_PASSWORD = 'medicalmap#1'
