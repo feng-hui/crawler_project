@@ -65,7 +65,8 @@ class JintangyySpider(scrapy.Spider):
         loader.add_value('hospital_district', '')
         loader.add_value('is_bdc', '')
         loader.add_value('registered_channel', '微信公众号_' + self.hospital_name)
-        loader.add_value('up_date', now_day())
+        loader.add_value('dataSource_from', '官网:http://www.jintangyy.com/index.aspx')
+        loader.add_value('update_time', now_day())
         hospital_info_item = loader.load_item()
         yield hospital_info_item
         request = Request(self.dep_link, callback=self.parse_hospital_dep)
@@ -74,13 +75,14 @@ class JintangyySpider(scrapy.Spider):
     def parse_hospital_dep(self, response):
         """科室信息"""
         self.logger.info('正在抓取{}:科室信息'.format(self.hospital_name))
-        dep_type = response.xpath('//div[@class="part"]/div[@class="part01"]/ul/li')
+        dep_type = response.xpath('//div[@class="part"]/div[@class="part01"]')
         for each_dep_type in dep_type:
-            dep_link = each_dep_type.xpath('div/a[1]/@href').extract_first('')
-            dep_doctor_link = each_dep_type.xpath('div/a[2]/@href').extract_first('')
+            dep_link = each_dep_type.xpath('ul/li/div/a[1]/@href').extract_first('')
+            dep_doctor_link = each_dep_type.xpath('ul/li/div/a[2]/@href').extract_first('')
             loader = MedicalMapLoader(item=HospitalDepItem(), selector=each_dep_type)
             loader.add_value('hospital_name', self.hospital_name)
-            loader.add_xpath('dep_name', 'h3/text()')
+            loader.add_xpath('dept_name', 'ul/li/h3/text()')
+            loader.add_xpath('dept_type', 'div/div[1]/text()')
             if dep_link:
                 dep_link = urljoin(self.host, dep_link)
                 self.headers['Referer'] = dep_link
@@ -99,9 +101,9 @@ class JintangyySpider(scrapy.Spider):
         """科室详细信息"""
         self.logger.info('正在抓取{}:科室详细信息'.format(self.hospital_name))
         loader = response.meta['loader']
-        dep_intro = response.xpath('//div[@class="baseRight-intro"]/p').extract_first('')
-        loader.add_value('dep_intro', dep_intro)
-        loader.add_value('up_date', now_day())
+        dept_intro = response.xpath('//div[@class="baseRight-intro"]/p').extract_first('')
+        loader.add_value('dept_intro', dept_intro)
+        loader.add_value('update_time', now_day())
         hospital_dep_item = loader.load_item()
         yield hospital_dep_item
 
@@ -114,7 +116,7 @@ class JintangyySpider(scrapy.Spider):
             loader = MedicalMapLoader(item=DoctorInfoItem(), selector=each_doc)
             loader.add_xpath('doctor_name', 'h4[@class="name"]/text()')
             loader.add_value('hospital_name', self.hospital_name)
-            loader.add_xpath('dep_name', 'p[@class="office"]/text()')
+            loader.add_xpath('dept_name', 'p[@class="office"]/text()')
             loader.add_xpath('doctor_level', 'p[@class="post"]/text()')
             doctor_link = each_doc.xpath('a[1]/@href').extract_first('')
             if doctor_link:
@@ -131,8 +133,8 @@ class JintangyySpider(scrapy.Spider):
         loader = response.meta['loader']
         doctor_intro = response.xpath('//div[@class="article"]/text()').extract_first('')
         loader.add_value('doctor_intro', doctor_intro)
-        loader.add_value('doctor_goodat', doctor_intro)
-        loader.add_value('up_date', now_day())
+        loader.add_value('doctor_goodAt', doctor_intro)
+        loader.add_value('update_time', now_day())
         doctor_info_item = loader.load_item()
         yield doctor_info_item
 
