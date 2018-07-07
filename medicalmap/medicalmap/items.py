@@ -43,7 +43,7 @@ class HospitalInfoItem(scrapy.Item):
     cooperative_business和微医平台的合作业务
     hospital_district   院区
     registered_channel  挂号渠道
-    update_time             更新时间
+    update_time         更新时间
     """
     hospital_name = scrapy.Field()
     consulting_hour = scrapy.Field()
@@ -95,8 +95,11 @@ class HospitalInfoItem(scrapy.Item):
             self['hospital_district'],
             self['registered_channel'],
             self['dataSource_from'],
-            self['update_time'],
+            self['update_time']
         ]
+        # insert_sql = "insert into hospital_info(hospital_name) values(%s) on duplicate key " \
+        #              "update update_time=values(update_time)"
+        # params = [self['hospital_name']]
         return insert_sql, params
 
 

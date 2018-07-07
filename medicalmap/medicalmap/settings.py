@@ -99,8 +99,8 @@ MONGODB_DOC_DI = 'doctor_info'
 MONGODB_DOC_DR = 'doctor_reg_info'
 
 # MYSQL SETTINGS
-MYSQL_HOST = '192.168.99.19'
+MYSQL_HOST = 'localhost'
 MYSQL_PORT = 3306
 MYSQL_DB = 'medical_map_update'
-MYSQL_USER = 'medicalmap1'
-MYSQL_PASSWORD = 'medicalmap#1'
+MYSQL_USER = 'root'
+MYSQL_PASSWORD = 'capricorn1203!'
