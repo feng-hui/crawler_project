@@ -46,7 +46,7 @@ class JintangyySpider(scrapy.Spider):
         loader.add_value('hospital_level', '三级乙等')
         loader.add_value('hospital_type', '公立')
         loader.add_value('hospital_category', '综合医院')
-        loader.add_value('hospital_addr', '四川省金堂县赵镇金广路886号')
+        # loader.add_value('hospital_addr', '四川省金堂县赵镇金广路886号')
         loader.add_value('hospital_pro', '四川省')
         loader.add_value('hospital_city', '成都市')
         loader.add_value('hospital_county', '金堂县')
@@ -54,8 +54,7 @@ class JintangyySpider(scrapy.Spider):
                                            '急诊急救电话_18181938532;产科急救电话_18181938532;'
                                            '医保结算电话_028-84932721;'
                                            '预约挂号电话_028-84931443;预约挂号电话_028-84902884;预约挂号电话_028-61568616')
-        loader.add_xpath('hospital_intro', '//div[@class="baseRight-intro"]/p[position()>1 '
-                                           'and position()<=6]/span/text()')
+        loader.add_xpath('hospital_intro', '//div[@class="baseRight-intro"]/p[position()<7]/span/text()')
         loader.add_value('is_medicare', '')
         loader.add_value('medicare_type', '')
         loader.add_value('vaccine_name', '')
@@ -77,32 +76,36 @@ class JintangyySpider(scrapy.Spider):
         self.logger.info('正在抓取{}:科室信息'.format(self.hospital_name))
         dep_type = response.xpath('//div[@class="part"]/div[@class="part01"]')
         for each_dep_type in dep_type:
-            dep_link = each_dep_type.xpath('ul/li/div/a[1]/@href').extract_first('')
-            dep_doctor_link = each_dep_type.xpath('ul/li/div/a[2]/@href').extract_first('')
-            loader = MedicalMapLoader(item=HospitalDepItem(), selector=each_dep_type)
-            loader.add_value('hospital_name', self.hospital_name)
-            loader.add_xpath('dept_name', 'ul/li/h3/text()')
-            loader.add_xpath('dept_type', 'div/div[1]/text()')
-            if dep_link:
-                dep_link = urljoin(self.host, dep_link)
-                self.headers['Referer'] = dep_link
-                dep_detail_link = dep_link.replace('sectionshow', 'classsysdetail')
-                yield Request(dep_detail_link,
-                              headers=self.headers,
-                              callback=self.parse_dep_detail,
-                              meta={'loader': loader})
-            if dep_doctor_link:
-                dep_doctor_link = urljoin(self.host, dep_doctor_link)
-                yield Request(dep_doctor_link,
-                              headers=self.headers,
-                              callback=self.parse_doctor_info)
+            dep_type = each_dep_type.xpath('div/div[1]/text()').extract_first('')
+            all_dept_names = each_dep_type.xpath('ul/li')
+            self.logger.info('总共有{}科室'.format(str(len(all_dept_names))))
+            for each_dep_name in all_dept_names:
+                loader = MedicalMapLoader(item=HospitalDepItem(), selector=each_dep_name)
+                loader.add_value('dept_type', dep_type)
+                dep_link = each_dep_name.xpath('div/a[1]/@href').extract_first('')
+                dep_doctor_link = each_dep_name.xpath('div/a[2]/@href').extract_first('')
+                loader.add_value('hospital_name', self.hospital_name)
+                loader.add_xpath('dept_name', 'h3/text()')
+                if dep_link:
+                    dep_link = urljoin(self.host, dep_link)
+                    self.headers['Referer'] = dep_link
+                    dep_detail_link = dep_link.replace('sectionshow', 'classsysdetail')
+                    yield Request(dep_detail_link,
+                                  headers=self.headers,
+                                  callback=self.parse_dep_detail,
+                                  meta={'loader': loader})
+                if dep_doctor_link:
+                    dep_doctor_link = urljoin(self.host, dep_doctor_link)
+                    yield Request(dep_doctor_link,
+                                  headers=self.headers,
+                                  callback=self.parse_doctor_info)
 
     def parse_dep_detail(self, response):
         """科室详细信息"""
         self.logger.info('正在抓取{}:科室详细信息'.format(self.hospital_name))
         loader = response.meta['loader']
-        dept_intro = response.xpath('//div[@class="baseRight-intro"]/p').extract_first('')
-        loader.add_value('dept_intro', dept_intro)
+        dept_intro = response.xpath('//div[@class="baseRight-intro"]/p').extract()
+        loader.add_value('dept_info', dept_intro)
         loader.add_value('update_time', now_day())
         hospital_dep_item = loader.load_item()
         yield hospital_dep_item

@@ -8,7 +8,8 @@
 
 import scrapy
 from scrapy.loader import ItemLoader
-from scrapy.loader.processors import TakeFirst
+from scrapy.loader.processors import TakeFirst, Join, MapCompose
+from w3lib.html import remove_tags
 
 
 class MedicalmapItem(scrapy.Item):
@@ -19,6 +20,9 @@ class MedicalmapItem(scrapy.Item):
 
 class MedicalMapLoader(ItemLoader):
     default_output_processor = TakeFirst()
+    hospital_intro_in = Join()
+    dept_info_in = MapCompose(remove_tags)
+    dept_info_out = Join()
 
 
 class HospitalInfoItem(scrapy.Item):
@@ -50,7 +54,6 @@ class HospitalInfoItem(scrapy.Item):
     hospital_level = scrapy.Field()
     hospital_type = scrapy.Field()
     hospital_category = scrapy.Field()
-    hospital_addr = scrapy.Field()
     hospital_pro = scrapy.Field()
     hospital_city = scrapy.Field()
     hospital_county = scrapy.Field()
@@ -69,37 +72,33 @@ class HospitalInfoItem(scrapy.Item):
 
     def get_sql_info(self):
         insert_sql = "insert into hospital_info(hospital_name,consulting_hour,hospital_level,hospital_type," \
-                     "hospital_category,hospital_addr,hospital_pro,hospital_city,hospital_county,hospital_phone," \
+                     "hospital_category,hospital_pro,hospital_city,hospital_county,hospital_phone," \
                      "hospital_intro,is_medicare,medicare_type,vaccine_name,is_cpc,is_bdc,cooperative_business," \
                      "hospital_district,registered_channel,dataSource_from,update_time) " \
-                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) " \
+                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) " \
                      "on duplicate key update update_time=values(update_time)"
         params = [
-            self['hospital_name'],
-            self['consulting_hour'],
-            self['hospital_level'],
-            self['hospital_type'],
-            self['hospital_category'],
-            self['hospital_addr'],
-            self['hospital_pro'],
-            self['hospital_city'],
-            self['hospital_county'],
-            self['hospital_phone'],
-            self['hospital_intro'],
-            self['is_medicare'],
-            self['medicare_type'],
-            self['vaccine_name'],
-            self['is_cpc'],
-            self['is_bdc'],
-            self['cooperative_business'],
-            self['hospital_district'],
-            self['registered_channel'],
-            self['dataSource_from'],
-            self['update_time']
+            self.get('hospital_name', ''),
+            self.get('consulting_hour', ''),
+            self.get('hospital_level', ''),
+            self.get('hospital_type', ''),
+            self.get('hospital_category', ''),
+            self.get('hospital_pro', ''),
+            self.get('hospital_city', ''),
+            self.get('hospital_county', ''),
+            self.get('hospital_phone', ''),
+            self.get('hospital_intro', ''),
+            self.get('is_medicare', ''),
+            self.get('medicare_type', ''),
+            self.get('vaccine_name', ''),
+            self.get('is_cpc', ''),
+            self.get('is_bdc', ''),
+            self.get('cooperative_business', ''),
+            self.get('hospital_district', ''),
+            self.get('registered_channel', ''),
+            self.get('dataSource_from', ''),
+            self.get('update_time', '')
         ]
-        # insert_sql = "insert into hospital_info(hospital_name) values(%s) on duplicate key " \
-        #              "update update_time=values(update_time)"
-        # params = [self['hospital_name']]
         return insert_sql, params
 
 
@@ -115,8 +114,20 @@ class HospitalDepItem(scrapy.Item):
     dept_name = scrapy.Field()
     hospital_name = scrapy.Field()
     dept_type = scrapy.Field()
-    dept_intro = scrapy.Field()
+    dept_info = scrapy.Field()
     update_time = scrapy.Field()
+
+    def get_sql_info(self):
+        insert_sql = "insert into department_info(dept_name,hospital_name,dept_type,dept_info,update_time) " \
+                     "values(%s,%s,%s,%s,%s) on duplicate key update update_time=values(update_time)"
+        params = [
+            self.get('dept_name', ''),
+            self.get('hospital_name', ''),
+            self.get('dept_type', ''),
+            self.get('dept_info', ''),
+            self.get('update_time', '')
+        ]
+        return insert_sql, params
 
 
 class DoctorInfoItem(scrapy.Item):
@@ -142,6 +153,24 @@ class DoctorInfoItem(scrapy.Item):
     diagnosis_amt = scrapy.Field()
     update_time = scrapy.Field()
 
+    def get_sql_info(self):
+        insert_sql = "insert into doctor_info(doctor_name,dept_name,hospital_name,sex," \
+                     "doctor_level,doctor_intro,doctor_goodAt,diagnosis_amt,update_time) " \
+                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s) " \
+                     "on duplicate key update update_time=values(update_time)"
+        params = [
+            self.get('doctor_name', ''),
+            self.get('dept_name', ''),
+            self.get('hospital_name', ''),
+            self.get('sex', ''),
+            self.get('doctor_level', ''),
+            self.get('doctor_intro', ''),
+            self.get('doctor_goodAt', ''),
+            self.get('diagnosis_amt', ''),
+            self.get('update_time', ''),
+        ]
+        return insert_sql, params
+
 
 class DoctorRegInfoItem(scrapy.Item):
     """
@@ -157,3 +186,16 @@ class DoctorRegInfoItem(scrapy.Item):
     dept_name = scrapy.Field()
     reg_info = scrapy.Field()
     update_time = scrapy.Field()
+
+    def get_sql_info(self):
+        insert_sql = "insert into doctor_reg_info(doctor_name,dept_name,reg_info,update_time) " \
+                     "values(%s,%s,%s,%s,%s) " \
+                     "on duplicate key update update_time=values(update_time)"
+        params = [
+            self.get('doctor_name', ''),
+            self.get('dept_name', ''),
+            self.get('hospital_name', ''),
+            self.get('reg_info', ''),
+            self.get('update_time', '')
+        ]
+        return insert_sql, params

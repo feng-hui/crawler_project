@@ -36,35 +36,21 @@ class MysqlPipeline(object):
     @classmethod
     def from_settings(cls, settings):
         params = dict(
-            host=settings.get('MYSQL_HOST'),
-            port=settings.get('MYSQL_PORT'),
-            db=settings.get('MYSQL_DB'),
-            user=settings.get('MYSQL_USER'),
-            password=settings.get('MYSQL_PASSWORD'),
+            host=settings['MYSQL_HOST'],
+            port=settings['MYSQL_PORT'],
+            db=settings['MYSQL_DB'],
+            user=settings['MYSQL_USER'],
+            password=settings['MYSQL_PASSWORD'],
             charset='utf8',
             cursorclass=DictCursor,
             use_unicode=True
         )
         db_pool = adbapi.ConnectionPool('pymysql', **params)
         return cls(db_pool)
-        # params = dict(
-        #     host=settings['MYSQL_HOST'],
-        #     port=settings['MYSQL_PORT'],
-        #     db=settings['MYSQL_DB'],
-        #     user=settings['MYSQL_USER'],
-        #     password=settings['MYSQL_PASSWORD'],
-        #     charset='utf-8',
-        #     cursor=DictCursor,
-        #     use_unicode=True
-        # )
-        # db_pool = adbapi.ConnectionPool('pymysql', **params)
-        # return cls(db_pool)
-
 
     def process_item(self, item, spider):
-        if isinstance(item, HospitalInfoItem):
-            query = self.db_pool.runInteraction(self.do_insert, item)
-            query.addErrback(self.trace_error, item, spider)
+        query = self.db_pool.runInteraction(self.do_insert, item)
+        query.addErrback(self.trace_error, item, spider)
         return item
 
     @staticmethod
