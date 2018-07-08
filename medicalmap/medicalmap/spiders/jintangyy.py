@@ -62,13 +62,13 @@ class JintangyySpider(scrapy.Spider):
         loader.add_value('is_bdc', '')
         loader.add_value('cooperative_business', '')
         loader.add_value('hospital_district', '')
-        loader.add_value('is_bdc', '')
         loader.add_value('registered_channel', '微信公众号_' + self.hospital_name)
         loader.add_value('dataSource_from', '官网:http://www.jintangyy.com/index.aspx')
         loader.add_value('update_time', now_day())
         hospital_info_item = loader.load_item()
         yield hospital_info_item
         request = Request(self.dep_link, callback=self.parse_hospital_dep)
+        request.meta['Referer'] = response.url
         yield request
 
     def parse_hospital_dep(self, response):
