@@ -10,7 +10,7 @@ import scrapy
 from scrapy.loader import ItemLoader
 from scrapy.loader.processors import TakeFirst, Join, MapCompose
 from w3lib.html import remove_tags
-from medicalmap.utils.common import get_doctor_intro
+from medicalmap.utils.common import get_doctor_intro, custom_remove_tags
 
 
 class MedicalmapItem(scrapy.Item):
@@ -30,7 +30,12 @@ class MedicalMapLoader(ItemLoader):
 
 class PxfybjyLoader(ItemLoader):
     """郫县妇幼保健院loader"""
-    pass
+    default_output_processor = TakeFirst()
+    hospital_intro_in = MapCompose(custom_remove_tags)
+    hospital_intro_out = Join()
+    dept_info_in = MapCompose(remove_tags, custom_remove_tags)
+    dept_info_out = Join()
+    dept_name_in = dept_type_in = MapCompose(custom_remove_tags)
 
 
 class HospitalInfoItem(scrapy.Item):

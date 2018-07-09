@@ -25,5 +25,10 @@ def get_doctor_intro(value):
         return ''
 
 
+def custom_remove_tags(value):
+    """正则表达式去除\n\t\r等相关字符"""
+    return ''.join(re.findall(r'\S', value, S)).strip()
+
+
 # if __name__ == "__main__":
 #     print(now_day())
