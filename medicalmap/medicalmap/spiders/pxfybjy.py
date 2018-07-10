@@ -4,6 +4,7 @@ from medicalmap.items import HospitalInfoItem, HospitalDepItem, DoctorInfoItem, 
 from medicalmap.utils.common import now_day
 from scrapy.http import Request
 from urllib.parse import urljoin
+from medicalmap.utils.common import custom_remove_tags
 
 
 class PxfybjySpider(scrapy.Spider):
@@ -56,22 +57,23 @@ class PxfybjySpider(scrapy.Spider):
         loader.add_value('consulting_hour', '门诊上午_8:00-12:00;门诊下午14:00-17:30')
         loader.add_value('hospital_level', '三级乙等')
         loader.add_value('hospital_type', '公立')
-        loader.add_value('hospital_category', '')
+        loader.add_value('hospital_category', '妇幼保健院')
+        loader.add_value('hospital_addr', '郫都区郫筒街道新南街283号')
         loader.add_value('hospital_pro', '四川省')
         loader.add_value('hospital_city', '成都市')
         loader.add_value('hospital_county', '郫都区')
         loader.add_value('hospital_phone', '产科急救_028-87922244;儿科急救_028-87931629;产检门诊_028-87924116;'
                                            '婚检_028-87885339;儿保科_028-87931911')
         loader.add_xpath('hospital_intro', '//div[@class="FrontComContent_detail01-1468317290474_htmlbreak"]/'
-                                           'p[position()<9]/text()')
-        loader.add_value('is_medicare', '')
-        loader.add_value('medicare_type', '')
-        loader.add_value('vaccine_name', '')
-        loader.add_value('is_cpc', '')
-        loader.add_value('is_bdc', '')
-        loader.add_value('cooperative_business', '')
-        loader.add_value('hospital_district', '')
-        loader.add_value('registered_channel', '')
+                                           'p[position()<9]')
+        # loader.add_value('is_medicare', '')
+        # loader.add_value('medicare_type', '')
+        # loader.add_value('vaccine_name', '')
+        # loader.add_value('is_cpc', '')
+        # loader.add_value('is_bdc', '')
+        # loader.add_value('cooperative_business', '')
+        # loader.add_value('hospital_district', '')
+        # loader.add_value('registered_channel', '')
         loader.add_value('dataSource_from', '官网:http://www.pxfybjy.cn/index.html')
         loader.add_value('update_time', now_day())
         hospital_info_item = loader.load_item()
@@ -81,7 +83,6 @@ class PxfybjySpider(scrapy.Spider):
         request = Request(self.index_link, headers=self.headers, callback=self.parse_hospital_dep)
         request.meta['Referer'] = response.url
         yield request
-        # 医生信息
 
     def parse_hospital_dep(self, response):
         """获取医院科室信息"""
@@ -89,20 +90,19 @@ class PxfybjySpider(scrapy.Spider):
         dep_type = response.xpath('//ul[@id="summenu_FrontColumns_navigation01-1468202319938_4"]/li')
         self.logger.info('{}:共有{}个一级科室'.format(self.hospital_name, str(len(dep_type))))
         for each_dep_type in dep_type:
-            loader = PxfybjyLoader(item=HospitalDepItem(), selector=each_dep_type)
-            loader.add_xpath('dept_type', 'a/text()')
-            loader.add_value('hospital_name', self.hospital_name)
             dept_link = each_dep_type.xpath('a/@href').extract_first('')
+            dep_type = each_dep_type.xpath('a/text()').extract_first('')
             if dept_link:
                 request = Request(urljoin(self.host, dept_link),
                                   headers=self.headers,
                                   callback=self.parse_dept_info,
-                                  meta={'loader': loader})
+                                  meta={'dep_type': dep_type})
                 request.meta['Referer'] = response.url
                 yield request
 
     def parse_dept_info(self, response):
-        loader = response.meta['loader']
+        dep_type = response.meta['dep_type']
+        self.logger.info('正在抓取[{}]科室信息'.format(custom_remove_tags(dep_type)))
         all_dept_names = response.xpath('//div[@class="pic"]')
         if all_dept_names:
             # 一级科室有二级科室
@@ -113,11 +113,14 @@ class PxfybjySpider(scrapy.Spider):
                     request = Request(dept_detail_link,
                                       headers=self.headers,
                                       callback=self.parse_dept_detail,
-                                      meta={'loader': loader})
+                                      meta={'dep_type': dep_type})
                     request.meta['Referer'] = response.url
                     yield request
         else:
             # 一级科室没有二级科室
+            loader = PxfybjyLoader(item=HospitalDepItem(), response=response)
+            loader.add_value('dept_type', dep_type)
+            loader.add_value('hospital_name', self.hospital_name)
             loader.add_value('update_time', now_day())
             hospital_dep_item = loader.load_item()
             yield hospital_dep_item
@@ -125,10 +128,12 @@ class PxfybjySpider(scrapy.Spider):
     def parse_dept_detail(self, response):
         """医院科室详细信息"""
         self.logger.info('正在抓取{}:科室详细信息'.format(self.hospital_name))
-        loader = response.meta['loader']
+        loader = PxfybjyLoader(item=HospitalDepItem(), response=response)
         dept_name = response.xpath('//li[@class="name1"]/text()').extract_first('')
         dept_info = response.xpath('//div[@class="FrontProducts_detail02-1468396987105_htmlbreak"]/p').extract()
+        loader.add_value('dept_type', response.meta['dep_type'])
         loader.add_value('dept_name', dept_name)
+        loader.add_value('hospital_name', self.hospital_name)
         loader.add_value('dept_info', dept_info)
         loader.add_value('update_time', now_day())
         hospital_dep_item = loader.load_item()
@@ -146,6 +151,7 @@ class PxfybjySpider(scrapy.Spider):
                 dept_detail_link = each_dept_name.xpath('a/@href').extract_first('')
                 loader = PxfybjyLoader(item=DoctorInfoItem(), response=response)
                 loader.add_value('dept_name', dept_name)
+                loader.add_value('hospital_name', self.hospital_name)
                 if dept_detail_link:
                     dept_detail_link = urljoin(self.host, dept_detail_link)
                     request = Request(dept_detail_link,
@@ -159,3 +165,14 @@ class PxfybjySpider(scrapy.Spider):
         """获取医院医生详细信息"""
         self.logger.info('正在抓取{}:医生详细信息'.format(self.hospital_name))
         loader = response.meta['loader']
+        doctor_name = response.xpath('//li[@class="name1"]/text()').extract_first('')
+        doctor_level = response.xpath('//li[@class="model"]/text()').extract()
+        doctor_intro = response.xpath('//div[@class="FrontProducts_detail02-1468463737287_htmlbreak"]/'
+                                      'p/text()').extract()
+        loader.add_value('doctor_name', doctor_name)
+        loader.add_value('doctor_level', doctor_level)
+        loader.add_value('doctor_intro', doctor_intro)
+        loader.add_value('doctor_goodAt', doctor_intro)
+        loader.add_value('update_time', now_day())
+        doctor_info_item = loader.load_item()
+        yield doctor_info_item

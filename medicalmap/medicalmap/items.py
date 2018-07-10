@@ -31,11 +31,14 @@ class MedicalMapLoader(ItemLoader):
 class PxfybjyLoader(ItemLoader):
     """郫县妇幼保健院loader"""
     default_output_processor = TakeFirst()
-    hospital_intro_in = MapCompose(custom_remove_tags)
+    hospital_intro_in = MapCompose(remove_tags, custom_remove_tags)
     hospital_intro_out = Join()
     dept_info_in = MapCompose(remove_tags, custom_remove_tags)
     dept_info_out = Join()
-    dept_name_in = dept_type_in = MapCompose(custom_remove_tags)
+    dept_name_in = dept_type_in = doctor_name_in = doctor_intro_in = doctor_goodAt_in = MapCompose(custom_remove_tags)
+    doctor_level_in = MapCompose(custom_remove_tags, str.strip)
+    doctor_level_out = Join()
+    doctor_intro_out = doctor_goodAt_out = Join()
 
 
 class HospitalInfoItem(scrapy.Item):
@@ -67,6 +70,7 @@ class HospitalInfoItem(scrapy.Item):
     hospital_level = scrapy.Field()
     hospital_type = scrapy.Field()
     hospital_category = scrapy.Field()
+    hospital_addr = scrapy.Field()
     hospital_pro = scrapy.Field()
     hospital_city = scrapy.Field()
     hospital_county = scrapy.Field()
@@ -84,18 +88,24 @@ class HospitalInfoItem(scrapy.Item):
     update_time = scrapy.Field()
 
     def get_sql_info(self):
+        # insert_sql = "insert into hospital_info(hospital_name,consulting_hour,hospital_level,hospital_type," \
+        #              "hospital_category,hospital_pro,hospital_city,hospital_county,hospital_phone," \
+        #              "hospital_intro,is_medicare,medicare_type,vaccine_name,is_cpc,is_bdc,cooperative_business," \
+        #              "hospital_district,registered_channel,dataSource_from,update_time) " \
+        #              "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) " \
+        #              "on duplicate key update update_time=values(update_time)"
         insert_sql = "insert into hospital_info(hospital_name,consulting_hour,hospital_level,hospital_type," \
-                     "hospital_category,hospital_pro,hospital_city,hospital_county,hospital_phone," \
+                     "hospital_category,hospital_addr,hospital_pro,hospital_city,hospital_county,hospital_phone," \
                      "hospital_intro,is_medicare,medicare_type,vaccine_name,is_cpc,is_bdc,cooperative_business," \
                      "hospital_district,registered_channel,dataSource_from,update_time) " \
-                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) " \
-                     "on duplicate key update update_time=values(update_time)"
+                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
         params = [
             self.get('hospital_name', ''),
             self.get('consulting_hour', ''),
             self.get('hospital_level', ''),
             self.get('hospital_type', ''),
             self.get('hospital_category', ''),
+            self.get('hospital_addr', ''),
             self.get('hospital_pro', ''),
             self.get('hospital_city', ''),
             self.get('hospital_county', ''),
