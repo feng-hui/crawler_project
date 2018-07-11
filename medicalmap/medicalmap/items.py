@@ -41,6 +41,13 @@ class PxfybjyLoader(ItemLoader):
     doctor_intro_out = doctor_goodAt_out = Join()
 
 
+class YiHuLoader(ItemLoader):
+    """健康之路item loader"""
+    default_output_processor = TakeFirst()
+    hospital_intro_in = MapCompose(remove_tags, custom_remove_tags)
+    hospital_intro_out = Join()
+
+
 class HospitalInfoItem(scrapy.Item):
     """
     医院信息表

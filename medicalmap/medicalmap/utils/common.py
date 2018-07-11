@@ -30,5 +30,15 @@ def custom_remove_tags(value):
     return ''.join(re.findall(r'\S', value, S)).strip()
 
 
-# if __name__ == "__main__":
-#     print(now_day())
+def remove_number(value):
+    """获取除数字以外的其他信息 方法1"""
+    return ''.join(re.findall(r'[^\d+]', value))
+
+
+def remove_number2(value):
+    """获取除数字以外的其他信息 方法2"""
+    return re.sub(r'\d+', '', value)
+
+
+if __name__ == "__main__":
+    print(remove_number('701'))

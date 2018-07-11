@@ -64,9 +64,9 @@ COOKIES_ENABLED = False
 
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-ITEM_PIPELINES = {
-   'medicalmap.pipelines.MysqlPipeline': 300,
-}
+# ITEM_PIPELINES = {
+#    'medicalmap.pipelines.MysqlPipeline': 300,
+# }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html
@@ -99,11 +99,11 @@ MONGODB_DOC_DI = 'doctor_info'
 MONGODB_DOC_DR = 'doctor_reg_info'
 
 # # MYSQL SETTINGS TEST SERVER
-MYSQL_HOST = '192.168.99.19'
-MYSQL_PORT = 3306
-MYSQL_DB = 'medical_map_update'
-MYSQL_USER = 'medicalmap1'
-MYSQL_PASSWORD = 'medicalmap#1'
+# MYSQL_HOST = '192.168.99.19'
+# MYSQL_PORT = 3306
+# MYSQL_DB = 'medical_map_update'
+# MYSQL_USER = 'medicalmap1'
+# MYSQL_PASSWORD = 'medicalmap#1'
 
 # MYSQL SETTINGS LOCALHOST SERVER
 # MYSQL_HOST = 'localhost'
