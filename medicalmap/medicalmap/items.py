@@ -19,6 +19,11 @@ class MedicalmapItem(scrapy.Item):
     pass
 
 
+class CommonLoader(ItemLoader):
+    """通用ItemLoader"""
+    default_output_processor = TakeFirst()
+
+
 class MedicalMapLoader(ItemLoader):
     """金堂县第一人民医院loader"""
     default_output_processor = TakeFirst()
