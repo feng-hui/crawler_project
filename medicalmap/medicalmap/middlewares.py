@@ -6,6 +6,7 @@
 # https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
+import base64
 
 
 class MedicalmapSpiderMiddleware(object):
@@ -101,3 +102,23 @@ class MedicalmapDownloaderMiddleware(object):
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
+
+
+class ProxyMiddleWare(object):
+    """阿布云的代理ip配置"""
+
+    # 代理服务器
+    proxyServer = "http://http-dyn.abuyun.com:9020"
+
+    # 代理隧道验证信息
+    proxyUser = "HV7H735K97281CFD"
+    proxyPass = "88DCA3A9BEF0B6D1"
+
+    proxyAuth = "Basic " + base64.urlsafe_b64encode(bytes((proxyUser + ":" + proxyPass), "ascii")).decode("utf8")
+
+    def __init__(self):
+        super(ProxyMiddleWare, self).__init__()
+
+    def process_request(self, request, spider):
+        request.meta['proxy'] = self.proxyServer
+        request.headers["Proxy-Authorization"] = self.proxyAuth

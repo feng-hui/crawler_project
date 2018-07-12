@@ -22,7 +22,7 @@ NEWSPIDER_MODULE = 'medicalmap.spiders'
 ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-#CONCURRENT_REQUESTS = 32
+# CONCURRENT_REQUESTS = 32
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://doc.scrapy.org/en/latest/topics/settings.html#download-delay
@@ -52,9 +52,9 @@ COOKIES_ENABLED = False
 
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
-#    'medicalmap.middlewares.MedicalmapDownloaderMiddleware': 543,
-#}
+DOWNLOADER_MIDDLEWARES = {
+   'medicalmap.middlewares.ProxyMiddleWare': 543,
+}
 
 # Enable or disable extensions
 # See https://doc.scrapy.org/en/latest/topics/extensions.html
@@ -64,9 +64,9 @@ COOKIES_ENABLED = False
 
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-# ITEM_PIPELINES = {
-#    'medicalmap.pipelines.MysqlPipeline': 300,
-# }
+ITEM_PIPELINES = {
+   'medicalmap.pipelines.MysqlPipeline': 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html
@@ -90,20 +90,20 @@ COOKIES_ENABLED = False
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 # MONGODB SETTINGS
-MONGODB_HOST = 'localhost'
-MONGODB_PORT = 127017
-MONGODB_DB = 'medical_map'
-MONGODB_DOC_HI = 'hospital_info'
-MONGODB_DOC_HD = 'hospital_dep'
-MONGODB_DOC_DI = 'doctor_info'
-MONGODB_DOC_DR = 'doctor_reg_info'
+# MONGODB_HOST = 'localhost'
+# MONGODB_PORT = 127017
+# MONGODB_DB = 'medical_map'
+# MONGODB_DOC_HI = 'hospital_info'
+# MONGODB_DOC_HD = 'hospital_dep'
+# MONGODB_DOC_DI = 'doctor_info'
+# MONGODB_DOC_DR = 'doctor_reg_info'
 
 # # MYSQL SETTINGS TEST SERVER
-# MYSQL_HOST = '192.168.99.19'
-# MYSQL_PORT = 3306
-# MYSQL_DB = 'medical_map_update'
-# MYSQL_USER = 'medicalmap1'
-# MYSQL_PASSWORD = 'medicalmap#1'
+MYSQL_HOST = '192.168.99.19'
+MYSQL_PORT = 3306
+MYSQL_DB = 'medical_map_update'
+MYSQL_USER = 'medicalmap1'
+MYSQL_PASSWORD = 'medicalmap#1'
 
 # MYSQL SETTINGS LOCALHOST SERVER
 # MYSQL_HOST = 'localhost'
@@ -114,3 +114,7 @@ MONGODB_DOC_DR = 'doctor_reg_info'
 
 # DUPEFILTER_DEBUG SETTINGS
 DUPEFILTER_DEBUG = True
+
+# RETRY_SETTINGS
+RETRY_TIMES = 20
+RETRY_HTTP_CODES = [500, 502, 503, 504, 408, 403, 404]

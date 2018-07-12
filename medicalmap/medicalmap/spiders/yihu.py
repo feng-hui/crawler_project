@@ -31,7 +31,16 @@ class YihuSpider(scrapy.Spider):
     host = 'https://www.yihu.com'
     hospital_host = 'https://www.yihu.com/hospital/'
     custom_settings = {
-        'DOWNLOAD_DELAY': 5
+        # 延迟设置
+        # 'DOWNLOAD_DELAY': 5,
+        # 自动限速设置
+        'AUTOTHROTTLE_ENABLED': True,
+        'AUTOTHROTTLE_START_DELAY': 1,
+        'AUTOTHROTTLE_MAX_DELAY': 5,
+        'AUTOTHROTTLE_TARGET_CONCURRENCY': 5.0,
+        'AUTOTHROTTLE_DEBUG': False,
+        # 并发请求数的控制,默认为16
+        'CONCURRENT_REQUESTS': 32
     }
 
     def start_requests(self):
@@ -41,7 +50,8 @@ class YihuSpider(scrapy.Spider):
     def parse(self, response):
         """获取医院信息"""
         all_hospital_links = response.xpath('//div[@class="c-hidden disen-list-hos c-f12"]/ul/li')
-        for each_hospital_link in all_hospital_links[0:1]:
+        self.logger.info('该地区共{}家医院'.format(str(len(all_hospital_links))))
+        for each_hospital_link in all_hospital_links:
             loader = YiHuLoader(item=HospitalInfoItem(), selector=each_hospital_link)
             loader.add_xpath('hospital_name', 'a/text()')
             loader.add_xpath('hospital_level', 'span/text()', MapCompose(remove_number2))
@@ -55,7 +65,7 @@ class YihuSpider(scrapy.Spider):
                 #                                   callback=self.parse_hospital_detail,
                 #                                   meta={'loader': loader,
                 #                                         'contact_hos_link': contact_hos_link})
-                # self.headers['Referer'] = hospital_link
+                # self.headers['Referer'] = response.url
                 # yield hospital_detail_request
                 # 医院科室信息
                 dep_request = Request(hospital_link,
@@ -72,7 +82,7 @@ class YihuSpider(scrapy.Spider):
         hospital_name = response.xpath('//div[@class="hos-info"]/h1/text()').extract_first('')
         all_dept_links = response.xpath('//dd[@class="ks-2"]/ul/li')
         self.logger.info('{}：共有{}个科室'.format(hospital_name, str(len(all_dept_links))))
-        for each_dept_link in all_dept_links[0:1]:
+        for each_dept_link in all_dept_links:
             # 获取科室信息
             dep_loader = YiHuLoader(item=HospitalDepItem(), selector=each_dept_link)
             dep_loader.add_xpath('dept_type', 'a/text()')
@@ -85,12 +95,12 @@ class YihuSpider(scrapy.Spider):
             dept_link = each_dept_link.xpath('a/@href').extract_first('')
             if dept_link:
                 dept_link = urljoin(self.host, dept_link)
-                doctor_link = re.sub(r'/arrange/', '/7002/', dept_link)
-                doctor_request = Request(doctor_link,
-                                         headers=self.headers,
-                                         callback=self.parse_doctor_link)
-                self.headers['Referer'] = dept_link
-                yield doctor_request
+                # doctor_link = re.sub(r'/arrange/', '/7002/', dept_link)
+                dept_request = Request(dept_link,
+                                       headers=self.headers,
+                                       callback=self.parse_dept_link)
+                self.headers['Referer'] = response.url
+                yield dept_request
 
     def parse_doctor_reg_info(self, response):
         self.logger.info('>>>>>>正在抓取医生排班信息……')
@@ -102,7 +112,7 @@ class YihuSpider(scrapy.Spider):
         self.logger.info('>>>>>>正在抓取医院概况……')
         loader = response.meta['loader']
         contact_hos_link = response.meta['contact_hos_link']
-        hospital_intro = response.xpath('//div[@class="section-con"]/p').extract()
+        hospital_intro = response.xpath('//div[@class="section-con"]').extract_first('')
         loader.add_value('hospital_intro', hospital_intro)
         contact_hos_request = Request(contact_hos_link,
                                       headers=self.headers,
@@ -117,12 +127,23 @@ class YihuSpider(scrapy.Spider):
         hospital_address = response.xpath('//div[@class="section sec-article"]/div[2]/div/table/tr/'
                                           'td[2]/text()').extract_first('')
         hospital_phone = response.xpath('//div[@class="section sec-article"]/div[2]/div/table/tr/'
-                                        'td[2]/text()').extract_first('')
+                                        'td[4]/text()').extract_first('')
         loader.add_value('hospital_addr', hospital_address)
         loader.add_value('hospital_phone', hospital_phone)
+        loader.add_value('dataSource_from', '健康之路')
         loader.add_value('update_time', now_day())
         hospital_info_item = loader.load_item()
         yield hospital_info_item
+
+    def parse_dept_link(self, response):
+        self.logger.info('>>>>>>正在抓取科室挂号页面……')
+        doctor_link = response.xpath('//div[@class="hos-nav"]/ul/li[2]/a/@href').extract_first('')
+        if doctor_link:
+            doctor_request = Request(urljoin(self.host, doctor_link),
+                                     headers=self.headers,
+                                     callback=self.parse_doctor_link)
+            self.headers['Referer'] = response.url
+            yield doctor_request
 
     def parse_doctor_link(self, response):
         self.logger.info('>>>>>>正在抓取医生列表页相关信息……')
@@ -133,6 +154,14 @@ class YihuSpider(scrapy.Spider):
                                              callback=self.parse_doctor_website)
             self.headers['Referer'] = response.url
             yield doctor_website_request
+        next_page = response.xpath('//a[@class="page-next"]/@href').extract_first('')
+        if next_page:
+            next_page_link = urljoin(self.host, next_page)
+            request = Request(next_page_link,
+                              headers=self.headers,
+                              callback=self.parse_doctor_link)
+            self.headers['Referer'] = response.url
+            yield request
 
     def parse_doctor_website(self, response):
         self.logger.info('>>>>>>正在抓取医生个人主页相关信息……')

@@ -45,7 +45,7 @@ class YiHuLoader(ItemLoader):
     """健康之路item loader"""
     default_output_processor = TakeFirst()
     hospital_intro_in = MapCompose(remove_tags, custom_remove_tags)
-    hospital_intro_out = Join()
+    # hospital_intro_out = Join()
 
 
 class HospitalInfoItem(scrapy.Item):
@@ -95,17 +95,17 @@ class HospitalInfoItem(scrapy.Item):
     update_time = scrapy.Field()
 
     def get_sql_info(self):
-        # insert_sql = "insert into hospital_info(hospital_name,consulting_hour,hospital_level,hospital_type," \
-        #              "hospital_category,hospital_pro,hospital_city,hospital_county,hospital_phone," \
-        #              "hospital_intro,is_medicare,medicare_type,vaccine_name,is_cpc,is_bdc,cooperative_business," \
-        #              "hospital_district,registered_channel,dataSource_from,update_time) " \
-        #              "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) " \
-        #              "on duplicate key update update_time=values(update_time)"
         insert_sql = "insert into hospital_info(hospital_name,consulting_hour,hospital_level,hospital_type," \
                      "hospital_category,hospital_addr,hospital_pro,hospital_city,hospital_county,hospital_phone," \
                      "hospital_intro,is_medicare,medicare_type,vaccine_name,is_cpc,is_bdc,cooperative_business," \
                      "hospital_district,registered_channel,dataSource_from,update_time) " \
-                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) " \
+                     "on duplicate key update update_time=values(update_time),hospital_intro=values(hospital_intro)"
+        # insert_sql = "insert into hospital_info(hospital_name,consulting_hour,hospital_level,hospital_type," \
+        #              "hospital_category,hospital_addr,hospital_pro,hospital_city,hospital_county,hospital_phone," \
+        #              "hospital_intro,is_medicare,medicare_type,vaccine_name,is_cpc,is_bdc,cooperative_business," \
+        #              "hospital_district,registered_channel,dataSource_from,update_time) " \
+        #              "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
         params = [
             self.get('hospital_name', ''),
             self.get('consulting_hour', ''),
