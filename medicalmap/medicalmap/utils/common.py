@@ -40,5 +40,10 @@ def remove_number2(value):
     return re.sub(r'\d+', '', value)
 
 
+def clean_info(value):
+    """去除字段值一些无用的信息"""
+    return re.sub(r'null|--|none', '', value).strip()
+
+
 if __name__ == "__main__":
     print(remove_number('701'))

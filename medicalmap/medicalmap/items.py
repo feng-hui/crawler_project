@@ -10,7 +10,7 @@ import scrapy
 from scrapy.loader import ItemLoader
 from scrapy.loader.processors import TakeFirst, Join, MapCompose
 from w3lib.html import remove_tags
-from medicalmap.utils.common import get_doctor_intro, custom_remove_tags
+from medicalmap.utils.common import get_doctor_intro, custom_remove_tags, clean_info
 
 
 class MedicalmapItem(scrapy.Item):
@@ -22,6 +22,8 @@ class MedicalmapItem(scrapy.Item):
 class CommonLoader(ItemLoader):
     """通用ItemLoader"""
     default_output_processor = TakeFirst()
+    doctor_intro_in = MapCompose(remove_tags, clean_info)
+    doctor_goodAt_in = MapCompose(clean_info)
 
 
 class MedicalMapLoader(ItemLoader):
@@ -105,7 +107,8 @@ class HospitalInfoItem(scrapy.Item):
                      "hospital_intro,is_medicare,medicare_type,vaccine_name,is_cpc,is_bdc,cooperative_business," \
                      "hospital_district,registered_channel,dataSource_from,update_time) " \
                      "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) " \
-                     "on duplicate key update update_time=values(update_time),hospital_intro=values(hospital_intro)"
+                     "on duplicate key update update_time=values(update_time),hospital_intro=values(hospital_intro)," \
+                     "is_medicare=values(is_medicare),hospital_pro=values(hospital_pro)"
         # insert_sql = "insert into hospital_info(hospital_name,consulting_hour,hospital_level,hospital_type," \
         #              "hospital_category,hospital_addr,hospital_pro,hospital_city,hospital_county,hospital_phone," \
         #              "hospital_intro,is_medicare,medicare_type,vaccine_name,is_cpc,is_bdc,cooperative_business," \
@@ -223,13 +226,13 @@ class DoctorRegInfoItem(scrapy.Item):
     update_time = scrapy.Field()
 
     def get_sql_info(self):
-        insert_sql = "insert into doctor_reg_info(doctor_name,dept_name,reg_info,update_time) " \
+        insert_sql = "insert into doctor_reg_info(doctor_name,hospital_name,dept_name,reg_info,update_time) " \
                      "values(%s,%s,%s,%s,%s) " \
                      "on duplicate key update update_time=values(update_time)"
         params = [
             self.get('doctor_name', ''),
-            self.get('dept_name', ''),
             self.get('hospital_name', ''),
+            self.get('dept_name', ''),
             self.get('reg_info', ''),
             self.get('update_time', '')
         ]

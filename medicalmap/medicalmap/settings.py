@@ -99,18 +99,18 @@ ITEM_PIPELINES = {
 # MONGODB_DOC_DR = 'doctor_reg_info'
 
 # # MYSQL SETTINGS TEST SERVER
-MYSQL_HOST = '192.168.99.19'
-MYSQL_PORT = 3306
-MYSQL_DB = 'medical_map_update'
-MYSQL_USER = 'medicalmap1'
-MYSQL_PASSWORD = 'medicalmap#1'
-
-# MYSQL SETTINGS LOCALHOST SERVER
-# MYSQL_HOST = 'localhost'
+# MYSQL_HOST = '192.168.99.19'
 # MYSQL_PORT = 3306
 # MYSQL_DB = 'medical_map_update'
-# MYSQL_USER = 'root'
-# MYSQL_PASSWORD = 'capricorn1203!'
+# MYSQL_USER = 'medicalmap1'
+# MYSQL_PASSWORD = 'medicalmap#1'
+
+# MYSQL SETTINGS LOCALHOST SERVER
+MYSQL_HOST = 'localhost'
+MYSQL_PORT = 3306
+MYSQL_DB = 'medical_map_update'
+MYSQL_USER = 'root'
+MYSQL_PASSWORD = 'capricorn1203!'
 
 # DUPEFILTER_DEBUG SETTINGS
 DUPEFILTER_DEBUG = True
