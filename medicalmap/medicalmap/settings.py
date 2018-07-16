@@ -17,6 +17,7 @@ NEWSPIDER_MODULE = 'medicalmap.spiders'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'medicalmap (+http://www.yourdomain.com)'
+USER_AGENT = 'Mozilla/5.0 (compatible;Baiduspider-render/2.0; +http://www.baidu.com/search/spider.html)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
@@ -99,18 +100,18 @@ ITEM_PIPELINES = {
 # MONGODB_DOC_DR = 'doctor_reg_info'
 
 # # MYSQL SETTINGS TEST SERVER
-# MYSQL_HOST = '192.168.99.19'
-# MYSQL_PORT = 3306
-# MYSQL_DB = 'medical_map_update'
-# MYSQL_USER = 'medicalmap1'
-# MYSQL_PASSWORD = 'medicalmap#1'
-
-# MYSQL SETTINGS LOCALHOST SERVER
-MYSQL_HOST = 'localhost'
+MYSQL_HOST = '192.168.99.19'
 MYSQL_PORT = 3306
 MYSQL_DB = 'medical_map_update'
-MYSQL_USER = 'root'
-MYSQL_PASSWORD = 'capricorn1203!'
+MYSQL_USER = 'medicalmap1'
+MYSQL_PASSWORD = 'medicalmap#1'
+
+# MYSQL SETTINGS LOCALHOST SERVER
+# MYSQL_HOST = 'localhost'
+# MYSQL_PORT = 3306
+# MYSQL_DB = 'medical_map_update'
+# MYSQL_USER = 'root'
+# MYSQL_PASSWORD = 'capricorn1203!'
 
 # DUPEFILTER_DEBUG SETTINGS
 DUPEFILTER_DEBUG = True

@@ -107,8 +107,9 @@ class HospitalInfoItem(scrapy.Item):
                      "hospital_intro,is_medicare,medicare_type,vaccine_name,is_cpc,is_bdc,cooperative_business," \
                      "hospital_district,registered_channel,dataSource_from,update_time) " \
                      "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) " \
-                     "on duplicate key update update_time=values(update_time),hospital_intro=values(hospital_intro)," \
-                     "is_medicare=values(is_medicare),hospital_pro=values(hospital_pro)"
+                     "on duplicate key update hospital_intro=values(hospital_intro),hospital_pro=values(hospital_pro)," \
+                     "hospital_city=values(hospital_city),hospital_phone=values(hospital_phone)," \
+                     "update_time=values(update_time)"
         # insert_sql = "insert into hospital_info(hospital_name,consulting_hour,hospital_level,hospital_type," \
         #              "hospital_category,hospital_addr,hospital_pro,hospital_city,hospital_county,hospital_phone," \
         #              "hospital_intro,is_medicare,medicare_type,vaccine_name,is_cpc,is_bdc,cooperative_business," \

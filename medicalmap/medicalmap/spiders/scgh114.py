@@ -192,6 +192,7 @@ class Scgh114Spider(scrapy.Spider):
                 elif int(duty_time) == 3:
                     duty_time = '上午'
                 else:
+                    # duty_time 4 晚上 doctorId 3329 成都中医药大学附属医院
                     duty_time = '晚上'
                 reg_info = '{0}{1}'.format(duty_date, duty_time)
                 loader = CommonLoader(item=DoctorRegInfoItem(), response=response)

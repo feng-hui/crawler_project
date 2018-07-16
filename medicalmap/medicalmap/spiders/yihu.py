@@ -12,6 +12,7 @@ class YihuSpider(scrapy.Spider):
     """
     健康之路网站：成都、眉山、绵阳三个地市的数据
     目前只有成都有数据
+    入口：预约挂号
     """
     name = 'yihu'
     allowed_domains = ['yihu.com']
