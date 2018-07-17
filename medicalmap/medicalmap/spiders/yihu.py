@@ -59,15 +59,15 @@ class YihuSpider(scrapy.Spider):
             hospital_link = each_hospital_link.xpath('a/@href').extract_first('')
             if hospital_link:
                 # 医院信息
-                # hospital_detail_link = re.sub(r'/sc/', '/detail/', hospital_link)
-                # contact_hos_link = re.sub(r'/sc/', '/contact/', hospital_link)
-                # hospital_detail_request = Request(hospital_detail_link,
-                #                                   headers=self.headers,
-                #                                   callback=self.parse_hospital_detail,
-                #                                   meta={'loader': loader,
-                #                                         'contact_hos_link': contact_hos_link})
-                # self.headers['Referer'] = response.url
-                # yield hospital_detail_request
+                hospital_detail_link = re.sub(r'/sc/', '/detail/', hospital_link)
+                contact_hos_link = re.sub(r'/sc/', '/contact/', hospital_link)
+                hospital_detail_request = Request(hospital_detail_link,
+                                                  headers=self.headers,
+                                                  callback=self.parse_hospital_detail,
+                                                  meta={'loader': loader,
+                                                        'contact_hos_link': contact_hos_link})
+                self.headers['Referer'] = response.url
+                yield hospital_detail_request
                 # 医院科室信息
                 dep_request = Request(hospital_link,
                                       headers=self.headers,
@@ -177,4 +177,3 @@ class YihuSpider(scrapy.Spider):
         loader.add_value('update_time', now_day())
         doctor_item = loader.load_item()
         yield doctor_item
-        # 获取医院排班相关信息

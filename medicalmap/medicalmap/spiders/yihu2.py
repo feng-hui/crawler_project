@@ -24,7 +24,7 @@ class Yihu2Spider(scrapy.Spider):
                   'https://www.yihu.com/zixun/21.shtml', 'https://www.yihu.com/zixun/52.shtml',
                   'https://www.yihu.com/zixun/15.shtml', 'https://www.yihu.com/zixun/81.shtml',
                   'https://www.yihu.com/zixun/78.shtml']
-    start_urls = [urljoin(each_dept, '?provinceId=23&cityId=252&standardDeptId=0') for each_dept in dept_links]
+    start_urls = [urljoin(each_dept, '?provinceId=23&cityId=241&standardDeptId=0') for each_dept in dept_links]
     headers = {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
         'Accept-Encoding': 'gzip, deflate, br',
@@ -32,7 +32,7 @@ class Yihu2Spider(scrapy.Spider):
         'Cache-Control': 'max-age=0',
         'Connection': 'keep-alive',
         'Host': 'www.yihu.com',
-        'Referer': 'https://www.yihu.com/zixun/     ',
+        'Referer': 'https://www.yihu.com/zixun/',
         'Upgrade-Insecure-Requests': '1',
         # 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) '
         #               'Chrome/65.0.3325.181 Safari/537.36'
@@ -47,7 +47,7 @@ class Yihu2Spider(scrapy.Spider):
         'AUTOTHROTTLE_START_DELAY': 1,
         'AUTOTHROTTLE_MAX_DELAY': 5,
         'AUTOTHROTTLE_TARGET_CONCURRENCY': 5.0,
-        'AUTOTHROTTLE_DEBUG': False,
+        'AUTOTHROTTLE_DEBUG': True,
         # 并发请求数的控制,默认为16
         'CONCURRENT_REQUESTS': 32
     }
@@ -142,7 +142,7 @@ class Yihu2Spider(scrapy.Spider):
                                         'td[4]/text()').extract_first('')
         loader.add_value('hospital_addr', hospital_address)
         loader.add_value('hospital_pro', '四川')
-        loader.add_value('')
+        loader.add_value('hospital_city', '成都')
         loader.add_value('hospital_phone', hospital_phone)
         loader.add_value('dataSource_from', '健康之路')
         loader.add_value('update_time', now_day())
