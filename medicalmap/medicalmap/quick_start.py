@@ -7,5 +7,6 @@ from scrapy.cmdline import execute
 # execute('scrapy crawl jintangyy'.split())  # 金堂县第一人民医院
 # execute('scrapy crawl pxfybjy'.split())  # 郫县妇幼保健院
 # execute('scrapy crawl yihu'.split())  # 健康之路,预约挂号入口
-execute('scrapy crawl yihu3'.split())  # 健康之路,使用scrapy splash获取医生排班信息
+# execute('scrapy crawl yihu3'.split())  # 健康之路,使用scrapy splash获取医生排班信息
 # execute('scrapy crawl scgh114'.split())  # 114挂号
+execute('scrapy crawl djydermyy'.split())  # 都江堰市第二人民医院

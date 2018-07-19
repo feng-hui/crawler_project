@@ -8,6 +8,11 @@ import re
 from re import S
 
 
+def now_year():
+    """返回当前日期的年份"""
+    return datetime.datetime.now().strftime('%Y')
+
+
 def now_day():
     """返回当前日期的年月日"""
     return datetime.datetime.now().strftime('%Y-%m-%d')
@@ -42,8 +47,15 @@ def remove_number2(value):
 
 def clean_info(value):
     """去除字段值一些无用的信息"""
-    return re.sub(r'null|--|none', '', value).strip()
+    return re.sub(r'null|--|none|\(|\)', '', value).strip()
 
 
-if __name__ == "__main__":
-    print(remove_number('701'))
+def match_special(value):
+    return value.split('：')[-1]
+
+
+#
+# if __name__ == "__main__":
+#     print(remove_number('701'))
+#     print(now_year(), type(now_year()))
+#     print(now_day(), type(now_day()))

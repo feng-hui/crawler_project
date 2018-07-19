@@ -55,6 +55,12 @@ class YiHuLoader(ItemLoader):
     # hospital_intro_out = Join()
 
 
+class CommonLoader2(ItemLoader):
+    default_output_processor = TakeFirst()
+    hospital_intro_in = MapCompose(remove_tags, custom_remove_tags)
+    dept_info_in = MapCompose(remove_tags, custom_remove_tags)
+
+
 class HospitalInfoItem(scrapy.Item):
     """
     医院信息表
@@ -116,27 +122,27 @@ class HospitalInfoItem(scrapy.Item):
         #              "hospital_district,registered_channel,dataSource_from,update_time) " \
         #              "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
         params = [
-            self.get('hospital_name', ''),
-            self.get('consulting_hour', ''),
-            self.get('hospital_level', ''),
-            self.get('hospital_type', ''),
-            self.get('hospital_category', ''),
-            self.get('hospital_addr', ''),
-            self.get('hospital_pro', ''),
-            self.get('hospital_city', ''),
-            self.get('hospital_county', ''),
-            self.get('hospital_phone', ''),
-            self.get('hospital_intro', ''),
-            self.get('is_medicare', ''),
-            self.get('medicare_type', ''),
-            self.get('vaccine_name', ''),
-            self.get('is_cpc', ''),
-            self.get('is_bdc', ''),
-            self.get('cooperative_business', ''),
-            self.get('hospital_district', ''),
-            self.get('registered_channel', ''),
-            self.get('dataSource_from', ''),
-            self.get('update_time', '')
+            self.get('hospital_name'),
+            self.get('consulting_hour'),
+            self.get('hospital_level'),
+            self.get('hospital_type'),
+            self.get('hospital_category'),
+            self.get('hospital_addr'),
+            self.get('hospital_pro'),
+            self.get('hospital_city'),
+            self.get('hospital_county'),
+            self.get('hospital_phone'),
+            self.get('hospital_intro'),
+            self.get('is_medicare'),
+            self.get('medicare_type'),
+            self.get('vaccine_name'),
+            self.get('is_cpc'),
+            self.get('is_bdc'),
+            self.get('cooperative_business'),
+            self.get('hospital_district'),
+            self.get('registered_channel'),
+            self.get('dataSource_from'),
+            self.get('update_time')
         ]
         return insert_sql, params
 
@@ -160,11 +166,11 @@ class HospitalDepItem(scrapy.Item):
         insert_sql = "insert into department_info(dept_name,hospital_name,dept_type,dept_info,update_time) " \
                      "values(%s,%s,%s,%s,%s) on duplicate key update update_time=values(update_time)"
         params = [
-            self.get('dept_name', ''),
-            self.get('hospital_name', ''),
-            self.get('dept_type', ''),
-            self.get('dept_info', ''),
-            self.get('update_time', '')
+            self.get('dept_name'),
+            self.get('hospital_name'),
+            self.get('dept_type'),
+            self.get('dept_info'),
+            self.get('update_time')
         ]
         return insert_sql, params
 
@@ -198,15 +204,15 @@ class DoctorInfoItem(scrapy.Item):
                      "values(%s,%s,%s,%s,%s,%s,%s,%s,%s) " \
                      "on duplicate key update update_time=values(update_time)"
         params = [
-            self.get('doctor_name', ''),
-            self.get('dept_name', ''),
-            self.get('hospital_name', ''),
-            self.get('sex', ''),
-            self.get('doctor_level', ''),
-            self.get('doctor_intro', ''),
-            self.get('doctor_goodAt', ''),
-            self.get('diagnosis_amt', ''),
-            self.get('update_time', ''),
+            self.get('doctor_name'),
+            self.get('dept_name'),
+            self.get('hospital_name'),
+            self.get('sex'),
+            self.get('doctor_level'),
+            self.get('doctor_intro'),
+            self.get('doctor_goodAt'),
+            self.get('diagnosis_amt'),
+            self.get('update_time'),
         ]
         return insert_sql, params
 
@@ -231,10 +237,10 @@ class DoctorRegInfoItem(scrapy.Item):
                      "values(%s,%s,%s,%s,%s) " \
                      "on duplicate key update update_time=values(update_time)"
         params = [
-            self.get('doctor_name', ''),
-            self.get('hospital_name', ''),
-            self.get('dept_name', ''),
-            self.get('reg_info', ''),
-            self.get('update_time', '')
+            self.get('doctor_name'),
+            self.get('hospital_name'),
+            self.get('dept_name'),
+            self.get('reg_info'),
+            self.get('update_time')
         ]
         return insert_sql, params
