@@ -47,15 +47,34 @@ def remove_number2(value):
 
 def clean_info(value):
     """去除字段值一些无用的信息"""
-    return re.sub(r'null|--|none|\(|\)', '', value).strip()
+    return re.sub(r'null|--|none|\(|\)|:|：', '', value).strip()
 
 
 def match_special(value):
+    """
+    选择冒号右边的字符串
+    适用于类似[简介：相关文字]这样需要冒号右边文字的字符串的获取
+    """
     return value.split('：')[-1]
 
 
-#
-# if __name__ == "__main__":
-#     print(remove_number('701'))
-#     print(now_year(), type(now_year()))
-#     print(now_day(), type(now_day()))
+def get_reg_info(value):
+    """
+    只适用于都江堰市第二人民医院门诊时间的处理上
+    """
+    value = custom_remove_tags(value)
+    res = []
+    reg_list = [{each_reg.split(':')[0]: each_reg.split(':')[-1].split('、')}
+                for each_reg in re.sub(r'门诊时间：', '', value).split(',')]
+    for each_reg in reg_list:
+        for key, value in each_reg.items():
+            res.extend(['{0}{1}'.format(key, each_value) for each_value in value])
+    return res
+
+
+if __name__ == "__main__":
+    print(remove_number('701'))
+    print(now_year(), type(now_year()))
+    print(now_day(), type(now_day()))
+    print(get_reg_info('门诊时间：星期二:下午,星期三:上午、下午、晚班'))
+
