@@ -2,9 +2,9 @@
 import scrapy
 from scrapy.http import Request
 from medicalmap.items import CommonLoader2, HospitalInfoItem, HospitalDepItem, DoctorInfoItem, DoctorRegInfoItem
-from medicalmap.utils.common import now_day, custom_remove_tags, match_special, get_reg_info
+from medicalmap.utils.common import now_day, match_special, get_doctor_intro2, get_doctor_good_at, clean_info
 from urllib.parse import urljoin
-from scrapy.loader.processors import MapCompose, Join
+from scrapy.loader.processors import MapCompose
 from w3lib.html import remove_tags
 
 
@@ -31,6 +31,18 @@ class QbjzyySpider(scrapy.Spider):
         'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) '
                       'Chrome/65.0.3325.181 Safari/537.36'
     }
+    custom_settings = {
+        # 延迟设置
+        'DOWNLOAD_DELAY': 3,
+        # 自动限速设置
+        'AUTOTHROTTLE_ENABLED': True,
+        'AUTOTHROTTLE_START_DELAY': 1,
+        'AUTOTHROTTLE_MAX_DELAY': 5,
+        'AUTOTHROTTLE_TARGET_CONCURRENCY': 5.0,
+        'AUTOTHROTTLE_DEBUG': True,
+        # 并发请求数的控制,默认为16
+        # 'CONCURRENT_REQUESTS': 16
+    }
 
     def start_requests(self):
         for each_url in self.start_urls:
@@ -38,7 +50,7 @@ class QbjzyySpider(scrapy.Spider):
 
     def parse(self, response):
         """获取医院信息"""
-        self.logger.info('正在抓取{}:医院信息'.format(self.hospital_name))
+        self.logger.info('>>>>>>正在抓取{}:医院信息>>>>>>'.format(self.hospital_name))
         loader = CommonLoader2(item=HospitalInfoItem(), response=response)
         loader.add_value('hospital_name', self.hospital_name)
         loader.add_value('consulting_hour', '门诊时间_8:30-17:30;急诊时间_7*24小时')
@@ -85,6 +97,7 @@ class QbjzyySpider(scrapy.Spider):
                 yield dept_request
 
     def parse_hospital_dep(self, response):
+        self.logger.info('>>>>>>正在抓取{}:科室信息>>>>>>'.format(self.hospital_name))
         dept_links = response.xpath('//ul[@class="product3"]/li')
         for each_dept_link in dept_links:
             dept_link = each_dept_link.xpath('div[2]/h1/a/@href').extract_first('')
@@ -98,16 +111,18 @@ class QbjzyySpider(scrapy.Spider):
                 yield dept_request
 
     def parse_hospital_dep_detail(self, response):
+        self.logger.info('>>>>>>正在抓取{}:科室详细信息>>>>>>'.format(self.hospital_name))
         dept_name = response.meta['dept_name']
         loader = CommonLoader2(item=HospitalDepItem(), response=response)
         loader.add_value('dept_name', dept_name)
         loader.add_value('hospital_name', self.hospital_name)
-        loader.add_xpath('dept_info', '//div[@class="right-about clearfix"]', MapCompose(remove_tags))
+        loader.add_xpath('dept_info', '//div[@class="right-about clearfix"]', MapCompose(remove_tags, clean_info))
         loader.add_value('update_time', now_day())
         dept_item = loader.load_item()
         yield dept_item
 
     def parse_doctor_info(self, response):
+        self.logger.info('>>>>>>正在抓取{}:医生信息>>>>>>'.format(self.hospital_name))
         dept_name = response.meta['dept_name']
         doctor_links = response.xpath('//ul[@class="right-photo clearfix"]/li')
         for each_doctor_link in doctor_links:
@@ -123,16 +138,37 @@ class QbjzyySpider(scrapy.Spider):
                 yield doctor_detail_request
 
     def parse_doctor_info_detail(self, response):
+        self.logger.info('>>>>>>正在抓取{}:医生详细信息>>>>>>'.format(self.hospital_name))
         dept_name = response.meta['dept_name']
         doctor_name = response.meta['doctor_name']
         loader = CommonLoader2(item=DoctorInfoItem(), response=response)
         loader.add_value('doctor_name', doctor_name)
         loader.add_value('dept_name', dept_name)
         loader.add_value('hospital_name', self.hospital_name)
-        loader.add_xpath('doctor_intro', '//div[@class="right-about clearfix"]/p[2]', MapCompose(remove_tags))
+        loader.add_xpath('doctor_intro',
+                         '//div[@class="right-about clearfix"]',
+                         MapCompose(remove_tags, get_doctor_intro2))
         loader.add_xpath('doctor_goodAt',
-                         '//div[@class="right-about clearfix"]/p[position()>2]',
-                         MapCompose(remove_tags))
+                         '//div[@class="right-about clearfix"]',
+                         MapCompose(remove_tags, get_doctor_good_at))
         loader.add_value('update_time', now_day())
         doctor_item = loader.load_item()
         yield doctor_item
+        # 获取排班信息
+        self.logger.info('>>>>>>正在抓取{}:医生排班信息>>>>>>'.format(self.hospital_name))
+        reg_info = response.xpath('//div[@class="right-about clearfix"]/p[contains(text(),"坐诊时间")]/text()'
+                                  '|//div[@class="right-about clearfix"]/p/strong[contains(text(),"坐诊时间")]/text()'
+                                  '|//div[@class="right-about clearfix"]/p/span/strong[contains(text(),"坐诊时间")]/text()'
+                                  '|//div[@class="right-about clearfix"]/p/strong[contains(text(),"上午")]/text()'
+                                  '|//div[@class="right-about clearfix"]/p/strong[contains(text(),"下午")]/text()'
+                                  '|//div[@class="right-about clearfix"]/p/strong/span[contains(text(),"坐诊时间")]/text()'
+                                  ).extract_first('')
+        if reg_info:
+            reg_loader = CommonLoader2(item=DoctorRegInfoItem(), response=response)
+            reg_loader.add_value('doctor_name', doctor_name)
+            reg_loader.add_value('dept_name', dept_name)
+            reg_loader.add_value('hospital_name', self.hospital_name)
+            reg_loader.add_value('reg_info', reg_info, MapCompose(match_special, clean_info))
+            reg_loader.add_value('update_time', now_day())
+            reg_item = reg_loader.load_item()
+            yield reg_item

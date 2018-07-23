@@ -108,19 +108,21 @@ class HospitalInfoItem(scrapy.Item):
     update_time = scrapy.Field()
 
     def get_sql_info(self):
+        # 不更新,只插入
         insert_sql = "insert into hospital_info(hospital_name,consulting_hour,hospital_level,hospital_type," \
                      "hospital_category,hospital_addr,hospital_pro,hospital_city,hospital_county,hospital_phone," \
                      "hospital_intro,is_medicare,medicare_type,vaccine_name,is_cpc,is_bdc,cooperative_business," \
                      "hospital_district,registered_channel,dataSource_from,update_time) " \
-                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) " \
-                     "on duplicate key update hospital_intro=values(hospital_intro)," \
-                     "hospital_pro=values(hospital_pro),hospital_city=values(hospital_city)," \
-                     "hospital_phone=values(hospital_phone),update_time=values(update_time)"
+                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        # 适用于有主键更新的情况
         # insert_sql = "insert into hospital_info(hospital_name,consulting_hour,hospital_level,hospital_type," \
         #              "hospital_category,hospital_addr,hospital_pro,hospital_city,hospital_county,hospital_phone," \
         #              "hospital_intro,is_medicare,medicare_type,vaccine_name,is_cpc,is_bdc,cooperative_business," \
         #              "hospital_district,registered_channel,dataSource_from,update_time) " \
-        #              "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        #              "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) " \
+        #              "on duplicate key update hospital_intro=values(hospital_intro)," \
+        #              "hospital_pro=values(hospital_pro),hospital_city=values(hospital_city)," \
+        #              "hospital_phone=values(hospital_phone),update_time=values(update_time)"
         params = [
             self.get('hospital_name'),
             self.get('consulting_hour'),

@@ -47,7 +47,9 @@ def remove_number2(value):
 
 def clean_info(value):
     """去除字段值一些无用的信息"""
-    return re.sub(r'null|--|none|\(|\)|:|：', '', value).strip()
+    return re.sub(r'null|--|none|\(|\)|:|：|川化病区内科查房指导|门诊坐诊、内科查房指导|科室介绍|暂无内容',
+                  '',
+                  value).strip()
 
 
 def match_special(value):
@@ -70,6 +72,36 @@ def get_reg_info(value):
         for key, value in each_reg.items():
             res.extend(['{0}{1}'.format(key, each_value) for each_value in value])
     return res
+
+
+def get_doctor_intro2(value):
+    """
+    适用于成都市青白江区中医医院
+    获取医生简介
+    """
+    res = re.search(r'(.*?)擅长', value)
+    res2 = re.search(r'(.*?)尤其擅长', value)
+    if res2:
+        return clean_info(res2.group(1))
+    elif res:
+        return clean_info(res.group(1))
+    else:
+        return ''
+
+
+def get_doctor_good_at(value):
+    """
+        适用于成都市青白江区中医医院
+        获取医生简介
+        """
+    res = re.search(r'擅长(.*?)坐诊时间', value, S)
+    res2 = re.search(r'擅长(.*?)名医馆坐诊时间', value, S)
+    if res2:
+        return '{0}{1}'.format('擅长', clean_info(res2.group(1)))
+    elif res:
+        return '{0}{1}'.format('擅长', clean_info(res.group(1)))
+    else:
+        return ''
 
 
 if __name__ == "__main__":
