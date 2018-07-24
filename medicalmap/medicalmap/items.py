@@ -57,8 +57,8 @@ class YiHuLoader(ItemLoader):
 
 class CommonLoader2(ItemLoader):
     default_output_processor = TakeFirst()
-    hospital_intro_in = MapCompose(remove_tags, custom_remove_tags)
-    dept_info_in = MapCompose(remove_tags, custom_remove_tags)
+    # hospital_intro_in = MapCompose(remove_tags, custom_remove_tags)
+    # dept_info_in = MapCompose(remove_tags, custom_remove_tags)
 
 
 class HospitalInfoItem(scrapy.Item):
@@ -201,20 +201,27 @@ class DoctorInfoItem(scrapy.Item):
     update_time = scrapy.Field()
 
     def get_sql_info(self):
-        insert_sql = "insert into doctor_info(doctor_name,dept_name,hospital_name,sex," \
-                     "doctor_level,doctor_intro,doctor_goodAt,diagnosis_amt,update_time) " \
-                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s) " \
-                     "on duplicate key update update_time=values(update_time)"
+        # insert_sql = "insert into doctor_info(doctor_name,dept_name,hospital_name,sex," \
+        #              "doctor_level,doctor_intro,doctor_goodAt,diagnosis_amt,update_time) " \
+        #              "values(%s,%s,%s,%s,%s,%s,%s,%s,%s) " \
+        #              "on duplicate key update update_time=values(update_time)"
+        # params = [
+        #     self.get('doctor_name'),
+        #     self.get('dept_name'),
+        #     self.get('hospital_name'),
+        #     self.get('sex'),
+        #     self.get('doctor_level'),
+        #     self.get('doctor_intro'),
+        #     self.get('doctor_goodAt'),
+        #     self.get('diagnosis_amt'),
+        #     self.get('update_time'),
+        # ]
+        insert_sql = "update doctor_info set doctor_intro=%s where doctor_name=%s and hospital_name=%s"
         params = [
-            self.get('doctor_name'),
-            self.get('dept_name'),
-            self.get('hospital_name'),
-            self.get('sex'),
-            self.get('doctor_level'),
             self.get('doctor_intro'),
-            self.get('doctor_goodAt'),
-            self.get('diagnosis_amt'),
-            self.get('update_time'),
+            self.get('doctor_name'),
+            self.get('hospital_name'),
+
         ]
         return insert_sql, params
 

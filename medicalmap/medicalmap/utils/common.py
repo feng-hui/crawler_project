@@ -46,10 +46,12 @@ def remove_number2(value):
 
 
 def clean_info(value):
-    """去除字段值一些无用的信息"""
-    return re.sub(r'null|--|none|\(|\)|:|：|川化病区内科查房指导|门诊坐诊、内科查房指导|科室介绍|暂无内容',
-                  '',
-                  value).strip()
+    """
+    去除字段值一些无用的信息
+    只适用于成都市青白江区中医医院:|川化病区内科查房指导|门诊坐诊、内科查房指导|科室介绍|暂无内容
+
+    """
+    return re.sub(r'null|--|none|\(|\)|:|：|..', '', value).strip()
 
 
 def match_special(value):
@@ -58,6 +60,21 @@ def match_special(value):
     适用于类似[简介：相关文字]这样需要冒号右边文字的字符串的获取
     """
     return value.split('：')[-1]
+
+
+def match_special2(value):
+    """
+    选择(右边的字符串
+    适用于类似[内三科（老..]这样需要冒号右边文字的字符串的获取
+    主要适用于：双流区中医医院科室信息
+    """
+    if '（' in value:
+        return value.split('（')[0].strip()
+    elif '-' in value:
+        return value.split('-')[0].strip()
+    else:
+        return value.replace('..', '').strip()
+
 
 
 def get_reg_info(value):

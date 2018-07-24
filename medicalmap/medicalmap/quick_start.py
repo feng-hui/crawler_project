@@ -11,4 +11,5 @@ from scrapy.cmdline import execute
 # execute('scrapy crawl scgh114'.split())  # 114挂号
 # execute('scrapy crawl djydermyy'.split())  # 都江堰市第二人民医院
 # execute('scrapy crawl scslzyyy'.split())  # 双流区中医医院
-execute('scrapy crawl qbjzyy'.split())  # 成都市青白江区中医医院
+# execute('scrapy crawl qbjzyy'.split())  # 成都市青白江区中医医院
+execute('scrapy crawl cdcj120'.split())  # 成都长江医院
