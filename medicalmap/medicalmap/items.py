@@ -59,6 +59,8 @@ class CommonLoader2(ItemLoader):
     default_output_processor = TakeFirst()
     # hospital_intro_in = MapCompose(remove_tags, custom_remove_tags)
     # dept_info_in = MapCompose(remove_tags, custom_remove_tags)
+    # 适用于郫县中医医院
+    hospital_intro_in = dept_info_in = Join()
 
 
 class HospitalInfoItem(scrapy.Item):

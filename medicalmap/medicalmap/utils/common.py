@@ -76,7 +76,6 @@ def match_special2(value):
         return value.replace('..', '').strip()
 
 
-
 def get_reg_info(value):
     """
     只适用于都江堰市第二人民医院门诊时间的处理上
@@ -108,9 +107,9 @@ def get_doctor_intro2(value):
 
 def get_doctor_good_at(value):
     """
-        适用于成都市青白江区中医医院
-        获取医生简介
-        """
+    适用于成都市青白江区中医医院
+    获取医生简介
+    """
     res = re.search(r'擅长(.*?)坐诊时间', value, S)
     res2 = re.search(r'擅长(.*?)名医馆坐诊时间', value, S)
     if res2:
