@@ -65,9 +65,9 @@ COOKIES_ENABLED = False
 
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-# ITEM_PIPELINES = {
-#    'medicalmap.pipelines.MysqlPipeline': 300,
-# }
+ITEM_PIPELINES = {
+   'medicalmap.pipelines.MysqlPipeline': 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html
@@ -117,7 +117,7 @@ MYSQL_PASSWORD = 'medicalmap#1'
 DUPEFILTER_DEBUG = True
 
 # RETRY_SETTINGS
-RETRY_TIMES = 20
+RETRY_TIMES = 5
 RETRY_HTTP_CODES = [500, 502, 503, 504, 408, 403, 404]
 
 HTTPERROR_ALLOWED_CODES = [402]

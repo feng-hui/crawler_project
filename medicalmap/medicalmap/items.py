@@ -218,9 +218,11 @@ class DoctorInfoItem(scrapy.Item):
         #     self.get('diagnosis_amt'),
         #     self.get('update_time'),
         # ]
-        insert_sql = "update doctor_info set doctor_intro=%s where doctor_name=%s and hospital_name=%s"
+        insert_sql = "update doctor_info set doctor_intro=%s,doctor_goodat=%s where " \
+                     "doctor_name=%s and hospital_name=%s"
         params = [
             self.get('doctor_intro'),
+            self.get('doctor_goodAt'),
             self.get('doctor_name'),
             self.get('hospital_name'),
 
