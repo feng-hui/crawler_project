@@ -60,7 +60,9 @@ class CommonLoader2(ItemLoader):
     # hospital_intro_in = MapCompose(remove_tags, custom_remove_tags)
     # dept_info_in = MapCompose(remove_tags, custom_remove_tags)
     # 适用于郫县中医医院
-    hospital_intro_in = dept_info_in = Join()
+    # hospital_intro_in = dept_info_in = Join()
+    # 适用于成都长江医院
+    dept_info_in = Join()
 
 
 class HospitalInfoItem(scrapy.Item):
@@ -170,7 +172,7 @@ class HospitalDepItem(scrapy.Item):
         insert_sql = "insert into department_info(dept_name,hospital_name,dept_type,dept_info,update_time) " \
                      "values(%s,%s,%s,%s,%s) on duplicate key update update_time=values(update_time)"
         params = [
-            self.get('dept_name'),
+            self.get('dept_name', '暂无'),
             self.get('hospital_name'),
             self.get('dept_type'),
             self.get('dept_info'),
@@ -203,30 +205,31 @@ class DoctorInfoItem(scrapy.Item):
     update_time = scrapy.Field()
 
     def get_sql_info(self):
-        # insert_sql = "insert into doctor_info(doctor_name,dept_name,hospital_name,sex," \
-        #              "doctor_level,doctor_intro,doctor_goodAt,diagnosis_amt,update_time) " \
-        #              "values(%s,%s,%s,%s,%s,%s,%s,%s,%s) " \
-        #              "on duplicate key update update_time=values(update_time)"
-        # params = [
-        #     self.get('doctor_name'),
-        #     self.get('dept_name'),
-        #     self.get('hospital_name'),
-        #     self.get('sex'),
-        #     self.get('doctor_level'),
-        #     self.get('doctor_intro'),
-        #     self.get('doctor_goodAt'),
-        #     self.get('diagnosis_amt'),
-        #     self.get('update_time'),
-        # ]
-        insert_sql = "update doctor_info set doctor_intro=%s,doctor_goodat=%s where " \
-                     "doctor_name=%s and hospital_name=%s"
+        insert_sql = "insert into doctor_info(doctor_name,dept_name,hospital_name,sex," \
+                     "doctor_level,doctor_intro,doctor_goodAt,diagnosis_amt,update_time) " \
+                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
         params = [
+            self.get('doctor_name'),
+            self.get('dept_name', '暂无'),
+            self.get('hospital_name'),
+            self.get('sex'),
+            self.get('doctor_level'),
             self.get('doctor_intro'),
             self.get('doctor_goodAt'),
-            self.get('doctor_name'),
-            self.get('hospital_name'),
-
+            self.get('diagnosis_amt'),
+            self.get('update_time'),
         ]
+        # insert_sql = "update doctor_info set doctor_intro=%s,doctor_goodat=%s,doctor_level=%s,dept_name=%s " \
+        #              "where doctor_name=%s and hospital_name=%s"
+        # params = [
+        #     self.get('doctor_intro'),
+        #     self.get('doctor_goodAt'),
+        #     self.get('doctor_level'),
+        #     self.get('dept_name', '暂无'),
+        #     self.get('doctor_name'),
+        #     self.get('hospital_name'),
+        #
+        # ]
         return insert_sql, params
 
 

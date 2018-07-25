@@ -72,6 +72,8 @@ def match_special2(value):
         return value.split('（')[0].strip()
     elif '-' in value:
         return value.split('-')[0].strip()
+    elif '：' in value:
+        return value.split('：')[0].strip()
     else:
         return value.replace('..', '').strip()
 
@@ -125,4 +127,3 @@ if __name__ == "__main__":
     print(now_year(), type(now_year()))
     print(now_day(), type(now_day()))
     print(get_reg_info('门诊时间：星期二:下午,星期三:上午、下午、晚班'))
-

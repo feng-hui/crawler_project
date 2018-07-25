@@ -2,11 +2,11 @@
 import re
 import scrapy
 from scrapy.http import Request
-from medicalmap.items import CommonLoader2, HospitalInfoItem, HospitalDepItem, DoctorInfoItem, DoctorRegInfoItem
-from medicalmap.utils.common import now_day, custom_remove_tags
 from urllib.parse import urljoin
-from scrapy.loader.processors import MapCompose
 from w3lib.html import remove_tags
+from scrapy.loader.processors import MapCompose
+from medicalmap.utils.common import now_day, custom_remove_tags
+from medicalmap.items import CommonLoader2, HospitalInfoItem, HospitalDepItem, DoctorInfoItem
 
 
 class PdqzyyySpider(scrapy.Spider):
@@ -62,34 +62,34 @@ class PdqzyyySpider(scrapy.Spider):
     def parse(self, response):
         """获取医院信息"""
         self.logger.info('>>>>>>正在抓取{}:医院信息>>>>>>'.format(self.hospital_name))
-        # loader = CommonLoader2(item=HospitalInfoItem(), response=response)
-        # loader.add_value('hospital_name', self.hospital_name)
-        # loader.add_value('consulting_hour', '门诊上午_8:00-12:00;门诊下午_14:00-17:30')
-        # loader.add_value('hospital_level', '三级乙等')
-        # loader.add_value('hospital_type', '公立')
-        # loader.add_value('hospital_category', '中医医院')
-        # loader.add_value('hospital_addr', '四川省成都市郫都区南大街342号')
-        # loader.add_value('hospital_pro', '四川省')
-        # loader.add_value('hospital_city', '成都市')
-        # loader.add_value('hospital_county', '郫都区')
-        # loader.add_value('hospital_phone', '咨询电话_028-87920858;急诊电话_028-87925131;预约挂号_028-87925042;'
-        #                                    '投诉电话_028-87920858;人事招聘_028-87925158;医保出入院处_028-87925172;'
-        #                                    '体验科_028-87922056')
-        # loader.add_xpath('hospital_intro', '//div[@class="rightPanel"]/p[position()>2]', MapCompose(remove_tags))
-        # loader.add_value('is_medicare', '是')
-        # loader.add_value('registered_channel', '官方微信公众号或华医通APP')
-        # loader.add_value('dataSource_from', '医院官网')
-        # loader.add_value('update_time', now_day())
-        # hospital_info_item = loader.load_item()
-        # # 医院信息
-        # yield hospital_info_item
+        loader = CommonLoader2(item=HospitalInfoItem(), response=response)
+        loader.add_value('hospital_name', self.hospital_name)
+        loader.add_value('consulting_hour', '门诊上午_8:00-12:00;门诊下午_14:00-17:30')
+        loader.add_value('hospital_level', '三级乙等')
+        loader.add_value('hospital_type', '公立')
+        loader.add_value('hospital_category', '中医医院')
+        loader.add_value('hospital_addr', '四川省成都市郫都区南大街342号')
+        loader.add_value('hospital_pro', '四川省')
+        loader.add_value('hospital_city', '成都市')
+        loader.add_value('hospital_county', '郫都区')
+        loader.add_value('hospital_phone', '咨询电话_028-87920858;急诊电话_028-87925131;预约挂号_028-87925042;'
+                                           '投诉电话_028-87920858;人事招聘_028-87925158;医保出入院处_028-87925172;'
+                                           '体验科_028-87922056')
+        loader.add_xpath('hospital_intro', '//div[@class="rightPanel"]/p[position()>2]', MapCompose(remove_tags))
+        loader.add_value('is_medicare', '是')
+        loader.add_value('registered_channel', '官方微信公众号或华医通APP')
+        loader.add_value('dataSource_from', '医院官网')
+        loader.add_value('update_time', now_day())
+        hospital_info_item = loader.load_item()
+        # 医院信息
+        yield hospital_info_item
         # 获取科室信息
-        # dept_request = Request(self.dept_link,
-        #                        headers=self.headers,
-        #                        callback=self.parse_hospital_dep,
-        #                        dont_filter=True)
-        # dept_request.meta['Referer'] = self.entry_url
-        # yield dept_request
+        dept_request = Request(self.dept_link,
+                               headers=self.headers,
+                               callback=self.parse_hospital_dep,
+                               dont_filter=True)
+        dept_request.meta['Referer'] = self.entry_url
+        yield dept_request
         # 获取医生信息
         for each_dept_link in self.doctor_links:
             dept_request = Request(each_dept_link,
