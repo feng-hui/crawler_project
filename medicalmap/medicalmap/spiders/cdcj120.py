@@ -48,9 +48,9 @@ class Cdcj120Spider(scrapy.Spider):
 
     def start_requests(self):
         # 医院信息
-        yield Request(self.hospital_intro_link, headers=self.headers, callback=self.parse)
+        # yield Request(self.hospital_intro_link, headers=self.headers, callback=self.parse)
         # 科室信息
-        yield Request(self.dept_link, headers=self.headers, callback=self.parse_hospital_dep)
+        # yield Request(self.dept_link, headers=self.headers, callback=self.parse_hospital_dep)
         # 医生信息
         yield Request(self.doctor_link, headers=self.headers, callback=self.parse_doctor_info)
 
@@ -160,31 +160,31 @@ class Cdcj120Spider(scrapy.Spider):
         doctor_item = loader.load_item()
         yield doctor_item
         # 获取医生排班信息
-        reg_tr_list = response.xpath('//div[@class="list-content doctor-clinic"]/table/tr[position()>1]')
-        is_has_reg = response.xpath('//div[@class="list-content doctor-clinic"]/table/tr[position()>1]'
-                                    '/td/span[@class="seleced blue"]')
-        reg_date = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日']
-        if is_has_reg:
-            for each_td in reg_tr_list:
-                i = 0
-                reg_time = each_td.xpath('td[1]/text()').extract_first('')
-                all_reg_info = each_td.xpath('td[position()>1]')
-                for each_reg_info in all_reg_info:
-                    reg_info_date = reg_date[i]
-                    i += 1
-                    has_reg = each_reg_info.xpath('span[@class="seleced blue"]')
-                    if has_reg:
-                        reg_info = '{0}{1}'.format(reg_info_date, reg_time)
-                        reg_loader = CommonLoader2(item=DoctorRegInfoItem(), response=response)
-                        reg_loader.add_value('doctor_name', doctor_name)
-                        reg_loader.add_value('dept_name',
-                                             dept_name,
-                                             MapCompose(custom_remove_tags, match_special))
-                        reg_loader.add_value('hospital_name', self.hospital_name)
-                        reg_loader.add_value('reg_info', reg_info)
-                        reg_loader.add_value('update_time', now_day())
-                        reg_item = reg_loader.load_item()
-                        yield reg_item
+        # reg_tr_list = response.xpath('//div[@class="list-content doctor-clinic"]/table/tr[position()>1]')
+        # is_has_reg = response.xpath('//div[@class="list-content doctor-clinic"]/table/tr[position()>1]'
+        #                             '/td/span[@class="seleced blue"]')
+        # reg_date = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日']
+        # if is_has_reg:
+        #     for each_td in reg_tr_list:
+        #         i = 0
+        #         reg_time = each_td.xpath('td[1]/text()').extract_first('')
+        #         all_reg_info = each_td.xpath('td[position()>1]')
+        #         for each_reg_info in all_reg_info:
+        #             reg_info_date = reg_date[i]
+        #             i += 1
+        #             has_reg = each_reg_info.xpath('span[@class="seleced blue"]')
+        #             if has_reg:
+        #                 reg_info = '{0}{1}'.format(reg_info_date, reg_time)
+        #                 reg_loader = CommonLoader2(item=DoctorRegInfoItem(), response=response)
+        #                 reg_loader.add_value('doctor_name', doctor_name)
+        #                 reg_loader.add_value('dept_name',
+        #                                      dept_name,
+        #                                      MapCompose(custom_remove_tags, match_special))
+        #                 reg_loader.add_value('hospital_name', self.hospital_name)
+        #                 reg_loader.add_value('reg_info', reg_info)
+        #                 reg_loader.add_value('update_time', now_day())
+        #                 reg_item = reg_loader.load_item()
+        #                 yield reg_item
 
     def parse_doctor_reg_info(self, response):
         self.logger.info('>>>>>>正在抓取{}:医生排班信息>>>>>>'.format(self.hospital_name))

@@ -80,7 +80,7 @@ class WjykyySpider(scrapy.Spider):
         yield hospital_info_item
         # 科室信息
         dept_links = response.xpath('//div[@class="ddsmoothmenu"]/ul/li[position()=4]/ul/li')
-        for each_dept_link in dept_links:
+        for each_dept_link in dept_links[0:1]:
             dept_link = each_dept_link.xpath('a/@href').extract_first('')
             dept_name = each_dept_link.xpath('a/text()').extract_first('')
             if dept_link and dept_name:

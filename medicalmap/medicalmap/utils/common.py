@@ -51,7 +51,7 @@ def clean_info(value):
     只适用于成都市青白江区中医医院:|川化病区内科查房指导|门诊坐诊、内科查房指导|科室介绍|暂无内容
 
     """
-    return re.sub(r'null|--|none|\(|\)|:|：|..', '', value).strip()
+    return re.sub(r'简介', '', value).strip()
 
 
 def match_special(value):
@@ -59,7 +59,19 @@ def match_special(value):
     选择冒号右边的字符串
     适用于类似[简介：相关文字]这样需要冒号右边文字的字符串的获取
     """
-    return value.split('：')[-1]
+    if '：' in value:
+        return value.split('：')[-1]
+    elif ':' in value:
+        # res = re.search(r'专家门诊时间：(.*?)$', value, S)
+        # if res:
+        #     return res.group(1).strip()
+        # else:
+        #     return None
+        return value.split(':')[-1]
+    elif '|' in value:
+        return value.split('|')[0]
+    else:
+        return value
 
 
 def match_special2(value):
@@ -72,12 +84,12 @@ def match_special2(value):
         return value.split('（')[0].strip()
     elif '-' in value:
         return value.split('-')[0].strip()
-    elif '：' in value:
-        return value.split('：')[0].strip()
+    elif ':' in value:
+        return value.split(':')[-1].strip()
     elif '/' in value:
         return value.split('/')[0].strip()
     else:
-        return value.replace('..', '').strip()
+        return value
 
 
 def get_reg_info(value):

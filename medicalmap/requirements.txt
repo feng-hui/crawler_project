@@ -2,3 +2,4 @@ scrapy
 pymongo
 requests
 lxml
+w3lib

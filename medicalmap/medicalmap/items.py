@@ -62,7 +62,9 @@ class CommonLoader2(ItemLoader):
     # 适用于郫县中医医院
     # hospital_intro_in = dept_info_in = Join()
     # 适用于成都长江医院
-    dept_info_in = Join()
+    # dept_info_in = Join()
+    # 适用于彭州市中医医院
+    # doctor_intro_in = doctor_goodAt_in = Join()
 
 
 class HospitalInfoItem(scrapy.Item):
@@ -209,7 +211,7 @@ class DoctorInfoItem(scrapy.Item):
                      "doctor_level,doctor_intro,doctor_goodAt,diagnosis_amt,update_time) " \
                      "values(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
         params = [
-            self.get('doctor_name'),
+            self.get('doctor_name', '暂无'),
             self.get('dept_name', '暂无'),
             self.get('hospital_name'),
             self.get('sex'),
@@ -253,9 +255,9 @@ class DoctorRegInfoItem(scrapy.Item):
                      "values(%s,%s,%s,%s,%s) " \
                      "on duplicate key update update_time=values(update_time)"
         params = [
-            self.get('doctor_name'),
+            self.get('doctor_name', '暂无'),
             self.get('hospital_name'),
-            self.get('dept_name'),
+            self.get('dept_name', '暂无'),
             self.get('reg_info'),
             self.get('update_time')
         ]
