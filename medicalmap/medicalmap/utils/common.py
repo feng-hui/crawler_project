@@ -51,7 +51,7 @@ def clean_info(value):
     只适用于成都市青白江区中医医院:|川化病区内科查房指导|门诊坐诊、内科查房指导|科室介绍|暂无内容
 
     """
-    return re.sub(r'简介', '', value).strip()
+    return re.sub(r'[：|:]', '', value).strip()
 
 
 def match_special(value):
@@ -134,6 +134,34 @@ def get_doctor_good_at(value):
         return '{0}{1}'.format('擅长', clean_info(res.group(1)))
     else:
         return ''
+
+
+def filter_info(value):
+    """
+    适用于成都市温江区妇幼保健院,医生信息获取
+    """
+    good_at = re.search(r'.*擅长专业(.*?)医生简介', value, S)
+    if good_at:
+        return clean_info(good_at.group(1).strip())
+    else:
+        return None
+
+
+def filter_info2(value):
+    """
+    适用于成都市温江区妇幼保健院,医生信息获取
+    """
+    good_at = re.search(r'.*医生简介(.*?)我们的使命', value, S)
+    good_at2 = re.search(r'.*医生简介(.*?)我的宗旨', value, S)
+    good_at3 = re.search(r'.*医生简介(.*?)$', value, S)
+    if good_at:
+        return clean_info(custom_remove_tags(good_at.group(1)))
+    elif good_at2:
+        return clean_info(custom_remove_tags(good_at2.group(1)))
+    elif good_at3:
+        return clean_info(custom_remove_tags(good_at3.group(1)))
+    else:
+        return None
 
 
 if __name__ == "__main__":
