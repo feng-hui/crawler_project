@@ -17,5 +17,5 @@ from scrapy.cmdline import execute
 # execute('scrapy crawl wjykyy'.split())  # 绵阳万江眼科医院 2018-07-26 医院+科室+医生+排班
 # execute('scrapy crawl cdwhyy'.split())  # 成都市武侯区妇幼保健院  2018-07-26 医院+科室+医生+排班
 # execute('scrapy crawl scpz120'.split())  # 彭州市中医医院  2018-07-27 医院+科室+医生+排班
-# execute('scrapy crawl slbjy'.split())  # 双流区妇幼保健院  2018-07-27
-execute('scrapy crawl wjfy120'.split())  #   2018-07-27
+execute('scrapy crawl slbjy'.split())  # 双流区妇幼保健院  2018-07-30
+# execute('scrapy crawl wjfy120'.split())  # 成都市温江区妇幼保健院  2018-07-30

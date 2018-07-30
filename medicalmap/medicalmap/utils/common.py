@@ -164,6 +164,39 @@ def filter_info2(value):
         return None
 
 
+def filter_info3(value):
+    """
+    只适用于双流区妇幼保健院
+    """
+    ret_info = None
+    try:
+        ret_info = re.search(r'((.*?)科)(.*?)$', value)
+    except Exception as e:
+        print(value)
+        print(e)
+    finally:
+        if ret_info:
+            return ret_info.group(1)
+        else:
+            return ret_info
+
+
+def filter_info4(value):
+    """
+    只适用于双流区妇幼保健院
+    """
+    ret_info = None
+    try:
+        ret_info = re.search(r'((.*?)科)(.*?)$', value)
+    except Exception as e:
+        print(e)
+    finally:
+        if ret_info:
+            return ret_info.group(3)
+        else:
+            return ret_info
+
+
 if __name__ == "__main__":
     print(remove_number('701'))
     print(now_year(), type(now_year()))

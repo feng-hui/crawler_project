@@ -5,8 +5,8 @@ from scrapy.http import Request
 from urllib.parse import urljoin
 from w3lib.html import remove_tags
 from scrapy.loader.processors import MapCompose
-from medicalmap.utils.common import now_day, custom_remove_tags, match_special, clean_info
-from medicalmap.items import CommonLoader2, HospitalInfoItem, HospitalDepItem, DoctorInfoItem, DoctorRegInfoItem
+from medicalmap.utils.common import now_day, custom_remove_tags, filter_info3, filter_info4
+from medicalmap.items import CommonLoader2, HospitalInfoItem, HospitalDepItem, DoctorInfoItem
 
 
 class SlbjySpider(scrapy.Spider):
@@ -21,14 +21,24 @@ class SlbjySpider(scrapy.Spider):
     dept_link = 'http://www.slbjy.cn/department/i=64&comContentId=64.html'
     doctor_link = 'http://www.slbjy.cn/expert_list/pmcId=48.html'
     hospital_name = '双流区妇幼保健院'
-    host = 'http://www.slbjy.com'
+    host = 'http://www.slbjy.cn'
+    dept_crawled_cnt = 0
+    doctor_crawled_cnt = 0
     headers = {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
         'Accept-Encoding': 'gzip, deflate',
         'Accept-Language': 'zh-CN,zh;q=0.9',
         'Cache-Control': 'max-age=0',
         'Connection': 'keep-alive',
-        'Host': 'www.slbjy.com',
+        'Cookie': '__cfduid=d8c9a1fd2b8b6306b8e2ffbb4ccb708131531814176;'
+                  'GUID=bf9f800b-58c2-4bdb-a3ed-852864a9cbf6;'
+                  'yjs_id=783292eb06f48f0e78d0526179d2e69d;'
+                  'BROWSEID=c7d95f37-6c7b-4824-bb6a-740409320163;'
+                  'existFlag=1; rd=http%3A//www.slbjy.cn/;vct=9;ctrl_time=1;'
+                  'JSESSIONID=AA68A50F5649C439B3B28C52A2771861.DLOG4J;'
+                  'cf_clearance=412493146744eb42c3f6ef926e4704877fcbe0f2-1532943680-1800;'
+                  'zjll_productids=405&393&392&388&384&381&444&515&442&511&503&487&390&504&387&;pvc=98',
+        'Host': 'www.slbjy.cn',
         'Referer': 'http://www.slbjy.cn/index.html',
         'Upgrade-Insecure-Requests': '1',
         'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -36,10 +46,10 @@ class SlbjySpider(scrapy.Spider):
     }
     custom_settings = {
         # 延迟设置
-        'DOWNLOAD_DELAY': 3,
+        'DOWNLOAD_DELAY': 1,
         # 自动限速设置
         'AUTOTHROTTLE_ENABLED': True,
-        'AUTOTHROTTLE_START_DELAY': 10,
+        'AUTOTHROTTLE_START_DELAY': 1,
         'AUTOTHROTTLE_MAX_DELAY': 5,
         'AUTOTHROTTLE_TARGET_CONCURRENCY': 5.0,
         'AUTOTHROTTLE_DEBUG': True,
@@ -49,11 +59,11 @@ class SlbjySpider(scrapy.Spider):
 
     def start_requests(self):
         # 医院信息
-        yield Request(self.hospital_intro_link, headers=self.headers, callback=self.parse)
+        # yield Request(self.hospital_intro_link, headers=self.headers, callback=self.parse)
         # 科室信息
         # yield Request(self.dept_link, headers=self.headers, callback=self.parse_hospital_dep_detail)
         # 医生信息
-        # yield Request(self.doctor_link, headers=self.headers, callback=self.parse_doctor_info)
+        yield Request(self.doctor_link, headers=self.headers, callback=self.parse_doctor_info)
 
     def parse(self, response):
         """获取医院信息"""
@@ -72,7 +82,7 @@ class SlbjySpider(scrapy.Spider):
                                            '总值班电话_028-85808438;'
                                            '预约挂号电话_028-85801029(7:30-19:30)')
         loader.add_xpath('hospital_intro',
-                         '//div[@id="describe htmledit"]',
+                         '//div[@class="describe htmledit"]',
                          MapCompose(remove_tags, custom_remove_tags))
         loader.add_value('is_medicare', '是')
         # loader.add_value('medicare_type', '')
@@ -83,23 +93,17 @@ class SlbjySpider(scrapy.Spider):
         hospital_info_item = loader.load_item()
         yield hospital_info_item
 
-    def parse_hospital_dep(self, response):
-        self.logger.info('>>>>>>正在抓取{}:科室信息>>>>>>'.format(self.hospital_name))
-        dept_links = response.xpath('//ul[@id="list2"]/li[position()>1]/a/@href').extract()
-        if dept_links:
-            for each_dept_link in dept_links:
-                dept_request = Request(urljoin(self.host, each_dept_link),
-                                       headers=self.headers,
-                                       callback=self.parse_hospital_dep_detail,
-                                       dont_filter=True)
-                dept_request.meta['Referer'] = response.url
-                yield dept_request
+    # def parse_hospital_dep(self, response):
+    #     self.logger.info('>>>>>>正在抓取{}:科室信息>>>>>>'.format(self.hospital_name))
 
     def parse_hospital_dep_detail(self, response):
         self.logger.info('>>>>>>正在抓取{}:科室详细信息>>>>>>'.format(self.hospital_name))
         loader = CommonLoader2(item=HospitalDepItem(), response=response)
-        loader.add_value('dept_name',
-                         '//div[@class="title"]h3/text()',
+        loader.add_xpath('dept_type',
+                         '//div[@class="title"]/h3/text()',
+                         MapCompose(custom_remove_tags))
+        loader.add_xpath('dept_name',
+                         '//div[@class="title"]/h3/text()',
                          MapCompose(custom_remove_tags))
         loader.add_value('hospital_name', self.hospital_name)
         # loader.add_value('dept_type', response.meta['dept_type'], MapCompose(custom_remove_tags))
@@ -111,8 +115,10 @@ class SlbjySpider(scrapy.Spider):
         yield dept_item
         # 其他科室信息
         self.logger.info('>>>>>>正在抓取{}:科室信息>>>>>>'.format(self.hospital_name))
-        dept_links = response.xpath('//ul[@id="list2"]/li[position()>1]/a/@href').extract()
-        if dept_links:
+        dept_links = response.xpath('//ul[@class="list2"]/li[position()>1]/a/@href').extract()
+        self.dept_crawled_cnt += 1
+
+        if dept_links and self.dept_crawled_cnt == 1:
             for each_dept_link in dept_links:
                 dept_request = Request(urljoin(self.host, each_dept_link),
                                        headers=self.headers,
@@ -123,86 +129,79 @@ class SlbjySpider(scrapy.Spider):
 
     def parse_doctor_info(self, response):
         self.logger.info('>>>>>>正在抓取{}:医生信息>>>>>>'.format(self.hospital_name))
-        doctor_links = response.xpath('//div[@class="product0"]')
+        doctor_links = response.xpath('//li[@class="content column-num3"]')
         for each_doctor_link in doctor_links:
-            doctor_link = each_doctor_link.xpath('a[1]/@href').extract_first('')
-            doctor_name = each_doctor_link.xpath('a[2]/text()').extract_first('')
-            dept_name = each_doctor_link.xpath('a[4]/text()').extract_first('')
-            doctor_level = each_doctor_link.xpath('a[3]/text()').extract_first('')
-            if doctor_link and doctor_name:
+            doctor_link = each_doctor_link.xpath('div[1]/div/a/@href').extract_first('')
+            loader = CommonLoader2(item=DoctorInfoItem(), selector=each_doctor_link)
+            loader.add_xpath('doctor_name',
+                             'div[1]/div/a/@title',
+                             MapCompose(custom_remove_tags))
+            loader.add_xpath('dept_name',
+                             'div[2]/ul/li[2]/text()',
+                             MapCompose(custom_remove_tags, filter_info3))
+            loader.add_value('hospital_name', self.hospital_name)
+            loader.add_xpath('doctor_level',
+                             'div[2]/ul/li[2]/text()',
+                             MapCompose(custom_remove_tags, filter_info4))
+            if doctor_link:
                 doctor_detail_request = Request(urljoin(self.host, doctor_link),
                                                 headers=self.headers,
                                                 callback=self.parse_doctor_info_detail,
-                                                meta={'doctor_name': doctor_name,
-                                                      'dept_name': dept_name,
-                                                      'doctor_level': doctor_level},
-                                                dont_filter=True)
-                doctor_detail_request.meta['Referer'] = response.url
+                                                dont_filter=True,
+                                                meta={'loader': loader})
+                self.headers['Referer'] = response.url
                 yield doctor_detail_request
-        next_page = response.xpath('//div[@class="SplitPage"]/a[5]/@href').extract_first('')
-        if next_page and next_page != response.url:
-            next_request = Request(next_page,
-                                   headers=self.headers,
-                                   callback=self.parse_doctor_info)
-            next_request.meta['Referer'] = response.url
-            yield next_request
+
+        # 医生信息下一页
+        dept_id = re.search(r'.*pmcId=(.*?).html$', response.url)
+        dept_id_2 = re.search(r'.*pmcId=(.*?)&pageNo_FrontProducts.*', response.url)
+        # 获取科室id
+        if dept_id_2:
+            dept_id = dept_id_2.group(1)
+        elif dept_id:
+            dept_id = dept_id.group(1)
+        else:
+            dept_id = ''
+
+        # 获取页码
+        page_no = response.xpath('//a[contains(text(),"下一页")]/@onclick').extract_first('')
+        if page_no:
+            page_no = re.search(r'\((.*?)\)', page_no)
+            if page_no:
+                page_no = page_no.group(1).split(',')[0]
+                next_page = 'http://www.slbjy.cn/expert_list/pmcId={}&pageNo_FrontProducts_list01-1482202374862={}' \
+                            '&pageSize_FrontProducts_list01-1482202374862=12.html'
+                next_page_link = next_page.format(dept_id, page_no)
+                next_request = Request(next_page_link,
+                                       headers=self.headers,
+                                       callback=self.parse_doctor_info)
+                self.headers['Referer'] = response.url
+                yield next_request
+
+        # 其他科室医生信息
+        self.logger.info('>>>>>>正在抓取{}:科室信息>>>>>>'.format(self.hospital_name))
+        doctor_links = response.xpath('//div[@class="menu-first"]/ul/li[position()>1]/a/@href').extract()
+        self.doctor_crawled_cnt += 1
+        if doctor_links and self.doctor_crawled_cnt == 1:
+            for each_doctor_link in doctor_links:
+                doctor_request = Request(urljoin(self.host, each_doctor_link),
+                                         headers=self.headers,
+                                         callback=self.parse_doctor_info,
+                                         dont_filter=True)
+                self.headers['Referer'] = response.url
+                yield doctor_request
 
     def parse_doctor_info_detail(self, response):
         self.logger.info('>>>>>>正在抓取{}:医生详细信息>>>>>>'.format(self.hospital_name))
-        doctor_name = response.meta['doctor_name']
-        dept_name = response.meta['dept_name']
-        doctor_level = response.meta['doctor_level']
-        loader = CommonLoader2(item=DoctorInfoItem(), response=response)
-        loader.add_value('doctor_name', doctor_name)
-        loader.add_value('dept_name', dept_name, MapCompose(custom_remove_tags, match_special))
-        loader.add_value('hospital_name', self.hospital_name)
-        loader.add_value('doctor_level', doctor_level, MapCompose(custom_remove_tags, match_special))
-        loader.add_xpath('doctor_intro',
-                         '//div[@id="about-right-b"]/p',
-                         MapCompose(remove_tags, custom_remove_tags))
-        loader.add_xpath('doctor_goodAt',
-                         '//div[@id="about-right-b"]/p',
+        loader = response.meta['loader']
+        doctor_intro = response.xpath('//div[@class="FrontProducts_detail02-'
+                                      '1482202997396_htmlbreak"]/p[2]').extract_first('')
+        loader.add_value('doctor_intro',
+                         doctor_intro,
                          MapCompose(remove_tags, custom_remove_tags))
         loader.add_value('update_time', now_day())
         doctor_item = loader.load_item()
         yield doctor_item
-        # 医生排班信息
-        params = re.search(r'.*\?(.*?)$', response.url)
-        reg_url = 'http://www.scpz120.com/ajax/Doctor.aspx?'
-        if params:
-            reg_link = '{0}{1}'.format(reg_url, params.group(1).replace('&id', '&kid'))
-            reg_request = Request(reg_link,
-                                  headers=self.headers,
-                                  callback=self.parse_doctor_reg_info,
-                                  meta={'doctor_name': doctor_name,
-                                        'dept_name': dept_name})
-            self.headers['Referer'] = response.url
-            yield reg_request
 
-    def parse_doctor_reg_info(self, response):
-        self.logger.info('>>>>>>正在抓取{}:医生排班信息>>>>>>'.format(self.hospital_name))
-        doctor_name = response.meta['doctor_name']
-        dept_name = response.meta['dept_name']
-        reg_tr_list = response.xpath('//table/tr[position()>1]')
-        is_has_reg = response.xpath('//table/tr[position()>1]/td/img')
-        # reg_date = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日']
-        reg_col = ['上午', '下午', '晚班']
-        if is_has_reg:
-            for each_td in reg_tr_list:
-                reg_time = each_td.xpath('td[1]/text()').extract_first('')
-                all_reg_info = each_td.xpath('td[position()>1]')
-                for index, each_reg_info in enumerate(all_reg_info):
-                    reg_info_date = reg_col[index]
-                    has_reg = each_reg_info.xpath('img')
-                    if has_reg:
-                        reg_info = '{0}{1}'.format(reg_time, reg_info_date)
-                        reg_loader = CommonLoader2(item=DoctorRegInfoItem(), response=response)
-                        reg_loader.add_value('doctor_name', doctor_name)
-                        reg_loader.add_value('dept_name',
-                                             dept_name,
-                                             MapCompose(custom_remove_tags, match_special))
-                        reg_loader.add_value('hospital_name', self.hospital_name)
-                        reg_loader.add_value('reg_info', reg_info)
-                        reg_loader.add_value('update_time', now_day())
-                        reg_item = reg_loader.load_item()
-                        yield reg_item
+    # def parse_doctor_reg_info(self, response):
+    #     self.logger.info('>>>>>>正在抓取{}:医生排班信息>>>>>>'.format(self.hospital_name))
