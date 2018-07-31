@@ -199,8 +199,26 @@ def filter_info4(value):
             return value.split(' ')[0]
 
 
+def get_hospital_alias(value):
+    """
+    适用于：医学百科
+    获取医院别名
+    """
+    hospital_alias_name = re.search(r'（(.*?)）', value)
+    alias_name = None
+    try:
+        if hospital_alias_name:
+            alias_name = hospital_alias_name.group(1)
+    except Exception as e:
+        print(e)
+    finally:
+        return alias_name
+
+
+
 if __name__ == "__main__":
     print(remove_number('701'))
     print(now_year(), type(now_year()))
     print(now_day(), type(now_day()))
     print(get_reg_info('门诊时间：星期二:下午,星期三:上午、下午、晚班'))
+    print(get_hospital_alias('中日友好医院（卫生部中日友好医院）'))

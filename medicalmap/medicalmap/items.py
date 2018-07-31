@@ -262,3 +262,27 @@ class DoctorRegInfoItem(scrapy.Item):
             self.get('update_time')
         ]
         return insert_sql, params
+
+
+class HospitalAliasItem(scrapy.Item):
+    """
+    医院别名表
+    id                       id(自增)
+    hospital_name            所属医院名称
+    hospital_alisename       科室名称
+    update_time             更新时间
+    """
+    hospital_name = scrapy.Field()
+    hospital_alias_name = scrapy.Field()
+    update_time = scrapy.Field()
+
+    def get_sql_info(self):
+        insert_sql = "insert into hospital_alias(hospital_name,hospital_alisename,update_time) " \
+                     "values(%%s,%s,%s)"
+        params = [
+            self.get('hospital_name'),
+            self.get('hospital_alisename', '暂无'),
+            self.get('update_time')
+        ]
+        return insert_sql, params
+
