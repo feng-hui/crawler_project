@@ -167,6 +167,7 @@ def filter_info2(value):
 def filter_info3(value):
     """
     只适用于双流区妇幼保健院
+    获取科室信息
     """
     ret_info = None
     try:
@@ -178,12 +179,13 @@ def filter_info3(value):
         if ret_info:
             return ret_info.group(1)
         else:
-            return ret_info
+            return value
 
 
 def filter_info4(value):
     """
     只适用于双流区妇幼保健院
+    获取医生级别信息
     """
     ret_info = None
     try:
@@ -194,7 +196,7 @@ def filter_info4(value):
         if ret_info:
             return ret_info.group(3)
         else:
-            return ret_info
+            return value.split(' ')[0]
 
 
 if __name__ == "__main__":

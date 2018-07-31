@@ -36,7 +36,7 @@ class SlbjySpider(scrapy.Spider):
                   'BROWSEID=c7d95f37-6c7b-4824-bb6a-740409320163;'
                   'existFlag=1; rd=http%3A//www.slbjy.cn/;vct=9;ctrl_time=1;'
                   'JSESSIONID=AA68A50F5649C439B3B28C52A2771861.DLOG4J;'
-                  'cf_clearance=412493146744eb42c3f6ef926e4704877fcbe0f2-1532943680-1800;'
+                  'cf_clearance=66e65362cdbfac0d26f43364b4fa3de1d428e183-1533008001-1800;'
                   'zjll_productids=405&393&392&388&384&381&444&515&442&511&503&487&390&504&387&;pvc=98',
         'Host': 'www.slbjy.cn',
         'Referer': 'http://www.slbjy.cn/index.html',
@@ -131,24 +131,21 @@ class SlbjySpider(scrapy.Spider):
         self.logger.info('>>>>>>正在抓取{}:医生信息>>>>>>'.format(self.hospital_name))
         doctor_links = response.xpath('//li[@class="content column-num3"]')
         for each_doctor_link in doctor_links:
+            doctor_level = dept_name = each_doctor_link.xpath('div[2]/ul/li[2]/text()').extract()
             doctor_link = each_doctor_link.xpath('div[1]/div/a/@href').extract_first('')
             loader = CommonLoader2(item=DoctorInfoItem(), selector=each_doctor_link)
             loader.add_xpath('doctor_name',
                              'div[1]/div/a/@title',
                              MapCompose(custom_remove_tags))
-            loader.add_xpath('dept_name',
-                             'div[2]/ul/li[2]/text()',
-                             MapCompose(custom_remove_tags, filter_info3))
             loader.add_value('hospital_name', self.hospital_name)
-            loader.add_xpath('doctor_level',
-                             'div[2]/ul/li[2]/text()',
-                             MapCompose(custom_remove_tags, filter_info4))
             if doctor_link:
                 doctor_detail_request = Request(urljoin(self.host, doctor_link),
                                                 headers=self.headers,
                                                 callback=self.parse_doctor_info_detail,
                                                 dont_filter=True,
-                                                meta={'loader': loader})
+                                                meta={'loader': loader,
+                                                      'dept_name': dept_name,
+                                                      'doctor_level': doctor_level})
                 self.headers['Referer'] = response.url
                 yield doctor_detail_request
 
@@ -194,8 +191,23 @@ class SlbjySpider(scrapy.Spider):
     def parse_doctor_info_detail(self, response):
         self.logger.info('>>>>>>正在抓取{}:医生详细信息>>>>>>'.format(self.hospital_name))
         loader = response.meta['loader']
+        dept_name1 = custom_remove_tags(''.join(response.meta['dept_name']))
+        doctor_level2 = response.xpath('//div[@class="FrontProducts_detail02-'
+                                       '1482202997396_htmlbreak"]/p[1]/strong/text()').extract_first('')
+        doctor_level1 = response.meta['doctor_level']
+        dept_name2 = response.xpath('//div[@id="FrontPublic_breadCrumb01-1482202386120"]/div/'
+                                    'a[last()]/text()').extract_first('').replace('专家', '').replace('类', '科')
+        dept_name = re.sub(r'中医医师|中西医医师', '中医科', dept_name1) if dept_name1 else dept_name2
+        doctor_level = custom_remove_tags(''.join(doctor_level1)) if doctor_level1 else doctor_level2
         doctor_intro = response.xpath('//div[@class="FrontProducts_detail02-'
                                       '1482202997396_htmlbreak"]/p[2]').extract_first('')
+        loader.add_value('dept_name',
+                         dept_name,
+                         MapCompose(custom_remove_tags, filter_info3))
+        loader.add_value('doctor_level',
+                         doctor_level,
+                         MapCompose(filter_info4, custom_remove_tags)
+                         )
         loader.add_value('doctor_intro',
                          doctor_intro,
                          MapCompose(remove_tags, custom_remove_tags))
