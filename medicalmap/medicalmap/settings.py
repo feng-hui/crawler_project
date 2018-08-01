@@ -53,9 +53,9 @@ COOKIES_ENABLED = False
 
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
-# DOWNLOADER_MIDDLEWARES = {
-#    'medicalmap.middlewares.ProxyMiddleWare': 543,
-# }
+DOWNLOADER_MIDDLEWARES = {
+   'medicalmap.middlewares.ProxyMiddleWare': 543,
+}
 
 # Enable or disable extensions
 # See https://doc.scrapy.org/en/latest/topics/extensions.html
@@ -65,9 +65,9 @@ COOKIES_ENABLED = False
 
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-# ITEM_PIPELINES = {
-#    'medicalmap.pipelines.MysqlPipeline': 300,
-# }
+ITEM_PIPELINES = {
+   'medicalmap.pipelines.MysqlPipeline': 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html
@@ -102,7 +102,8 @@ COOKIES_ENABLED = False
 # MYSQL SETTINGS TEST SERVER
 MYSQL_HOST = '192.168.99.19'
 MYSQL_PORT = 3306
-MYSQL_DB = 'medical_map_update'
+# MYSQL_DB = 'medical_map_update'
+MYSQL_DB = 'test'
 MYSQL_USER = 'medicalmap1'
 MYSQL_PASSWORD = 'medicalmap#1'
 
@@ -117,7 +118,7 @@ MYSQL_PASSWORD = 'medicalmap#1'
 DUPEFILTER_DEBUG = True
 
 # RETRY_SETTINGS
-RETRY_TIMES = 5
+RETRY_TIMES = 50
 RETRY_HTTP_CODES = [500, 502, 504, 408, 403, 404]
 
 HTTPERROR_ALLOWED_CODES = [402]

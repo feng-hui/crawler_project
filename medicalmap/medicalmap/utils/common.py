@@ -70,6 +70,8 @@ def match_special(value):
         return value.split(':')[-1]
     elif '|' in value:
         return value.split('|')[0]
+    elif '医院列表' in value:
+        return value.replace('医院列表', '')
     else:
         return value
 
@@ -204,16 +206,16 @@ def get_hospital_alias(value):
     适用于：医学百科
     获取医院别名
     """
-    hospital_alias_name = re.search(r'（(.*?)）', value)
+    # hospital_alias_name = re.search(r'（(.*?)）', value)
+    hospital_alias_name = re.sub(r'^（|）$', '', value)
     alias_name = None
     try:
         if hospital_alias_name:
-            alias_name = hospital_alias_name.group(1)
+            alias_name = hospital_alias_name
     except Exception as e:
         print(e)
     finally:
         return alias_name
-
 
 
 if __name__ == "__main__":

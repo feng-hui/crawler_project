@@ -65,6 +65,8 @@ class CommonLoader2(ItemLoader):
     # dept_info_in = Join()
     # 适用于彭州市中医医院
     # doctor_intro_in = doctor_goodAt_in = Join()
+    # 适用于医学百科
+    hospital_intro_in = Join()
 
 
 class HospitalInfoItem(scrapy.Item):
@@ -150,6 +152,100 @@ class HospitalInfoItem(scrapy.Item):
             self.get('hospital_district'),
             self.get('registered_channel'),
             self.get('dataSource_from'),
+            self.get('update_time')
+        ]
+        return insert_sql, params
+
+
+class HospitalInfoTestItem(scrapy.Item):
+    """
+    医院信息表_医学百科专用
+    hospital_name       医院名称
+    consulting_hour     医院上班时间
+    hospital_level      医院等级 二级甲等,二级乙等,二级丙等,三级甲等,三级乙等,三级丙等,一级甲等,一级丙等,一级乙等,未定级
+    hospital_type       医院性质 公立 私立
+    hospital_category   医院分类 综合医院,中医医院,专科医院,妇幼保健院,卫生服务中心,卫生院,疾病预防控制中心
+    hospital_addr       医院地址
+    hospital_pro        医院所属省
+    hospital_city       医院所属市
+    hospital_county     医院所属县
+    hospital_phone      医院电话
+    hospital_intro      医院简介
+    is_medicare         是否接入医保
+    medicare_type       医保类型
+    vaccine_name        疫苗类型
+    is_cpc              是否有胸痛中心
+    is_bdc              是否有脑卒中中心
+    cooperative_business和微医平台的合作业务
+    hospital_district   院区
+    registered_channel  挂号渠道
+    hospital_postcode   邮政编码
+    hospital_email      医院邮箱
+    hospital_website    医院网址
+    hospital_fax        医院传真
+    operation_mode      经营模式
+    update_time         更新时间
+    """
+    hospital_name = scrapy.Field()
+    consulting_hour = scrapy.Field()
+    hospital_level = scrapy.Field()
+    hospital_type = scrapy.Field()
+    hospital_category = scrapy.Field()
+    hospital_addr = scrapy.Field()
+    hospital_pro = scrapy.Field()
+    hospital_city = scrapy.Field()
+    hospital_county = scrapy.Field()
+    hospital_phone = scrapy.Field()
+    hospital_intro = scrapy.Field()
+    is_medicare = scrapy.Field()
+    medicare_type = scrapy.Field()
+    vaccine_name = scrapy.Field()
+    is_cpc = scrapy.Field()
+    is_bdc = scrapy.Field()
+    cooperative_business = scrapy.Field()
+    hospital_district = scrapy.Field()
+    registered_channel = scrapy.Field()
+    dataSource_from = scrapy.Field()
+    hospital_postcode = scrapy.Field()
+    hospital_email = scrapy.Field()
+    hospital_website = scrapy.Field()
+    hospital_fax = scrapy.Field()
+    operation_mode = scrapy.Field()
+    update_time = scrapy.Field()
+
+    def get_sql_info(self):
+        insert_sql = "insert into hospital_info(hospital_name,consulting_hour,hospital_level,hospital_type," \
+                     "hospital_category,hospital_addr,hospital_pro,hospital_city,hospital_county,hospital_phone," \
+                     "hospital_intro,is_medicare,medicare_type,vaccine_name,is_cpc,is_bdc,cooperative_business," \
+                     "hospital_district,registered_channel,dataSource_from,hospital_postcode,hospital_email," \
+                     "hospital_website,hospital_fax,operation_mode,update_time) " \
+                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        params = [
+            self.get('hospital_name'),
+            self.get('consulting_hour'),
+            self.get('hospital_level'),
+            self.get('hospital_type'),
+            self.get('hospital_category'),
+            self.get('hospital_addr'),
+            self.get('hospital_pro'),
+            self.get('hospital_city'),
+            self.get('hospital_county'),
+            self.get('hospital_phone'),
+            self.get('hospital_intro'),
+            self.get('is_medicare'),
+            self.get('medicare_type'),
+            self.get('vaccine_name'),
+            self.get('is_cpc'),
+            self.get('is_bdc'),
+            self.get('cooperative_business'),
+            self.get('hospital_district'),
+            self.get('registered_channel'),
+            self.get('dataSource_from'),
+            self.get('hospital_postcode'),
+            self.get('hospital_email'),
+            self.get('hospital_website'),
+            self.get('hospital_fax'),
+            self.get('operation_mode'),
             self.get('update_time')
         ]
         return insert_sql, params
@@ -278,10 +374,10 @@ class HospitalAliasItem(scrapy.Item):
 
     def get_sql_info(self):
         insert_sql = "insert into hospital_alias(hospital_name,hospital_alisename,update_time) " \
-                     "values(%%s,%s,%s)"
+                     "values(%s,%s,%s)"
         params = [
             self.get('hospital_name'),
-            self.get('hospital_alisename', '暂无'),
+            self.get('hospital_alias_name', '暂无'),
             self.get('update_time')
         ]
         return insert_sql, params

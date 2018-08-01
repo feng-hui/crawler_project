@@ -111,8 +111,8 @@ class ProxyMiddleWare(object):
     proxyServer = "http://http-dyn.abuyun.com:9020"
 
     # 代理隧道验证信息
-    proxyUser = "HV7H735K97281CFD"
-    proxyPass = "88DCA3A9BEF0B6D1"
+    proxyUser = "HS40D55J56U3F5GD"
+    proxyPass = "9D535863B04C70E0"
 
     proxyAuth = "Basic " + base64.urlsafe_b64encode(bytes((proxyUser + ":" + proxyPass), "ascii")).decode("utf8")
 
