@@ -13,6 +13,10 @@ class AHospitalSpider(scrapy.Spider):
     name = 'a_hospital'
     allowed_domains = ['a-hospital.com']
     start_urls = ['http://www.a-hospital.com/w/%E5%85%A8%E5%9B%BD%E5%8C%BB%E9%99%A2%E5%88%97%E8%A1%A8']
+    urls_list = [
+        'http://www.a-hospital.com/w/%E6%9D%AD%E5%B7%9E%E5%B8%82%E5%8C%BB%E9%99%A2%E5%88%97%E8%A1%A8',
+        ''
+    ]
     entry_url = 'http://www.a-hospital.com/w/%E9%A6%96%E9%A1%B5'
     host = 'http://www.a-hospital.com'
     test_url = 'http://www.a-hospital.com/w/%E4%B8%AD%E6%97%A5%E5%8F%8B%E5%A5%BD%E5%8C%BB%E9%99%A2'
@@ -55,31 +59,55 @@ class AHospitalSpider(scrapy.Spider):
         获取所有国内所有地区的链接
         """
         self.logger.info('>>>>>>正在抓取全国医院列表……>>>>>>')
-        all_areas_list = response.xpath('//p/b/a[contains(text(),"医院列表")]/'
-                                        'following::p[1]/a[not(contains(@href,"index"))]/@href').extract()
-        self.logger.info('>>>>>>医学百科总共有{}个地区……>>>>>>'.format(len(all_areas_list)))
-        try:
-            for each_area in all_areas_list:
-                self.headers['Referer'] = response.url
-                yield Request(urljoin(self.host, each_area),
-                              headers=self.headers,
-                              callback=self.parse_area)
-        except Exception as e:
-            self.logger.error('抓取全国医院列表过程中出错了,错误的原因是:{}'.format(repr(e)))
+        # all_areas_list = response.xpath('//p/b/a[contains(text(),"医院列表")]/'
+        #                                 'following::p[1]/a[not(contains(@href,"index"))]/@href').extract()
+        # self.logger.info('>>>>>>医学百科总共有{}个地区……>>>>>>'.format(len(all_areas_list)))
+        # try:
+        #     for each_area in all_areas_list:
+        #         self.headers['Referer'] = response.url
+        #         yield Request(urljoin(self.host, each_area),
+        #                       headers=self.headers,
+        #                       callback=self.parse_area)
+        # except Exception as e:
+        #     self.logger.error('抓取全国医院列表过程中出错了,错误的原因是:{}'.format(repr(e)))
+        special_areas_list = response.xpath('//p/b/a[contains(text(),"上海市医院列表") or contains(text(), "上海医院列表") '
+                                            'or contains(text(),"天津市医院列表") or contains(text(), "重庆市医院列表")]/'
+                                            'following::p[1]/a[not(contains(@href,"index"))]|'
+                                            '//p/a[contains(text(),"广州市") or contains(text(),"武汉市") '
+                                            'or contains(text(), "长沙市") or contains(text(), "长沙市") '
+                                            'or contains(text(), "杭州市") or contains(text(), "太原市") '
+                                            'or contains(text(), "南京市") or contains(text(), "济南市") '
+                                            'or contains(text(), "西安市") or contains(text(), "郑州市") '
+                                            'or contains(text(), "成都市") or contains(text(), "深圳市")]')
+        self.logger.info('>>>>>>医学百科总共有{}个地区待抓取……>>>>>>'.format(len(special_areas_list)))
+        for each_area in special_areas_list:
+            area_city = each_area.xpath('text()').extract_first('')
+            area_link = each_area.xpath('@href').extract_first('')
+            # print(hospital_city, hospital_link)
+            self.headers['Referer'] = response.url
+            yield Request(urljoin(self.host, area_link),
+                          headers=self.headers,
+                          callback=self.parse_area,
+                          meta={'hospital_city': area_city})
 
     def parse_area(self, response):
-        self.logger.info('>>>>>>正在抓取地区医院列表……>>>>>>')
+        hospital_city = response.meta['area_city']
+        self.logger.info('>>>>>>正在抓取[{}]医院列表……>>>>>>'.format(hospital_city))
         # all_hospital_list = response.xpath('//div[@id="bodyContent"]/ul[3]/li/b/a/@href').extract()
         all_hospital_list2 = response.xpath('//h2/span[contains(text(),"医院列表")]/'
-                                            'following::ul[1]/li/b/a/@href').extract()
-        self.logger.info('>>>>>>该地区总共有{}家医院……>>>>>>'.format(len(all_hospital_list2)))
+                                            'following::ul[1]/li/b/a').extract()
+        self.logger.info('>>>>>>[{}]总共有{}家医院……>>>>>>'.format(hospital_city, len(all_hospital_list2)))
         for each_hospital in all_hospital_list2:
+            hospital_name = each_hospital.xpath('text()').extract_first('')
+            hospital_link = each_hospital.xpath('@href').extract_first('')
             self.headers['Referer'] = response.url
-            yield Request(urljoin(self.host, each_hospital),
+            yield Request(urljoin(self.host, hospital_link),
                           headers=self.headers,
-                          callback=self.parse_hospital_detail)
+                          callback=self.parse_hospital_detail,
+                          meta={'hospital_name': hospital_name})
 
     def parse_hospital_detail(self, response):
+        hospital_name = response.xpath('')
         self.logger.info('>>>>>>正在抓取医院详细信息……>>>>>>')
 
         # 获取省市县等信息
