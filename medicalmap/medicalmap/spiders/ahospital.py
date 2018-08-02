@@ -1,22 +1,19 @@
 # -*- coding: utf-8 -*-
 import re
 import scrapy
+from scrapy import signals
 from scrapy.http import Request
 from urllib.parse import urljoin
 from w3lib.html import remove_tags
 from scrapy.loader.processors import MapCompose
-from medicalmap.utils.common import now_day, custom_remove_tags, match_special, get_hospital_alias
-from medicalmap.items import CommonLoader2, HospitalInfoTestItem, HospitalDepItem, DoctorInfoItem, HospitalAliasItem
+from medicalmap.utils.common import now_day, custom_remove_tags, match_special
+from medicalmap.items import CommonLoader2, HospitalInfoTestItem, HospitalDepItem, HospitalAliasItem
 
 
 class AHospitalSpider(scrapy.Spider):
     name = 'a_hospital'
     allowed_domains = ['a-hospital.com']
     start_urls = ['http://www.a-hospital.com/w/%E5%85%A8%E5%9B%BD%E5%8C%BB%E9%99%A2%E5%88%97%E8%A1%A8']
-    urls_list = [
-        'http://www.a-hospital.com/w/%E6%9D%AD%E5%B7%9E%E5%B8%82%E5%8C%BB%E9%99%A2%E5%88%97%E8%A1%A8',
-        ''
-    ]
     entry_url = 'http://www.a-hospital.com/w/%E9%A6%96%E9%A1%B5'
     host = 'http://www.a-hospital.com'
     test_url = 'http://www.a-hospital.com/w/%E4%B8%AD%E6%97%A5%E5%8F%8B%E5%A5%BD%E5%8C%BB%E9%99%A2'
@@ -42,17 +39,19 @@ class AHospitalSpider(scrapy.Spider):
         'AUTOTHROTTLE_TARGET_CONCURRENCY': 16.0,
         'AUTOTHROTTLE_DEBUG': True,
         # 并发请求数的控制,默认为16
-        'CONCURRENT_REQUESTS': 16
+        'CONCURRENT_REQUESTS': 32
     }
+    total_area_cnt = 0
+    total_hospital_cnt = 0
 
     def start_requests(self):
         for each_url in self.start_urls:
-            yield Request(each_url, headers=self.headers, callback=self.parse)
+            yield Request(each_url, headers=self.headers, callback=self.parse, dont_filter=True)
 
         # 测试页面
         # self.headers['Referer'] = 'http://www.a-hospital.com/w/%E5%8C%97%E4%BA%AC%E5%B8%' \
         #                           '82%E6%9C%9D%E9%98%B3%E5%8C%BA%E5%8C%BB%E9%99%A2%E5%88%97%E8%A1%A8'
-        # yield Request(self.test_url, headers=self.headers, callback=self.parse_hospital_detail)
+        # yield Request(self.test_url, headers=self.headers, callback=self.parse_hospital_detail, dont_filter=True)
 
     def parse(self, response):
         """
@@ -70,16 +69,20 @@ class AHospitalSpider(scrapy.Spider):
         #                       callback=self.parse_area)
         # except Exception as e:
         #     self.logger.error('抓取全国医院列表过程中出错了,错误的原因是:{}'.format(repr(e)))
-        special_areas_list = response.xpath('//p/b/a[contains(text(),"上海市医院列表") or contains(text(), "上海医院列表") '
-                                            'or contains(text(),"天津市医院列表") or contains(text(), "重庆市医院列表")]/'
-                                            'following::p[1]/a[not(contains(@href,"index"))]|'
-                                            '//p/a[contains(text(),"广州市") or contains(text(),"武汉市") '
-                                            'or contains(text(), "长沙市") or contains(text(), "长沙市") '
-                                            'or contains(text(), "杭州市") or contains(text(), "太原市") '
-                                            'or contains(text(), "南京市") or contains(text(), "济南市") '
-                                            'or contains(text(), "西安市") or contains(text(), "郑州市") '
-                                            'or contains(text(), "成都市") or contains(text(), "深圳市")]')
-        self.logger.info('>>>>>>医学百科总共有{}个地区待抓取……>>>>>>'.format(len(special_areas_list)))
+        # special_areas_list = response.xpath('//p/b/a[contains(text(),"上海市医院列表") or contains(text(), "上海医院列表") '
+        #                                     'or contains(text(),"天津市医院列表") or contains(text(), "重庆市医院列表")]/'
+        #                                     'following::p[1]/a[not(contains(@href,"index"))]|'
+        #                                     '//p/a[contains(text(),"广州市") or contains(text(),"武汉市") '
+        #                                     'or contains(text(), "长沙市") or contains(text(), "长沙市") '
+        #                                     'or contains(text(), "杭州市") or contains(text(), "太原市") '
+        #                                     'or contains(text(), "南京市") or contains(text(), "济南市") '
+        #                                     'or contains(text(), "西安市") or contains(text(), "郑州市") '
+        #                                     'or contains(text(), "成都市") or contains(text(), "深圳市")]')
+        special_areas_list = response.xpath('//p/b/a[contains(text(),"北京市医院列表")]/'
+                                            'following::p[1]/a[not(contains(@href,"index"))]')
+        total_area_num = len(special_areas_list)
+        self.logger.info('>>>>>>全国医院列表页面,总共有{}个地区待抓取……>>>>>>'.format(str(total_area_num)))
+        self.total_area_cnt += total_area_num
         for each_area in special_areas_list:
             area_city = each_area.xpath('text()').extract_first('')
             area_link = each_area.xpath('@href').extract_first('')
@@ -88,27 +91,35 @@ class AHospitalSpider(scrapy.Spider):
             yield Request(urljoin(self.host, area_link),
                           headers=self.headers,
                           callback=self.parse_area,
-                          meta={'hospital_city': area_city})
+                          meta={'area_city': area_city},
+                          dont_filter=True)
 
     def parse_area(self, response):
-        hospital_city = response.meta['area_city']
+        hospital_city = response.meta.get('area_city', '默认城市')
         self.logger.info('>>>>>>正在抓取[{}]医院列表……>>>>>>'.format(hospital_city))
         # all_hospital_list = response.xpath('//div[@id="bodyContent"]/ul[3]/li/b/a/@href').extract()
         all_hospital_list2 = response.xpath('//h2/span[contains(text(),"医院列表")]/'
-                                            'following::ul[1]/li/b/a').extract()
-        self.logger.info('>>>>>>[{}]总共有{}家医院……>>>>>>'.format(hospital_city, len(all_hospital_list2)))
-        for each_hospital in all_hospital_list2:
-            hospital_name = each_hospital.xpath('text()').extract_first('')
-            hospital_link = each_hospital.xpath('@href').extract_first('')
-            self.headers['Referer'] = response.url
-            yield Request(urljoin(self.host, hospital_link),
-                          headers=self.headers,
-                          callback=self.parse_hospital_detail,
-                          meta={'hospital_name': hospital_name})
+                                            'following::ul[1]/li/b/a')
+        area_hos_cnt = len(all_hospital_list2)
+        self.logger.info('>>>>>>[{}]总共有{}家医院……>>>>>>'.format(hospital_city, str(area_hos_cnt)))
+        self.total_hospital_cnt += area_hos_cnt
+        self.crawler.signals.connect(self.output_statistics, signals.spider_closed)
+        try:
+            for each_hospital in all_hospital_list2:
+                hospital_name = each_hospital.xpath('text()').extract_first('')
+                hospital_link = each_hospital.xpath('@href').extract_first('')
+                self.headers['Referer'] = response.url
+                yield Request(urljoin(self.host, hospital_link),
+                              headers=self.headers,
+                              callback=self.parse_hospital_detail,
+                              meta={'hospital_name': hospital_name},
+                              dont_filter=True)
+        except Exception as e:
+            self.logger.error('抓取[{}]医院列表的时候出错了,原因是:{}'.format(hospital_city, repr(e)))
 
     def parse_hospital_detail(self, response):
-        hospital_name = response.xpath('')
-        self.logger.info('>>>>>>正在抓取医院详细信息……>>>>>>')
+        hospital_name = response.meta.get('hospital_name', '默认医院')
+        self.logger.info('>>>>>>正在抓取[{}]详细信息……>>>>>>'.format(hospital_name))
 
         # 获取省市县等信息
         municipality = ['北京市', '上海市', '重庆市', '天津市']
@@ -213,14 +224,23 @@ class AHospitalSpider(scrapy.Spider):
         hospital_name = response.xpath('//div[@id="bodyContent"]/p[1]/b/text()').extract_first('')
         hospital_name2 = response.xpath('//table[@class="nav"]/tr/td/strong/text()').extract_first('')
         if hospital_name and '（' in hospital_name:
-            alias_name = get_hospital_alias(hospital_name.replace(hospital_name2, ''))
-            if alias_name:
-                for each_alias_name in alias_name.split('、'):
-                    alias_loader = CommonLoader2(item=HospitalAliasItem(), response=response)
-                    alias_loader.add_xpath('hospital_name',
-                                           '//table[@class="nav"]/tr/td/strong/text()',
-                                           MapCompose(custom_remove_tags))
-                    alias_loader.add_value('hospital_alias_name', each_alias_name)
-                    alias_loader.add_value('update_time', now_day())
-                    alias_item = alias_loader.load_item()
-                    yield alias_item
+            # alias_name = get_hospital_alias(hospital_name.replace(hospital_name2, ''))
+            try:
+                alias_name = re.search(r'^{}（(.*?)）$'.format(hospital_name2), hospital_name)
+                if alias_name:
+                    for each_alias_name in alias_name.group(1).split('、'):
+                        alias_loader = CommonLoader2(item=HospitalAliasItem(), response=response)
+                        alias_loader.add_xpath('hospital_name',
+                                               '//table[@class="nav"]/tr/td/strong/text()',
+                                               MapCompose(custom_remove_tags))
+                        alias_loader.add_value('hospital_alias_name', each_alias_name)
+                        alias_loader.add_value('update_time', now_day())
+                        alias_item = alias_loader.load_item()
+                        yield alias_item
+            except Exception as e:
+                self.logger.error('抓取[{}]别名的时候出错了,原因是:{}'.format(hospital_name, repr(e)))
+
+    def output_statistics(self):
+        """输出统计信息"""
+        self.crawler.stats.set_value('total_area_cnt/count', self.total_area_cnt)
+        self.crawler.stats.set_value('total_hospital_cnt/count', self.total_hospital_cnt)

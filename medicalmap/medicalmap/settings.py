@@ -53,9 +53,9 @@ COOKIES_ENABLED = False
 
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
-# DOWNLOADER_MIDDLEWARES = {
-#    'medicalmap.middlewares.ProxyMiddleWare': 543,
-# }
+DOWNLOADER_MIDDLEWARES = {
+   'medicalmap.middlewares.ProxyMiddleWare': 543,
+}
 
 # Enable or disable extensions
 # See https://doc.scrapy.org/en/latest/topics/extensions.html
@@ -118,7 +118,12 @@ MYSQL_PASSWORD = 'medicalmap#1'
 DUPEFILTER_DEBUG = True
 
 # RETRY_SETTINGS
-RETRY_TIMES = 50
-RETRY_HTTP_CODES = [500, 502, 504, 408, 403, 404]
+RETRY_TIMES = 10  # 默认值为2
 
-HTTPERROR_ALLOWED_CODES = [402]
+# RETRY_HTTP_CODES Default: [500, 502, 503, 504, 408]
+RETRY_HTTP_CODES = [500, 502, 503, 504, 408, 403, 404, 429]
+
+# HTTPERROR_ALLOWED_CODES：默认为[],[Pass all responses with non-200 status codes contained in this list.]
+HTTPERROR_ALLOWED_CODES = [429, 503, 404]
+
+# HTTPERROR_ALLOW_ALL = True  # 默认为false,[Pass all responses, regardless of its status code.]
