@@ -30,7 +30,7 @@ class AHospitalSpider(scrapy.Spider):
     }
     custom_settings = {
         # 延迟设置
-        # 'DOWNLOAD_DELAY': 1,
+        'DOWNLOAD_DELAY': 1,
         # 自动限速设置
         'AUTOTHROTTLE_ENABLED': True,
         'AUTOTHROTTLE_START_DELAY': 1,
