@@ -184,6 +184,7 @@ class HospitalInfoTestItem(scrapy.Item):
     hospital_website    医院网址
     hospital_fax        医院传真
     operation_mode      经营模式
+    hospital_url        医院链接
     update_time         更新时间
     """
     hospital_name = scrapy.Field()
@@ -211,6 +212,7 @@ class HospitalInfoTestItem(scrapy.Item):
     hospital_website = scrapy.Field()
     hospital_fax = scrapy.Field()
     operation_mode = scrapy.Field()
+    hospital_url = scrapy.Field()
     update_time = scrapy.Field()
 
     def get_sql_info(self):
@@ -218,10 +220,10 @@ class HospitalInfoTestItem(scrapy.Item):
                      "hospital_category,hospital_addr,hospital_pro,hospital_city,hospital_county,hospital_phone," \
                      "hospital_intro,is_medicare,medicare_type,vaccine_name,is_cpc,is_bdc,cooperative_business," \
                      "hospital_district,registered_channel,dataSource_from,hospital_postcode,hospital_email," \
-                     "hospital_website,hospital_fax,operation_mode,update_time) " \
-                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                     "hospital_website,hospital_fax,operation_mode,hospital_url,update_time) " \
+                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
         params = [
-            self.get('hospital_name'),
+            self.get('hospital_name', '暂无,出现异常'),
             self.get('consulting_hour'),
             self.get('hospital_level'),
             self.get('hospital_type'),
@@ -246,6 +248,7 @@ class HospitalInfoTestItem(scrapy.Item):
             self.get('hospital_website'),
             self.get('hospital_fax'),
             self.get('operation_mode'),
+            self.get('hospital_url'),
             self.get('update_time')
         ]
         return insert_sql, params

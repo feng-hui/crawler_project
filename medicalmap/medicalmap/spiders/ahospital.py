@@ -78,7 +78,7 @@ class AHospitalSpider(scrapy.Spider):
         #                                     'or contains(text(), "南京市") or contains(text(), "济南市") '
         #                                     'or contains(text(), "西安市") or contains(text(), "郑州市") '
         #                                     'or contains(text(), "成都市") or contains(text(), "深圳市")]')
-        special_areas_list = response.xpath('//p/b/a[contains(text(),"北京市医院列表")]/'
+        special_areas_list = response.xpath('//p/b/a[contains(text(),"陕西省医院列表")]/'
                                             'following::p[1]/a[not(contains(@href,"index"))]')
         total_area_num = len(special_areas_list)
         self.logger.info('>>>>>>全国医院列表页面,总共有{}个地区待抓取……>>>>>>'.format(str(total_area_num)))
