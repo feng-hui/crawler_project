@@ -7,6 +7,10 @@
 
 from scrapy import signals
 import base64
+from scrapy.downloadermiddlewares.redirect import RedirectMiddleware
+# from scrapy.downloadermiddlewares.retry import RetryMiddleware
+from six.moves.urllib.parse import urljoin
+from w3lib.url import safe_url_string
 
 
 class MedicalmapSpiderMiddleware(object):
@@ -122,3 +126,33 @@ class ProxyMiddleWare(object):
     def process_request(self, request, spider):
         request.meta['proxy'] = self.proxyServer
         request.headers["Proxy-Authorization"] = self.proxyAuth
+
+
+class CustomRedirectMiddleWare(RedirectMiddleware):
+
+    def process_response(self, request, response, spider):
+        if (request.meta.get('dont_redirect', False) or
+                response.status in getattr(spider, 'handle_httpstatus_list', []) or
+                response.status in request.meta.get('handle_httpstatus_list', []) or
+                request.meta.get('handle_httpstatus_all', False)):
+            return response
+
+        allowed_status = (301, 302, 303, 307, 308)
+        if 'Location' not in response.headers or response.status not in allowed_status:
+            return response
+
+        location = safe_url_string(response.headers['location'])
+
+        redirected_url = urljoin(request.url, location)
+
+        if response.status in (301, 307, 308) or request.method == 'HEAD':
+            redirected = request.replace(url=redirected_url)
+            return self._redirect(redirected, request, spider, response.status)
+
+        if response.status == 302:
+            redirected_url = request.url
+            redirected = self._redirect_request_using_get(request, redirected_url)
+            return self._redirect(redirected, request, spider, response.status)
+
+        redirected = self._redirect_request_using_get(request, redirected_url)
+        return self._redirect(redirected, request, spider, response.status)
