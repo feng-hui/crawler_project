@@ -218,9 +218,33 @@ def get_hospital_alias(value):
         return alias_name
 
 
+def get_county(h_pro, h_city, hospital_name):
+    """
+    :param h_pro:province
+    :param h_city:city
+    :param hospital_name:hospital name
+    :return:the county of address
+    """
+    res = hospital_name.replace(h_pro, '').replace(h_city, '')
+    if res:
+        try:
+            county = re.search(r'^((.*?)县)|^((.*?)区)|^((.*?)市)', res)
+            if county:
+                # print(county)
+                return county.group(0)
+            else:
+                return None
+        except Exception as e:
+            print('获取三级地址的时候出错了,原因是:{}'.format(repr(e)))
+            return None
+    else:
+        return None
+
+
 if __name__ == "__main__":
-    print(remove_number('701'))
-    print(now_year(), type(now_year()))
-    print(now_day(), type(now_day()))
-    print(get_reg_info('门诊时间：星期二:下午,星期三:上午、下午、晚班'))
-    print(get_hospital_alias('中日友好医院（卫生部中日友好医院）'))
+    # print(remove_number('701'))
+    # print(now_year(), type(now_year()))
+    # print(now_day(), type(now_day()))
+    # print(get_reg_info('门诊时间：星期二:下午,星期三:上午、下午、晚班'))
+    # print(get_hospital_alias('中日友好医院（卫生部中日友好医院）'))
+    print(get_county('四川省', '成都市', '四川省成都市晋江县锦江区红星路四段14号'))

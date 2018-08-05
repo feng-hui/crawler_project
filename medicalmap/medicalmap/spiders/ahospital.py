@@ -6,7 +6,7 @@ from scrapy.http import Request
 from urllib.parse import urljoin
 from w3lib.html import remove_tags
 from scrapy.loader.processors import MapCompose
-from medicalmap.utils.common import now_day, custom_remove_tags, match_special
+from medicalmap.utils.common import now_day, custom_remove_tags, match_special, get_county
 from medicalmap.items import CommonLoader2, HospitalInfoTestItem, HospitalDepItem, HospitalAliasItem
 
 
@@ -58,53 +58,62 @@ class AHospitalSpider(scrapy.Spider):
         获取所有国内所有地区的链接
         """
         self.logger.info('>>>>>>正在抓取全国医院列表……>>>>>>')
-        # all_areas_list = response.xpath('//p/b/a[contains(text(),"医院列表")]/'
-        #                                 'following::p[1]/a[not(contains(@href,"index"))]/@href').extract()
-        # self.logger.info('>>>>>>医学百科总共有{}个地区……>>>>>>'.format(len(all_areas_list)))
-        # try:
-        #     for each_area in all_areas_list:
-        #         self.headers['Referer'] = response.url
-        #         yield Request(urljoin(self.host, each_area),
-        #                       headers=self.headers,
-        #                       callback=self.parse_area)
-        # except Exception as e:
-        #     self.logger.error('抓取全国医院列表过程中出错了,错误的原因是:{}'.format(repr(e)))
-        # special_areas_list = response.xpath('//p/b/a[contains(text(),"上海市医院列表") or contains(text(), "上海医院列表") '
-        #                                     'or contains(text(),"天津市医院列表") or contains(text(), "重庆市医院列表")]/'
-        #                                     'following::p[1]/a[not(contains(@href,"index"))]|'
-        #                                     '//p/a[contains(text(),"广州市") or contains(text(),"武汉市") '
-        #                                     'or contains(text(), "长沙市") or contains(text(), "长沙市") '
-        #                                     'or contains(text(), "杭州市") or contains(text(), "太原市") '
-        #                                     'or contains(text(), "南京市") or contains(text(), "济南市") '
-        #                                     'or contains(text(), "西安市") or contains(text(), "郑州市") '
-        #                                     'or contains(text(), "成都市") or contains(text(), "深圳市")]')
-        special_areas_list = response.xpath('//p/b/a[contains(text(),"陕西省医院列表")]/'
-                                            'following::p[1]/a[not(contains(@href,"index"))]')
-        total_area_num = len(special_areas_list)
-        self.logger.info('>>>>>>全国医院列表页面,总共有{}个地区待抓取……>>>>>>'.format(str(total_area_num)))
-        self.total_area_cnt += total_area_num
-        for each_area in special_areas_list:
-            area_city = each_area.xpath('text()').extract_first('')
-            area_link = each_area.xpath('@href').extract_first('')
-            # print(hospital_city, hospital_link)
-            self.headers['Referer'] = response.url
-            yield Request(urljoin(self.host, area_link),
-                          headers=self.headers,
-                          callback=self.parse_area,
-                          meta={'area_city': area_city},
-                          dont_filter=True)
+        try:
+            # all_areas_list = response.xpath('//p/b/a[contains(text(),"医院列表")]/'
+            #                                 'following::p[1]/a[not(contains(@href,"index"))]/@href').extract()
+            special_areas_list = response.xpath('//p/b/a[contains(text(), "安徽省医院列表")]/'
+                                                'following::p[1]/a[not(contains(@href,"index"))]')
+            total_area_num = len(special_areas_list)
+            self.logger.info('>>>>>>全国医院列表页面,总共有{}个地区待抓取……>>>>>>'.format(str(total_area_num)))
+            self.total_area_cnt += total_area_num
+            for each_area in special_areas_list:
+                area_city = each_area.xpath('text()').extract_first('')
+                area_link = each_area.xpath('@href').extract_first('')
+                # print(hospital_city, hospital_link)
+                self.headers['Referer'] = response.url
+                yield Request(urljoin(self.host, area_link),
+                              headers=self.headers,
+                              callback=self.parse_area,
+                              meta={'area_city': area_city},
+                              dont_filter=True)
+        except Exception as e:
+            self.logger.error('抓取全国医院列表过程中出错了,错误的原因是:{}'.format(repr(e)))
 
     def parse_area(self, response):
         hospital_city = response.meta.get('area_city', '默认城市')
         self.logger.info('>>>>>>正在抓取[{}]医院列表……>>>>>>'.format(hospital_city))
+
+        # 获取省市县等信息
+        municipality = ['北京市', '上海市', '重庆市', '天津市']
+        pro_or_city = response.xpath('//table[@class="nav"]/tr/'
+                                     'td/a[3]/text()').extract_first('').replace('医院列表', '')
+        if pro_or_city:
+            if pro_or_city.strip() in municipality:
+                # 直辖市,包括市、区等信息
+                hos_prov = ''
+                hos_city = pro_or_city
+                hos_county = response.xpath('//h1[@id="firstHeading"]/text()').extract_first('').replace(hos_city, '')
+            else:
+                # 非直辖市,包括省、市、县或区等信息
+                hos_prov = pro_or_city
+                hos_city = response.xpath('//h1[@id="firstHeading"]'
+                                          '/text()').extract_first('').replace('医院列表', '').replace(hos_prov, '')
+                hos_county = ''
+        else:
+            hos_prov = hos_city = hos_county = None
+
+        # 有医院最终页的医院
         # all_hospital_list = response.xpath('//div[@id="bodyContent"]/ul[3]/li/b/a/@href').extract()
         all_hospital_list2 = response.xpath('//h2/span[contains(text(),"医院列表")]/'
-                                            'following::ul[1]/li/b/a')
-        area_hos_cnt = len(all_hospital_list2)
+                                            'following::ul[1]/li/b/a[not(contains(@href,"index"))]')
+        special_hospital_list = response.xpath('//h2/span[contains(text(),"医院列表")]/'
+                                               'following::ul[1]/li/b/a[(contains(@href,"index"))]/ancestor::li[1]')
+        area_hos_cnt = len(all_hospital_list2) + len(special_hospital_list)
         self.logger.info('>>>>>>[{}]总共有{}家医院……>>>>>>'.format(hospital_city, str(area_hos_cnt)))
         self.total_hospital_cnt += area_hos_cnt
         self.crawler.signals.connect(self.output_statistics, signals.spider_closed)
         try:
+            # 有医院最终页的
             for each_hospital in all_hospital_list2:
                 hospital_name = each_hospital.xpath('text()').extract_first('')
                 hospital_link = each_hospital.xpath('@href').extract_first('')
@@ -114,6 +123,50 @@ class AHospitalSpider(scrapy.Spider):
                               callback=self.parse_hospital_detail,
                               meta={'hospital_name': hospital_name},
                               dont_filter=True)
+            # 没有医院最终页的
+            for each_special_hospital in special_hospital_list:
+                hospital_name = each_special_hospital.xpath('b/a/text()').extract_first('')
+                hospital_url = each_special_hospital.xpath('b/a/@href').extract_first('')
+                hos_county = hos_county if hos_county else get_county(hos_prov, hos_city, hospital_name)
+                loader = CommonLoader2(item=HospitalInfoTestItem(), response=response)
+                loader.add_xpath('hospital_name', hospital_name)
+                loader.add_xpath('hospital_level',
+                                 'ul[1]/li/b[contains(text(),"医院等级")]/ancestor::li[1]',
+                                 MapCompose(remove_tags, custom_remove_tags, match_special))
+                loader.add_xpath('hospital_category',
+                                 'ul[1]/li/b[contains(text(),"医院类型")]/ancestor::li[1]',
+                                 MapCompose(remove_tags, custom_remove_tags, match_special))
+                loader.add_xpath('hospital_addr',
+                                 'ul[1]/li/b[contains(text(),"医院地址")]/ancestor::li[1]',
+                                 MapCompose(remove_tags, custom_remove_tags, match_special))
+                loader.add_value('hospital_pro', hos_prov, MapCompose(custom_remove_tags, match_special))
+                loader.add_value('hospital_city', hos_city, MapCompose(custom_remove_tags, match_special))
+                loader.add_value('hospital_county', hos_county, MapCompose(custom_remove_tags, match_special))
+                loader.add_xpath('hospital_phone',
+                                 'ul[1]/li/b[contains(text(),"联系电话")]/ancestor::li[1]',
+                                 MapCompose(remove_tags, custom_remove_tags, match_special))
+                loader.add_value('hospital_intro', '')
+                loader.add_xpath('hospital_postcode',
+                                 'ul[1]/li/b[contains(text(),"邮政编码")]/ancestor::li[1]',
+                                 MapCompose(remove_tags, custom_remove_tags, match_special))
+                loader.add_xpath('hospital_email',
+                                 'ul[1]/li/b[contains(text(),"电子邮箱")]/ancestor::li[1]',
+                                 MapCompose(remove_tags, custom_remove_tags, match_special))
+                loader.add_xpath('hospital_website',
+                                 'ul[1]/li/b[contains(text(),"医院网站")]/ancestor::li[1]/'
+                                 'a[not(contains(@href,"http://www.a-hospital.com"))]',
+                                 MapCompose(remove_tags, custom_remove_tags, match_special))
+                loader.add_xpath('hospital_fax',
+                                 'ul[1]/li/b[contains(text(),"传真号码")]/ancestor::li[1]',
+                                 MapCompose(remove_tags, custom_remove_tags, match_special))
+                loader.add_xpath('operation_mode',
+                                 'ul[1]/li/b[contains(text(),"经营方式")]/ancestor::li[1]',
+                                 MapCompose(remove_tags, custom_remove_tags, match_special))
+                loader.add_value('hospital_url', urljoin(self.host, hospital_url))
+                loader.add_value('dataSource_from', '医学百科')
+                loader.add_value('update_time', now_day())
+                hospital_info_item = loader.load_item()
+                yield hospital_info_item
         except Exception as e:
             self.logger.error('抓取[{}]医院列表的时候出错了,原因是:{}'.format(hospital_city, repr(e)))
 
@@ -200,6 +253,7 @@ class AHospitalSpider(scrapy.Spider):
                          '//div[@id="bodyContent"]/ul[1]/li/'
                          'b[contains(text(),"经营方式")]/ancestor::li[1]',
                          MapCompose(remove_tags, custom_remove_tags, match_special))
+        loader.add_value('hospital_url', response.url)
         loader.add_value('dataSource_from', '医学百科')
         loader.add_value('update_time', now_day())
         hospital_info_item = loader.load_item()
