@@ -19,4 +19,5 @@ from scrapy.cmdline import execute
 # execute('scrapy crawl scpz120'.split())  # 彭州市中医医院  2018-07-27 医院+科室+医生+排班
 # execute('scrapy crawl wjfy120'.split())  # 成都市温江区妇幼保健院  2018-07-30 医院+科室+医生
 # execute('scrapy crawl slbjy'.split())  # 双流区妇幼保健院  2018-07-31 医院+科室+医生
-execute('scrapy crawl a_hospital'.split())  # 医学百科  2018-07-31 医院+科室+医院别名
+# execute('scrapy crawl a_hospital'.split())  # 医学百科  2018-07-31 医院+科室+医院别名
+execute('scrapy crawl imicams'.split())  # 中国医院科技影响力排行  2018-08-07 排行信息

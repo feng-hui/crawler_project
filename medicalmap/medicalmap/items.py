@@ -393,3 +393,97 @@ class HospitalAliasItem(scrapy.Item):
         ]
         return insert_sql, params
 
+
+class ComprehensiveRankingItem(scrapy.item):
+    """
+    中国医院科技应影响力排行
+    综合排行item
+    hospital_pro          省份
+    ranking               排名
+    hospital_name         医院名称
+    tech_investment       科技投入
+    tech_output           科技产出
+    academic_influence    学术影响
+    total_score           总分
+    create_time           创建时间
+    update_time           更新时间
+    """
+    hospital_name = scrapy.Field()
+    hospital_alias_name = scrapy.Field()
+    update_time = scrapy.Field()
+
+    def get_sql_info(self):
+        insert_sql = "insert into comprehensive_ranking(hospital_pro,ranking,hospital_name,tech_investment," \
+                     "tech_output,academic_influence,total_score,create_time,update_time) " \
+                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        params = [
+            self.get('hospital_pro'),
+            self.get('ranking'),
+            self.get('hospital_name', '暂无,出现异常'),
+            self.get('tech_investment'),
+            self.get('tech_output'),
+            self.get('academic_influence'),
+            self.get('total_score'),
+            self.get('create_time'),
+            self.get('update_time'),
+        ]
+        return insert_sql, params
+
+
+class SubjectRankingItem(scrapy.item):
+    """
+    中国医院科技应影响力排行
+    学科排行item
+    subject               学科名称
+    hospital_pro          省份
+    ranking               排名
+    hospital_name         医院名称
+    tech_investment       科技投入
+    tech_output           科技产出
+    academic_influence    学术影响
+    total_score           总分
+    create_time           创建时间
+    update_time           更新时间
+    """
+    def get_sql_info(self):
+        insert_sql = "insert into comprehensive_ranking(subject,hospital_pro,ranking,hospital_name,tech_investment," \
+                     "tech_output,academic_influence,total_score,create_time,update_time) " \
+                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        params = [
+            self.get('subject', '暂无,出现异常'),
+            self.get('hospital_pro'),
+            self.get('ranking'),
+            self.get('hospital_name', '暂无,出现异常'),
+            self.get('tech_investment'),
+            self.get('tech_output'),
+            self.get('academic_influence'),
+            self.get('total_score'),
+            self.get('create_time'),
+            self.get('update_time'),
+        ]
+        return insert_sql, params
+
+
+class AreaRankingItem(scrapy.item):
+    """
+    中国医院科技应影响力排行
+    地区排行item
+    subject             学科名称
+    hospital_pro        省份
+    ranking             排名
+    hospital_name       医院名称
+    create_time         创建时间
+    update_time         更新时间
+    """
+    def get_sql_info(self):
+        insert_sql = "insert into comprehensive_ranking(subject,hospital_pro,ranking,hospital_name," \
+                     "create_time,update_time) values(%s,%s,%s,%s,%s,%s)"
+        params = [
+            self.get('subject', '暂无,出现异常'),
+            self.get('hospital_pro'),
+            self.get('ranking'),
+            self.get('hospital_name', '暂无,出现异常'),
+            self.get('create_time'),
+            self.get('update_time'),
+        ]
+        return insert_sql, params

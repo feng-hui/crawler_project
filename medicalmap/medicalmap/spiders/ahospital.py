@@ -51,7 +51,7 @@ class AHospitalSpider(scrapy.Spider):
         for each_url in self.start_urls:
             yield Request(each_url,
                           headers=self.headers,
-                          callback=self.parse, 
+                          callback=self.parse,
                           dont_filter=True)
 
         # 测试最终页面
