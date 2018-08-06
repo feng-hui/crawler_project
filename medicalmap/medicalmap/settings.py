@@ -53,11 +53,11 @@ COOKIES_ENABLED = False
 
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
-DOWNLOADER_MIDDLEWARES = {
-   'medicalmap.middlewares.ProxyMiddleWare': 543,
-   # 'scrapy.downloadermiddlewares.redirect.RedirectMiddleware': None,
-   # 'medicalmap.middlewares.CustomRedirectMiddleWare': 600,
-}
+# DOWNLOADER_MIDDLEWARES = {
+#    'medicalmap.middlewares.ProxyMiddleWare': 543,
+#    # 'scrapy.downloadermiddlewares.redirect.RedirectMiddleware': None,
+#    # 'medicalmap.middlewares.CustomRedirectMiddleWare': 600,
+# }
 
 # Enable or disable extensions
 # See https://doc.scrapy.org/en/latest/topics/extensions.html
@@ -122,7 +122,7 @@ DUPEFILTER_DEBUG = True
 # RETRY_SETTINGS
 RETRY_TIMES = 10  # 默认值为2
 
-# RETRY_HTTP_CODES Default: [500, 502, 503, 504, 408],302不会重试
+# RETRY_HTTP_CODES Default: [500, 502, 503, 504, 408]
 RETRY_HTTP_CODES = [500, 502, 503, 504, 408, 403, 404, 429, 302]
 
 # HTTPERROR_ALLOWED_CODES：默认为[],[Pass all responses with non-200 status codes contained in this list.]

@@ -6,7 +6,7 @@ from scrapy.http import Request
 from urllib.parse import urljoin
 from w3lib.html import remove_tags
 from scrapy.loader.processors import MapCompose
-from medicalmap.utils.common import now_day, custom_remove_tags, match_special, get_county
+from medicalmap.utils.common import now_day, custom_remove_tags, match_special, get_county, match_special2
 from medicalmap.items import CommonLoader2, HospitalInfoTestItem, HospitalDepItem, HospitalAliasItem
 
 
@@ -14,9 +14,12 @@ class AHospitalSpider(scrapy.Spider):
     name = 'a_hospital'
     allowed_domains = ['a-hospital.com']
     start_urls = ['http://www.a-hospital.com/w/%E5%85%A8%E5%9B%BD%E5%8C%BB%E9%99%A2%E5%88%97%E8%A1%A8']
+    # start_urls = ['http://www.a-hospital.com/w/%E7%BB%B5%E9%98%B3%E5%B8%82%E5%8C%BB%E9%99%A2%E5%88%97%E8%A1%A8']
     entry_url = 'http://www.a-hospital.com/w/%E9%A6%96%E9%A1%B5'
     host = 'http://www.a-hospital.com'
     test_url = 'http://www.a-hospital.com/w/%E4%B8%AD%E6%97%A5%E5%8F%8B%E5%A5%BD%E5%8C%BB%E9%99%A2'
+    test_area_url = 'http://www.a-hospital.com/w/%E5%93%88%E5%B0%94%E6%BB%A8%' \
+                    'E5%B8%82%E5%8C%BB%E9%99%A2%E5%88%97%E8%A1%A8'
     headers = {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
         'Accept-Encoding': 'gzip, deflate',
@@ -31,7 +34,7 @@ class AHospitalSpider(scrapy.Spider):
     }
     custom_settings = {
         # 延迟设置
-        'DOWNLOAD_DELAY': 1,
+        # 'DOWNLOAD_DELAY': 1,
         # 自动限速设置
         'AUTOTHROTTLE_ENABLED': True,
         'AUTOTHROTTLE_START_DELAY': 1,
@@ -39,19 +42,26 @@ class AHospitalSpider(scrapy.Spider):
         'AUTOTHROTTLE_TARGET_CONCURRENCY': 16.0,
         'AUTOTHROTTLE_DEBUG': True,
         # 并发请求数的控制,默认为16
-        'CONCURRENT_REQUESTS': 32
+        'CONCURRENT_REQUESTS': 100
     }
     total_area_cnt = 0
     total_hospital_cnt = 0
 
     def start_requests(self):
         for each_url in self.start_urls:
-            yield Request(each_url, headers=self.headers, callback=self.parse, dont_filter=True)
+            yield Request(each_url,
+                          headers=self.headers,
+                          callback=self.parse, 
+                          dont_filter=True)
 
-        # 测试页面
+        # 测试最终页面
         # self.headers['Referer'] = 'http://www.a-hospital.com/w/%E5%8C%97%E4%BA%AC%E5%B8%' \
         #                           '82%E6%9C%9D%E9%98%B3%E5%8C%BA%E5%8C%BB%E9%99%A2%E5%88%97%E8%A1%A8'
         # yield Request(self.test_url, headers=self.headers, callback=self.parse_hospital_detail, dont_filter=True)
+
+        # 测试地区页面
+        # self.headers['Referer'] = 'http://www.a-hospital.com/w/%E5%85%A8%E5%9B%BD%E5%8C%BB%E9%99%A2%E5%88%97%E8%A1%A8'
+        # yield Request(self.test_area_url, headers=self.headers, callback=self.parse_area, dont_filter=True)
 
     def parse(self, response):
         """
@@ -127,9 +137,11 @@ class AHospitalSpider(scrapy.Spider):
             for each_special_hospital in special_hospital_list:
                 hospital_name = each_special_hospital.xpath('b/a/text()').extract_first('')
                 hospital_url = each_special_hospital.xpath('b/a/@href').extract_first('')
-                hos_county = hos_county if hos_county else get_county(hos_prov, hos_city, hospital_name)
-                loader = CommonLoader2(item=HospitalInfoTestItem(), response=response)
-                loader.add_xpath('hospital_name', hospital_name)
+                hospital_address = each_special_hospital.xpath('ul[1]/li/b[contains(text(),'
+                                                               '"医院地址")]/ancestor::li[1]/text()').extract_first('')
+                hos_county = hos_county if hos_county else get_county(hos_prov, hos_city, hospital_address)
+                loader = CommonLoader2(item=HospitalInfoTestItem(), selector=each_special_hospital)
+                loader.add_value('hospital_name', hospital_name)
                 loader.add_xpath('hospital_level',
                                  'ul[1]/li/b[contains(text(),"医院等级")]/ancestor::li[1]',
                                  MapCompose(remove_tags, custom_remove_tags, match_special))
@@ -167,6 +179,35 @@ class AHospitalSpider(scrapy.Spider):
                 loader.add_value('update_time', now_day())
                 hospital_info_item = loader.load_item()
                 yield hospital_info_item
+
+                # 科室信息
+                dept_info = each_special_hospital.xpath('ul[1]/li/b[contains(text(),"重点科室")]/ancestor::li[1]')
+                all_dept_info = match_special(dept_info.xpath('string(.)').extract_first(''))
+                if all_dept_info:
+                    for each_dept in all_dept_info.split('、'):
+                        dept_loader = CommonLoader2(item=HospitalDepItem(), response=response)
+                        dept_loader.add_value('dept_name', each_dept, MapCompose(custom_remove_tags))
+                        dept_loader.add_value('hospital_name',
+                                              hospital_name,
+                                              MapCompose(custom_remove_tags, match_special2))
+                        dept_loader.add_value('update_time', now_day())
+                        dept_item = dept_loader.load_item()
+                        yield dept_item
+
+                # 医院别名信息
+                hospital_name2 = each_special_hospital.xpath('b/text()').extract_first('')
+                if hospital_name2 and '（' in hospital_name2:
+                    alias_name = re.search(r'（(.*?)）', custom_remove_tags(hospital_name2))
+                    if alias_name:
+                        for each_alias_name in alias_name.group(1).split('、'):
+                            alias_loader = CommonLoader2(item=HospitalAliasItem(), response=response)
+                            alias_loader.add_value('hospital_name',
+                                                   hospital_name,
+                                                   MapCompose(custom_remove_tags, match_special2))
+                            alias_loader.add_value('hospital_alias_name', each_alias_name)
+                            alias_loader.add_value('update_time', now_day())
+                            alias_item = alias_loader.load_item()
+                            yield alias_item
         except Exception as e:
             self.logger.error('抓取[{}]医院列表的时候出错了,原因是:{}'.format(hospital_city, repr(e)))
 
@@ -209,8 +250,13 @@ class AHospitalSpider(scrapy.Spider):
             hospital_intro = hospital_intro.extract()
 
         # 医院信息item
+        hospital_name1 = response.xpath('//table[@class="nav"]/tr/td/strong/text()').extract_first('')
+        hospital_name2 = response.xpath('//title/text()').extract_first('')
+        hospital_name = hospital_name1 if hospital_name1 else hospital_name2
         loader = CommonLoader2(item=HospitalInfoTestItem(), response=response)
-        loader.add_xpath('hospital_name', '//table[@class="nav"]/tr/td/strong/text()')
+        loader.add_value('hospital_name',
+                         hospital_name,
+                         MapCompose(custom_remove_tags, match_special2))
         loader.add_xpath('hospital_level',
                          '//div[@id="bodyContent"]/ul[1]/li/'
                          'b[contains(text(),"医院等级")]/ancestor::li[1]',
@@ -265,13 +311,11 @@ class AHospitalSpider(scrapy.Spider):
         all_dept_info = match_special(dept_info.xpath('string(.)').extract_first(''))
         if all_dept_info:
             for each_dept in all_dept_info.split('、'):
-                loader = CommonLoader2(item=HospitalDepItem(), response=response)
-                loader.add_value('dept_name', each_dept, MapCompose(custom_remove_tags))
-                loader.add_xpath('hospital_name',
-                                 '//table[@class="nav"]/tr/td/strong/text()',
-                                 MapCompose(custom_remove_tags))
-                loader.add_value('update_time', now_day())
-                dept_item = loader.load_item()
+                dept_loader = CommonLoader2(item=HospitalDepItem(), response=response)
+                dept_loader.add_value('dept_name', each_dept, MapCompose(custom_remove_tags))
+                dept_loader.add_value('hospital_name', hospital_name, MapCompose(custom_remove_tags, match_special2))
+                dept_loader.add_value('update_time', now_day())
+                dept_item = dept_loader.load_item()
                 yield dept_item
 
         # 医院别名信息
@@ -284,9 +328,9 @@ class AHospitalSpider(scrapy.Spider):
                 if alias_name:
                     for each_alias_name in alias_name.group(1).split('、'):
                         alias_loader = CommonLoader2(item=HospitalAliasItem(), response=response)
-                        alias_loader.add_xpath('hospital_name',
-                                               '//table[@class="nav"]/tr/td/strong/text()',
-                                               MapCompose(custom_remove_tags))
+                        alias_loader.add_value('hospital_name',
+                                               hospital_name,
+                                               MapCompose(custom_remove_tags, match_special2))
                         alias_loader.add_value('hospital_alias_name', each_alias_name)
                         alias_loader.add_value('update_time', now_day())
                         alias_item = alias_loader.load_item()

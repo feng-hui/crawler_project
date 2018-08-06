@@ -86,6 +86,8 @@ def match_special2(value):
         return value.split('（')[0].strip()
     elif '-' in value:
         return value.split('-')[0].strip()
+    elif '_' in value:
+        return value.split('_')[0].strip()
     elif ':' in value:
         return value.split(':')[-1].strip()
     elif '/' in value:
@@ -218,14 +220,14 @@ def get_hospital_alias(value):
         return alias_name
 
 
-def get_county(h_pro, h_city, hospital_name):
+def get_county(h_pro, h_city, hospital_address):
     """
     :param h_pro:province
     :param h_city:city
     :param hospital_name:hospital name
     :return:the county of address
     """
-    res = hospital_name.replace(h_pro, '').replace(h_city, '')
+    res = match_special(hospital_address).replace(h_pro, '').replace(h_city, '')
     if res:
         try:
             county = re.search(r'^((.*?)县)|^((.*?)区)|^((.*?)市)', res)

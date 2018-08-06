@@ -132,7 +132,7 @@ class HospitalInfoItem(scrapy.Item):
         #              "hospital_pro=values(hospital_pro),hospital_city=values(hospital_city)," \
         #              "hospital_phone=values(hospital_phone),update_time=values(update_time)"
         params = [
-            self.get('hospital_name'),
+            self.get('hospital_name', '暂无,出现异常'),
             self.get('consulting_hour'),
             self.get('hospital_level'),
             self.get('hospital_type'),
@@ -222,6 +222,13 @@ class HospitalInfoTestItem(scrapy.Item):
                      "hospital_district,registered_channel,dataSource_from,hospital_postcode,hospital_email," \
                      "hospital_website,hospital_fax,operation_mode,hospital_url,update_time) " \
                      "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        # insert_sql = "update hospital_info set hospital_name=%s,consulting_hour=%s,hospital_level=%s," \
+        #              "hospital_type=%s,hospital_category=%s,hospital_addr=%s,hospital_pro=%s,hospital_city=%s," \
+        #              "hospital_county=%s,hospital_phone=%s,hospital_intro=%s,is_medicare=%s," \
+        #              "medicare_type=%s,vaccine_name=%s,is_cpc=%s,is_bdc=%s,cooperative_business=%s," \
+        #              "hospital_district=%s,registered_channel=%s,dataSource_from=%s,hospital_postcode=%s," \
+        #              "hospital_email=%s,hospital_website=%s,hospital_fax=%s,operation_mode=%s,hospital_url=%s," \
+        #              "update_time=%s where hospital_url=%s"
         params = [
             self.get('hospital_name', '暂无,出现异常'),
             self.get('consulting_hour'),
@@ -249,7 +256,8 @@ class HospitalInfoTestItem(scrapy.Item):
             self.get('hospital_fax'),
             self.get('operation_mode'),
             self.get('hospital_url'),
-            self.get('update_time')
+            self.get('update_time'),
+            # self.get('hospital_url')
         ]
         return insert_sql, params
 
@@ -273,8 +281,8 @@ class HospitalDepItem(scrapy.Item):
         insert_sql = "insert into department_info(dept_name,hospital_name,dept_type,dept_info,update_time) " \
                      "values(%s,%s,%s,%s,%s) on duplicate key update update_time=values(update_time)"
         params = [
-            self.get('dept_name', '暂无'),
-            self.get('hospital_name'),
+            self.get('dept_name', '暂无,出现异常'),
+            self.get('hospital_name', '暂无,出现异常'),
             self.get('dept_type'),
             self.get('dept_info'),
             self.get('update_time')
@@ -310,8 +318,8 @@ class DoctorInfoItem(scrapy.Item):
                      "doctor_level,doctor_intro,doctor_goodAt,diagnosis_amt,update_time) " \
                      "values(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
         params = [
-            self.get('doctor_name', '暂无'),
-            self.get('dept_name', '暂无'),
+            self.get('doctor_name', '暂无,出现异常'),
+            self.get('dept_name', '暂无,出现异常'),
             self.get('hospital_name'),
             self.get('sex'),
             self.get('doctor_level'),
@@ -354,9 +362,9 @@ class DoctorRegInfoItem(scrapy.Item):
                      "values(%s,%s,%s,%s,%s) " \
                      "on duplicate key update update_time=values(update_time)"
         params = [
-            self.get('doctor_name', '暂无'),
-            self.get('hospital_name'),
-            self.get('dept_name', '暂无'),
+            self.get('doctor_name', '暂无,出现异常'),
+            self.get('hospital_name', '暂无,出现异常'),
+            self.get('dept_name', '暂无,出现异常'),
             self.get('reg_info'),
             self.get('update_time')
         ]
@@ -379,8 +387,8 @@ class HospitalAliasItem(scrapy.Item):
         insert_sql = "insert into hospital_alias(hospital_name,hospital_alisename,update_time) " \
                      "values(%s,%s,%s)"
         params = [
-            self.get('hospital_name'),
-            self.get('hospital_alias_name', '暂无'),
+            self.get('hospital_name', '暂无,出现异常'),
+            self.get('hospital_alias_name', '暂无,出现异常'),
             self.get('update_time')
         ]
         return insert_sql, params
