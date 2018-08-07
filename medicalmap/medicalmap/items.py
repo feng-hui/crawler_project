@@ -394,7 +394,7 @@ class HospitalAliasItem(scrapy.Item):
         return insert_sql, params
 
 
-class ComprehensiveRankingItem(scrapy.item):
+class ComprehensiveRankingItem(scrapy.Item):
     """
     中国医院科技应影响力排行
     综合排行item
@@ -408,8 +408,14 @@ class ComprehensiveRankingItem(scrapy.item):
     create_time           创建时间
     update_time           更新时间
     """
+    hospital_pro = scrapy.Field()
+    ranking = scrapy.Field()
     hospital_name = scrapy.Field()
-    hospital_alias_name = scrapy.Field()
+    tech_investment = scrapy.Field()
+    tech_output = scrapy.Field()
+    academic_influence = scrapy.Field()
+    total_score = scrapy.Field()
+    create_time = scrapy.Field()
     update_time = scrapy.Field()
 
     def get_sql_info(self):
@@ -430,7 +436,7 @@ class ComprehensiveRankingItem(scrapy.item):
         return insert_sql, params
 
 
-class SubjectRankingItem(scrapy.item):
+class SubjectRankingItem(scrapy.Item):
     """
     中国医院科技应影响力排行
     学科排行item
@@ -445,8 +451,19 @@ class SubjectRankingItem(scrapy.item):
     create_time           创建时间
     update_time           更新时间
     """
+    subject = scrapy.Field()
+    hospital_pro = scrapy.Field()
+    ranking = scrapy.Field()
+    hospital_name = scrapy.Field()
+    tech_investment = scrapy.Field()
+    tech_output = scrapy.Field()
+    academic_influence = scrapy.Field()
+    total_score = scrapy.Field()
+    create_time = scrapy.Field()
+    update_time = scrapy.Field()
+
     def get_sql_info(self):
-        insert_sql = "insert into comprehensive_ranking(subject,hospital_pro,ranking,hospital_name,tech_investment," \
+        insert_sql = "insert into subject_ranking(subject,hospital_pro,ranking,hospital_name,tech_investment," \
                      "tech_output,academic_influence,total_score,create_time,update_time) " \
                      "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
         params = [
@@ -464,7 +481,7 @@ class SubjectRankingItem(scrapy.item):
         return insert_sql, params
 
 
-class AreaRankingItem(scrapy.item):
+class AreaRankingItem(scrapy.Item):
     """
     中国医院科技应影响力排行
     地区排行item
@@ -475,8 +492,15 @@ class AreaRankingItem(scrapy.item):
     create_time         创建时间
     update_time         更新时间
     """
+    subject = scrapy.Field()
+    hospital_pro = scrapy.Field()
+    ranking = scrapy.Field()
+    hospital_name = scrapy.Field()
+    create_time = scrapy.Field()
+    update_time = scrapy.Field()
+
     def get_sql_info(self):
-        insert_sql = "insert into comprehensive_ranking(subject,hospital_pro,ranking,hospital_name," \
+        insert_sql = "insert into area_ranking(subject,hospital_pro,ranking,hospital_name," \
                      "create_time,update_time) values(%s,%s,%s,%s,%s,%s)"
         params = [
             self.get('subject', '暂无,出现异常'),

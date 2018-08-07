@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
+import json
 import random
 import scrapy
-from scrapy import signals
-from scrapy.http import Request
-from urllib.parse import urljoin
-from scrapy.loader.processors import MapCompose
-from medicalmap.utils.common import now_day, custom_remove_tags, match_special, get_county, match_special2
-from medicalmap.items import CommonLoader2, HospitalInfoTestItem, HospitalDepItem, HospitalAliasItem
+from scrapy.http import FormRequest, Request
+from medicalmap.items import CommonLoader2, ComprehensiveRankingItem, SubjectRankingItem, AreaRankingItem
+from medicalmap.utils.common import now_day
 
 
 class ImicamsSpider(scrapy.Spider):
@@ -49,17 +47,121 @@ class ImicamsSpider(scrapy.Spider):
     }
 
     def start_requests(self):
-        pass
+        # 综合排行
+        # data = {
+        #     'subject': '320',
+        #     'year': '2017',
+        #     'start': '1',
+        #     'end': '100'
+        # }
+        # yield FormRequest(self.js_link,
+        #                   headers=self.headers,
+        #                   callback=self.parse,
+        #                   dont_filter=True,
+        #                   formdata=data)
+        # 学科排行
+        yield Request(self.subject_entry,
+                      headers=self.headers,
+                      callback=self.parse_subject)
+        # 地区排行
+        # yield Request(self.area_entry,
+        #               headers=self.headers,
+        #               callback=self.parse_area)
 
     def parse(self, response):
         """综合排行"""
         self.logger.info('>>>>>>正在抓取综合排行信息……>>>>>>')
-
+        res = json.loads(response.text)
+        for each_data in res.get('rows', []):
+            loader = CommonLoader2(item=ComprehensiveRankingItem(), response=response)
+            loader.add_value('hospital_pro', each_data.get('PROVINCE'))
+            loader.add_value('ranking', each_data.get('RANK'))
+            loader.add_value('hospital_name', each_data.get('HOSPNAME'))
+            loader.add_value('tech_investment', each_data.get('INPUT'))
+            loader.add_value('tech_output', each_data.get('OUTPUT'))
+            loader.add_value('academic_influence', each_data.get('INFLUENCE'))
+            loader.add_value('total_score', each_data.get('SUM'))
+            loader.add_value('create_time', now_day())
+            loader.add_value('update_time', now_day())
+            ranking_item = loader.load_item()
+            yield ranking_item
 
     def parse_subject(self, response):
         """学科排行"""
         self.logger.info('>>>>>>正在抓取学科排行信息……>>>>>>')
+        all_subjects = response.xpath('//ul[@class="nav_left"]/li')
+        for each_subject in all_subjects:
+            subject_id = each_subject.xpath('a/@id').extract_first('')
+            subject_name = each_subject.xpath('a/text()').extract_first('')
+            if subject_id and subject_name:
+                data = {
+                    'subject': subject_id.split('_')[-1],
+                    'year': '2017',
+                    'start': '1',
+                    'end': '100'
+                }
+                self.headers['Referer'] = self.subject_entry
+                yield FormRequest(self.js_link,
+                                  headers=self.headers,
+                                  callback=self.parse_subject_detail,
+                                  dont_filter=True,
+                                  formdata=data,
+                                  meta={'subject_name': subject_name})
+
+    def parse_subject_detail(self, response):
+        """学科排行详细信息"""
+        self.logger.info('>>>>>>正在抓取学科排行详细信息……>>>>>>')
+        subject_name = response.meta.get('subject_name')
+        res = json.loads(response.text)
+        for each_data in res.get('rows', []):
+            loader = CommonLoader2(item=SubjectRankingItem(), response=response)
+            loader.add_value('subject', subject_name)
+            loader.add_value('hospital_pro', each_data.get('PROVINCE'))
+            loader.add_value('ranking', each_data.get('RANK'))
+            loader.add_value('hospital_name', each_data.get('HOSPNAME'))
+            loader.add_value('tech_investment', each_data.get('INPUT'))
+            loader.add_value('tech_output', each_data.get('OUTPUT'))
+            loader.add_value('academic_influence', each_data.get('INFLUENCE'))
+            loader.add_value('total_score', each_data.get('SUM'))
+            loader.add_value('create_time', now_day())
+            loader.add_value('update_time', now_day())
+            ranking_item = loader.load_item()
+            yield ranking_item
 
     def parse_area(self, response):
         """地区排行"""
         self.logger.info('>>>>>>正在抓取地区排行信息……>>>>>>')
+        all_subjects = response.xpath('//ul[@class="nav_left"]/li')
+        for each_subject in all_subjects:
+            subject_id = each_subject.xpath('a/@id').extract_first('')
+            subject_name = each_subject.xpath('a/text()').extract_first('')
+            if subject_id and subject_name:
+                data = {
+                    'province_id': subject_id.split('_')[-1],
+                    'year': '2017',
+                    'start': '1',
+                    'end': '100'
+                }
+                self.headers['Referer'] = self.area_entry
+                yield FormRequest(self.js_link2,
+                                  headers=self.headers,
+                                  callback=self.parse_area_detail,
+                                  dont_filter=True,
+                                  formdata=data,
+                                  meta={'subject_name': subject_name})
+
+    def parse_area_detail(self, response):
+        """地区排行详细信息"""
+        self.logger.info('>>>>>>正在抓取地区排行详细信息……>>>>>>')
+        subject_name = response.meta.get('subject_name')
+        res = json.loads(response.text)
+        for each_data in res.get('rows', []):
+            loader = CommonLoader2(item=AreaRankingItem(), response=response)
+            loader.add_value('subject', each_data.get('GB_NAME'))
+            loader.add_value('hospital_pro', subject_name)
+            loader.add_value('ranking', each_data.get('SHOW_RANK'))
+            loader.add_value('hospital_name', each_data.get('HOSPNAME'))
+            loader.add_value('create_time', now_day())
+            loader.add_value('update_time', now_day())
+            ranking_item = loader.load_item()
+            yield ranking_item
