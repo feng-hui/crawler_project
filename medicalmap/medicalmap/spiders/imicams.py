@@ -2,12 +2,15 @@
 import json
 import random
 import scrapy
+from medicalmap.utils.common import now_day
 from scrapy.http import FormRequest, Request
 from medicalmap.items import CommonLoader2, ComprehensiveRankingItem, SubjectRankingItem, AreaRankingItem
-from medicalmap.utils.common import now_day
 
 
 class ImicamsSpider(scrapy.Spider):
+    """
+    中国医院科技影响力排行
+    """
     name = 'imicams'
     allowed_domains = ['imicams.ac.cn']
     start_urls = ['http://top100.imicams.ac.cn/home']
@@ -48,25 +51,25 @@ class ImicamsSpider(scrapy.Spider):
 
     def start_requests(self):
         # 综合排行
-        # data = {
-        #     'subject': '320',
-        #     'year': '2017',
-        #     'start': '1',
-        #     'end': '100'
-        # }
-        # yield FormRequest(self.js_link,
-        #                   headers=self.headers,
-        #                   callback=self.parse,
-        #                   dont_filter=True,
-        #                   formdata=data)
+        data = {
+            'subject': '320',
+            'year': '2017',
+            'start': '1',
+            'end': '100'
+        }
+        yield FormRequest(self.js_link,
+                          headers=self.headers,
+                          callback=self.parse,
+                          dont_filter=True,
+                          formdata=data)
         # 学科排行
         yield Request(self.subject_entry,
                       headers=self.headers,
                       callback=self.parse_subject)
         # 地区排行
-        # yield Request(self.area_entry,
-        #               headers=self.headers,
-        #               callback=self.parse_area)
+        yield Request(self.area_entry,
+                      headers=self.headers,
+                      callback=self.parse_area)
 
     def parse(self, response):
         """综合排行"""
