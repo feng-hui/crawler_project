@@ -51,7 +51,7 @@ def clean_info(value):
     只适用于成都市青白江区中医医院:|川化病区内科查房指导|门诊坐诊、内科查房指导|科室介绍|暂无内容
 
     """
-    return re.sub(r'[：|:]', '', value).strip()
+    return re.sub(r'[：:()]', '', value).strip()
 
 
 def match_special(value):
@@ -248,3 +248,4 @@ if __name__ == "__main__":
     # print(get_reg_info('门诊时间：星期二:下午,星期三:上午、下午、晚班'))
     # print(get_hospital_alias('中日友好医院（卫生部中日友好医院）'))
     print(get_county('四川省', '成都市', '四川省成都市晋江县锦江区红星路四段14号'))
+    print(clean_info('08/17(上午)'))
