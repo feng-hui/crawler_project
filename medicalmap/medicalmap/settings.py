@@ -104,8 +104,8 @@ COOKIES_ENABLED = False
 # MYSQL SETTINGS TEST SERVER
 MYSQL_HOST = '192.168.99.19'
 MYSQL_PORT = 3306
-# MYSQL_DB = 'medical_map_update'
-MYSQL_DB = 'test'
+MYSQL_DB = 'medical_map_update'
+# MYSQL_DB = 'test'
 MYSQL_USER = 'medicalmap1'
 MYSQL_PASSWORD = 'medicalmap#1'
 
