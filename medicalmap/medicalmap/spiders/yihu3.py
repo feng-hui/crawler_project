@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 import re
 import scrapy
-from scrapy.http import Request
 from urllib.parse import urljoin
 from scrapy_splash import SplashRequest
 from scrapy.loader.processors import MapCompose
 from medicalmap.items import DoctorRegInfoItem, YiHuLoader
 from medicalmap.utils.common import custom_remove_tags, clean_info, now_day, now_year
-
 
 
 class Yihu3Spider(scrapy.Spider):
