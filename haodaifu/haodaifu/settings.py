@@ -28,7 +28,7 @@ CONCURRENT_REQUESTS = 5
 # Configure a delay for requests for the same website (default: 0)
 # See https://doc.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = 1
+# DOWNLOAD_DELAY = 1
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 # CONCURRENT_REQUESTS_PER_IP = 16
@@ -64,13 +64,6 @@ DEFAULT_REQUEST_HEADERS = {
   'Accept-Language': 'zh-CN,zh;q=0.9',
   'Cache-Control': 'max-age=0',
   'Connection': 'keep-alive',
-  # # 'Cookie': 'UM_distinctid=163d8b46522747-0bf5d39359a47f-3b7c015b-1fa400-163d8b465238b7; '
-  # #           '_ga=GA1.2.891515944.1528349091; __jsluid=025c545fb6cf5d2525c351b41a19977a; '
-  # #           'g=10372_1528766584297; g=HDF.80.5b1f22f557fae; newaskindex=1; _gid=GA1.2.1455971849.1529243009; '
-  # #           'Hm_lvt_dfa5478034171cc641b1639b2a5b717d=1529053882,1529243009,1529306617,1529370062; '
-  # #           'Hm_lpvt_dfa5478034171cc641b1639b2a5b717d=1529371327',
-  # 'Host': 'so.haodf.com',
-  # # 'If-None-Match': 'W/"8317-+1LXM+c0y2oiLgsM9hh3Hw"',
   'Referer': 'https://www.haodf.com/',
   'Upgrade-Insecure-Requests': '1',
   'User-Agent': random.choice(USER_AGENT_LIST)
@@ -84,9 +77,9 @@ DEFAULT_REQUEST_HEADERS = {
 
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
-# DOWNLOADER_MIDDLEWARES = {
-#    'haodaifu.middlewares.ProxyMiddleWare': 543,
-# }
+DOWNLOADER_MIDDLEWARES = {
+   'haodaifu.middlewares.ProxyMiddleWare': 543,
+}
 
 # Enable or disable extensions
 # See https://doc.scrapy.org/en/latest/topics/extensions.html
@@ -97,7 +90,7 @@ DEFAULT_REQUEST_HEADERS = {
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'haodaifu.pipelines.HaodaifuPipeline': 300,
+   'haodaifu.pipelines.MysqlPipeline': 300,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -135,3 +128,13 @@ DUPEFILTER_DEBUG = True
 
 # HTTPERROR_ALLOWED_CODES
 # HTTPERROR_ALLOWED_CODES = [403]
+
+# MYSQL SETTINGS TEST SERVER
+MYSQL_HOST = '192.168.99.19'
+MYSQL_PORT = 3306
+MYSQL_DB = 'test'
+MYSQL_USER = 'medicalmap1'
+MYSQL_PASSWORD = 'medicalmap#1'
+
+# forbidden redirect
+# REDIRECT_ENABLED = False

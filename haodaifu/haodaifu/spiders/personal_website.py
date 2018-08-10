@@ -1,95 +1,107 @@
 # -*- coding: utf-8 -*-
 import scrapy
-import datetime
+from scrapy import signals
 from scrapy.http import Request
 from urllib.parse import urljoin
-from haodaifu.items import DoctorArticleItem, DoctorArticleItemLoader
-from haodaifu.utils.common import get_host, get_host3
-from haodaifu.utils.search_keywords import all_personal_websites
 from scrapy.exceptions import IgnoreRequest
-from scrapy import signals
+from scrapy.loader.processors import MapCompose
+from haodaifu.utils.search_keywords import all_personal_websites
+from haodaifu.items import HdfPersonalWebsiteItem, DoctorArticleItemLoader
+from haodaifu.utils.common import get_host3, now_day, clean_info, clean_info2
 
 
 class PersonalWebsiteSpider(scrapy.Spider):
     """
-    抓取好大夫医生个人网站发布的全部文章
+    抓取好大夫医生个人网站相关信息
     URL参考:https://tianjiangbo.haodf.com/
     """
     name = 'personal_website'
     allowed_domains = ['haodf.com']
     start_urls = []
     ignored_urls = []
-    custom_settings = {}
+    custom_settings = {
+        # 延迟设置
+        # 'DOWNLOAD_DELAY': 1,
+        # 自动限速设置
+        'AUTOTHROTTLE_ENABLED': True,
+        'AUTOTHROTTLE_START_DELAY': 1,
+        'AUTOTHROTTLE_MAX_DELAY': 5,
+        'AUTOTHROTTLE_TARGET_CONCURRENCY': 16.0,
+        'AUTOTHROTTLE_DEBUG': True,
+        # 并发请求数的控制,默认为16
+        'CONCURRENT_REQUESTS': 100
+    }
     headers = {}
 
     def start_requests(self):
         for each_kw in all_personal_websites:
-            personal_website = urljoin('https://', each_kw['doctor_url'])
+            personal_website = '{0}{1}{2}'.format('https://', each_kw['hdf_id'], '.haodf.com')
             self.start_urls.append(personal_website)
         for each_url in self.start_urls:
-            self.headers['Referer'] = each_url
+            self.headers['Referer'] = urljoin(each_url, 'lanmu')
             self.headers['Host'] = get_host3(each_url)
-            request = Request(urljoin(each_url, 'lanmu'),
+            request = Request(each_url,
                               headers=self.headers,
                               callback=self.parse,
-                              errback=self.err_collector)
-            # request.meta['host'] = get_host3(each_url)
-            # request.meta['Referer'] = each_url
+                              errback=self.err_collector,
+                              dont_filter=True)
             yield request
 
     def parse(self, response):
         """
-        文章栏目页，涉及翻页，需要的数据包括文章标题、文章链接
+        获取好大夫网站上医生相关信息
         """
-        # self.logger.info(response.request.headers)
-        self.logger.info('正在抓取的文章栏目页的url是{}:'.format(response.url))
-        doctor_hos = response.xpath('//div[@class="fl pr"]/p/a[1]/text()').extract_first('')
-        doctor_dep = response.xpath('//div[@class="fl pr"]/p/a[2]/text()').extract_first('')
-        all_article_links = response.xpath('//a[@class="art_t"]')
-        if all_article_links:
-            for each_article in all_article_links:
-                # 发过文章
-                article_loader = DoctorArticleItemLoader(item=DoctorArticleItem(), selector=each_article)
-                article_loader.add_value('doctor_hid', get_host(response.url))
-                article_loader.add_xpath('article_url', '@href')
-                article_loader.add_xpath('article_title', '@title')
-                article_loader.add_value('personal_website', urljoin('https://', get_host3(response.url)))
-                article_loader.add_value('doctor_hos', doctor_hos)
-                article_loader.add_value('doctor_dep', doctor_dep)
-                article_loader.add_value('crawl_time', datetime.datetime.now())
-                article_item = article_loader.load_item()
-                yield article_item
-        else:
-            # 未发过文章
-            article_loader = DoctorArticleItemLoader(item=DoctorArticleItem(), response=response)
-            article_loader.add_value('doctor_hid', get_host(response.url))
-            article_loader.add_value('article_url', '')
-            article_loader.add_value('article_title', '')
-            article_loader.add_value('personal_website', urljoin('https://', get_host3(response.url)))
-            article_loader.add_value('doctor_hos', doctor_hos)
-            article_loader.add_value('doctor_dep', doctor_dep)
-            article_loader.add_value('crawl_time', datetime.datetime.now())
-            article_item = article_loader.load_item()
-            yield article_item
-        next_page = response.xpath('//div[@class="page_turn"]/a[contains(text(), "下一页")]/@href').extract_first()
-        if next_page:
-            next_page_link = urljoin(response.url, next_page)
-            request = Request(next_page_link,
-                              callback=self.parse,
-                              errback=self.err_collector)
-            request.meta['host'] = get_host3(response.url)
-            request.meta['Referer'] = response.url
-            yield request
+        try:
+            self.logger.info('正在抓取的医生个人主页的url是{}:'.format(response.url))
+            status_code = response.status
+            if status_code == 200:
+                doctor_name = response.xpath('//a[@class="space_b_link_url"]/'
+                                             'text()').extract_first('').replace('大夫的个人网站', '')
+                doctor_level = response.xpath('//h3[@class="doc_name f22 fl"]/'
+                                              'text()').extract_first('').replace(doctor_name, '')
+                doctor_level2 = clean_info(doctor_level)
+                doctor_level = doctor_level2 if doctor_level2 else doctor_level
+                loader = DoctorArticleItemLoader(item=HdfPersonalWebsiteItem(), response=response)
+                loader.add_value('doctor_hid', get_host3(response.url).split('.')[0])
+                loader.add_value('personal_website', response.url)
+                loader.add_xpath('doctor_hos', '//div[@class="fl pr"]/p/a[1]/text()')
+                loader.add_xpath('doctor_dep', '//div[@class="fl pr"]/p/a[2]/text()')
+                loader.add_value('doctor_level', doctor_level, MapCompose(clean_info2))
+                loader.add_value('crawl_time', now_day())
+                loader.add_value('update_time', now_day())
+                item = loader.load_item()
+                yield item
+            elif status_code == 301:
+                location_url = response.url.headers.get('location')
+                self.logger.info('该医生页面发生跳转,跳转后的url为:{}'.format(location_url))
+                loader = DoctorArticleItemLoader(item=HdfPersonalWebsiteItem(), response=response)
+                loader.add_value('doctor_hid', get_host3(response.url).split('.')[0])
+                loader.add_value('personal_website', response.url)
+                # loader.add_xpath('doctor_hos', '//div[@class="fl pr"]/p/a[1]/text()')
+                # loader.add_xpath('doctor_dep', '//div[@class="fl pr"]/p/a[2]/text()')
+                # loader.add_value('doctor_level', doctor_level, MapCompose(clean_info2))
+                loader.add_value('crawl_time', now_day())
+                loader.add_value('update_time', now_day())
+                loader.add_value('location_url', location_url)
+                item = loader.load_item()
+                yield item
+            else:
+                pass
+        except Exception as e:
+            self.logger.error('>>>>>>在抓取医生个人主页过程中出错了,原因是：{}'.format(repr(e)))
 
     def err_collector(self, failure):
         """错误收集"""
         self.logger.error('发生错误的原因是:{}'.format(repr(failure)))
-        if failure.check(IgnoreRequest):
-            self.logger.info('错误的类型为:IgnoreRequest')
-            response = failure.value.response
-            failure_url = response.url
-            self.ignored_urls.append(failure_url)
-            self.crawler.signals.connect(self.deal_error, signals.spider_closed)
+        try:
+            if failure.check(IgnoreRequest):
+                self.logger.info('错误的类型为:IgnoreRequest')
+                response = failure.value.response
+                failure_url = response.url
+                self.ignored_urls.append(failure_url)
+                self.crawler.signals.connect(self.deal_error, signals.spider_closed)
+        except Exception as e:
+            self.logger.error('收集错误的过程发生错误,原因是:{}'.format(repr(e)))
 
     def deal_error(self):
         """

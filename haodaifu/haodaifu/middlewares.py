@@ -4,9 +4,9 @@
 #
 # See documentation in:
 # https://doc.scrapy.org/en/latest/topics/spider-middleware.html
-
-from scrapy import signals
 import base64
+from scrapy import signals
+from scrapy.downloadermiddlewares.redirect import RedirectMiddleware
 
 
 class HaodaifuSpiderMiddleware(object):
@@ -111,8 +111,8 @@ class ProxyMiddleWare(object):
     proxyServer = "http://http-dyn.abuyun.com:9020"
 
     # 代理隧道验证信息
-    proxyUser = "H8E6V4062B8T359D"
-    proxyPass = "6DE439C10584D932"
+    proxyUser = "HS40D55J56U3F5GD"
+    proxyPass = "9D535863B04C70E0"
 
     proxyAuth = "Basic " + base64.urlsafe_b64encode(bytes((proxyUser + ":" + proxyPass), "ascii")).decode("utf8")
 

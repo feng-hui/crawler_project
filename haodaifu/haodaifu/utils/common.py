@@ -4,6 +4,7 @@
 # @author : Feng_Hui
 # @email  : capricorn1203@126.com
 import re
+import datetime
 from urllib.parse import urlparse
 
 
@@ -41,6 +42,19 @@ def get_host3(value):
     return res.netloc
 
 
-# if __name__ == "__main__":
-#     host = get_host3('https://zgq0114.haodf.com/')
-#     print(host)
+def now_day():
+    return datetime.datetime.now().strftime('%Y-%m-%d')
+
+
+def clean_info(value):
+    return ''.join(re.findall(r'\S', value.strip().split(' ')[0]))
+
+
+def clean_info2(value):
+    return ''.join(re.findall(r'\S', value))
+
+
+if __name__ == "__main__":
+    host = get_host3('https://zgq0114.haodf.com/')
+    print(host)
+    print(now_day())

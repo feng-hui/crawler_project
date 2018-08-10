@@ -47,3 +47,34 @@ class DoctorArticleItem(scrapy.Item):
 
 class DoctorArticleItemLoader(ItemLoader):
     default_output_processor = TakeFirst()
+
+
+class HdfPersonalWebsiteItem(scrapy.Item):
+    """
+    好大夫第二批外呼数据,20180810
+    需要数据包括科室,医生职称,科室
+    """
+    doctor_id = scrapy.Field()
+    doctor_hid = scrapy.Field()
+    personal_website = scrapy.Field()
+    doctor_hos = scrapy.Field()
+    doctor_dep = scrapy.Field()
+    doctor_level = scrapy.Field()
+    location_url = scrapy.Field()
+    crawl_time = scrapy.Field()
+    update_time = scrapy.Field()
+
+    def get_sql_info(self):
+        insert_sql = "insert into haodf_data(doctor_hid,personal_website,doctor_hos,doctor_dep," \
+                     "doctor_level,location_url,crawl_time,update_time) values(%s,%s,%s,%s,%s,%s,%s,%s)"
+        params = [
+            self.get('doctor_hid'),
+            self.get('personal_website'),
+            self.get('doctor_hos'),
+            self.get('doctor_dep'),
+            self.get('doctor_level'),
+            self.get('location_url'),
+            self.get('crawl_time'),
+            self.get('update_time')
+        ]
+        return insert_sql, params
