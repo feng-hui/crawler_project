@@ -243,6 +243,18 @@ def get_county(h_pro, h_city, hospital_address):
         return None
 
 
+def get_city(value):
+    value = re.sub(r'中国|湖南省|湖南', '', value)
+    if value:
+        res = re.search(r'^((.*?)市)', value)
+        if res:
+            return res.group(0)
+        else:
+            return None
+    else:
+        return None
+
+
 if __name__ == "__main__":
     # print(remove_number('701'))
     # print(now_year(), type(now_year()))
@@ -251,3 +263,4 @@ if __name__ == "__main__":
     # print(get_hospital_alias('中日友好医院（卫生部中日友好医院）'))
     print(get_county('四川省', '成都市', '四川省成都市晋江县锦江区红星路四段14号'))
     print(clean_info('08/17(上午)'))
+    print(get_city('衡阳市珠晖区湖北路36号（火车站斜对面）'))

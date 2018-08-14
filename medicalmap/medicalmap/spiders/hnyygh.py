@@ -6,7 +6,7 @@ from scrapy.http import Request, FormRequest
 from urllib.parse import urljoin, quote
 from w3lib.html import remove_tags
 from scrapy.loader.processors import MapCompose
-from medicalmap.utils.common import now_day, custom_remove_tags, match_special, clean_info
+from medicalmap.utils.common import now_day, custom_remove_tags, match_special, clean_info, get_city
 from medicalmap.items import CommonLoader2, HospitalInfoItem, HospitalDepItem, DoctorInfoItem, DoctorRegInfoItem
 from scrapy_splash.request import SplashRequest, SplashFormRequest
 
@@ -52,94 +52,121 @@ class HnyyghSpider(scrapy.Spider):
     host = 'http://www.hnyygh.com/'
     data_source_from = '湖南省统一预约挂号服务平台'
     hospital_post_url = 'http://www.hnyygh.com/searchDeptmentAction.action'
+    dept_script = """
+    function main(splash, args)
+      local ok, reason = splash:go{args.url, http_method="POST", formdata=args.data}
+      if ok then
+            return splash:html()
+      end
+    end
+    """
 
     def start_requests(self):
-        script = """
-        function main(splash)
-            local url = splash.args.url
-            assert(splash:go(url))
-            assert(splash:wait(1))
-
-            -- go back 1 month in time and wait a little (1 second)
-            assert(splash:runjs("$('#sbz ul > li > a').click()"))
-            assert(splash:wait(1))
-
-            -- return result as a JSON object
-            return {
-                html = splash:html(),
-                -- we don't need screenshot or network activity
-                --png = splash:png(),
-                --har = splash:har(),
-            }
-        end
-        """
+        # script = """
+        # function main(splash)
+        #     local url = splash.args.url
+        #     assert(splash:go(url))
+        #     assert(splash:wait(1))
+        #
+        #     -- go back 1 month in time and wait a little (1 second)
+        #     assert(splash:runjs("$('#sbz ul > li:nth-child(2) > a').click()"))
+        #     assert(splash:wait(1))
+        #
+        #     -- return result as a JSON object
+        #     return {
+        #         html = splash:html(),
+        #         -- we don't need screenshot or network activity
+        #         --png = splash:png(),
+        #         --har = splash:har(),
+        #     }
+        # end
+        # """
+        # for each_url in self.start_urls:
+        #     yield SplashRequest(each_url, callback=self.parse, splash_headers=self.headers, meta={
+        #         'splash': {
+        #             'args': {'lua_source': script},
+        #             'endpoint': 'execute'
+        #         }
+        #     })
         for each_url in self.start_urls:
-            yield SplashRequest(each_url, callback=self.parse, splash_headers=self.headers, meta={
-                'splash': {
-                    'args': {'lua_source': script},
-                    'endpoint': 'execute'
-                }
-            })
-
-    # def parse(self, response):
-    #     """获取医院信息"""
-    #     all_hospital_links = response.xpath('//div[@id="fl_yiyuan_nr"]/div/ul/li/a['
-    #                                         'not(contains(text(),"升级中")) and not(contains(text(),"建设中"))]')
-    #     for each_hospital_link in all_hospital_links:
-    #         # hospital_name = each_link.xpath('text()').extract_first('')
-    #         data_info = each_hospital_link.xpath('@onclick').extract_first('')
-    #         if data_info:
-    #             data_info = ''.join(re.findall(r'\S+', data_info))
-    #             is_sp_time = re.search(r'isSpTime:\'(.*?)\'', data_info)
-    #             plat_form_hos_id = re.search(r'.*platformHosId:\'(.*?)\'', data_info, S)
-    #             pay_mode = re.search(r'paymode:\'(.*?)\'', data_info, S)
-    #             org_name = re.search(r'orgname:\'(.*?)\'', data_info, S)
-    #             if is_sp_time and plat_form_hos_id and pay_mode and org_name:
-    #                 is_sp_time = is_sp_time.group(1)
-    #                 plat_form_hos_id = plat_form_hos_id.group(1)
-    #                 pay_mode = quote(pay_mode.group(1))
-    #                 org_name = quote(org_name.group(1))
-    #                 data = {
-    #                     'isSpTime': is_sp_time,
-    #                     'platformHosId': plat_form_hos_id,
-    #                     'paymode': pay_mode,
-    #                     'orgname': org_name
-    #                 }
-    #                 self.headers.update({
-    #                     'Content-Type': 'application/x-www-form-urlencoded',
-    #                     'Origin': 'http://www.hnyygh.com',
-    #                     'Referer': 'http://www.hnyygh.com/'
-    #                 })
-    #                 yield SplashFormRequest(self.hospital_post_url,
-    #                                         formdata=data,
-    #                                         splash_headers=self.headers,
-    #                                         callback=self.parse_hospital_info,
-    #                                         dont_filter=True,
-    #                                         method="POST")
+            yield SplashRequest(each_url, callback=self.parse, splash_headers=self.headers)
 
     def parse(self, response):
-        self.logger.info('>>>>>>正在抓取{}:医院信息>>>>>>')
-        loader = CommonLoader2(item=HospitalInfoItem(), response=response)
-        loader.add_xpath('hospital_name', '//div[@class="jieshao_zi"]/p/font/text()')
-        loader.add_value('consulting_hour', '')
-        loader.add_xpath('hospital_level', '//div[@class="jieshao_zi"]/p[2]/text()', MapCompose(custom_remove_tags))
-        loader.add_value('hospital_type', '公立')
-        loader.add_value('hospital_category', '中医医院')
-        loader.add_value('hospital_addr', '四川省彭州市天彭镇南大街396号')
-        loader.add_value('hospital_pro', '四川省')
-        loader.add_value('hospital_city', '彭州市')
-        loader.add_value('hospital_county', '')
-        loader.add_value('hospital_phone', '028-83701908')
-        loader.add_xpath('hospital_intro',
-                         '//div[@id="about-right-b"]',
-                         MapCompose(remove_tags, custom_remove_tags, clean_info))
-        # loader.add_value('is_medicare', '是')
-        # loader.add_value('medicare_type', '成都市医保、工伤保险定点医院')
-        loader.add_value('registered_channel', '官网')
-        loader.add_value('dataSource_from', self.data_source_from)
-        loader.add_value('update_time', now_day())
-        hospital_info_item = loader.load_item()
-        yield hospital_info_item
+        """获取医院信息"""
+        all_hospital_links = response.xpath('//div[@id="fl_yiyuan_nr"]/div/ul/li/a['
+                                            'not(contains(text(),"升级中")) and not(contains(text(),"建设中"))]')
+        try:
+            for each_hospital_link in all_hospital_links[0:1]:
+                # hospital_name = each_link.xpath('text()').extract_first('')
+                data_info = each_hospital_link.xpath('@onclick').extract_first('')
+                if data_info:
+                    data_info = ''.join(re.findall(r'\S+', data_info))
+                    is_sp_time = re.search(r'isSpTime:\'(.*?)\'', data_info)
+                    plat_form_hos_id = re.search(r'.*platformHosId:\'(.*?)\'', data_info, S)
+                    pay_mode = re.search(r'paymode:\'(.*?)\'', data_info, S)
+                    org_name = re.search(r'orgname:\'(.*?)\'', data_info, S)
+                    if is_sp_time and plat_form_hos_id and pay_mode and org_name:
+                        is_sp_time = is_sp_time.group(1)
+                        plat_form_hos_id = plat_form_hos_id.group(1)
+                        pay_mode = quote(pay_mode.group(1))
+                        org_name = quote(org_name.group(1))
+                        data = {
+                            'isSpTime': is_sp_time,
+                            'platformHosId': plat_form_hos_id,
+                            'paymode': pay_mode,
+                            'orgname': org_name
+                        }
+                        self.headers.update({
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'Origin': 'http://www.hnyygh.com',
+                            'Referer': 'http://www.hnyygh.com/'
+                        })
+                        # yield SplashFormRequest(self.hospital_post_url,
+                        #                         formdata=data,
+                        #                         splash_headers=self.headers,
+                        #                         callback=self.parse_hospital_info,
+                        #                         dont_filter=True,
+                        #                         method="POST")
+                        splash_args = {
+                            'wait': 10,
+                            'http_method': 'POST',
+                            # 'headers': self.headers,
+                            'lua_source': self.dept_script,
+                            'data': data
+                        }
+                        yield SplashRequest(self.hospital_post_url,
+                                            endpoint='execute',
+                                            args=splash_args,
+                                            dont_filter=True,
+                                            callback=self.parse_hospital_info)
+        except Exception as e:
+            self.logger.error(repr(e))
+
+    # def parse(self, response):
+    #     self.logger.info('>>>>>>正在抓取{}:医院信息>>>>>>')
+    #     loader = CommonLoader2(item=HospitalInfoItem(), response=response)
+    #     loader.add_xpath('hospital_name', '//div[@class="jieshao_zi"]/p/font/text()')
+    #     loader.add_value('consulting_hour', '')
+    #     loader.add_xpath('hospital_level', '//div[@class="jieshao_zi"]/p[2]/text()', MapCompose(custom_remove_tags))
+    #     loader.add_value('hospital_type', '公立')
+    #     loader.add_value('hospital_category', '')
+    #     loader.add_xpath('hospital_addr', '//div[@class="jieshao_zi"]/p[4]/text()', MapCompose(custom_remove_tags))
+    #     loader.add_value('hospital_pro', '湖南省')
+    #     loader.add_xpath('hospital_city',
+    #                      '//div[@class="jieshao_zi"]/p[4]/text()',
+    #                      MapCompose(custom_remove_tags, get_city))
+    #     loader.add_value('hospital_county', '')
+    #     loader.add_xpath('hospital_phone', '//div[@class="jieshao_zi"]/p[3]/text()', MapCompose(custom_remove_tags))
+    #     loader.add_xpath('hospital_intro',
+    #                      '//div[@id="starlist"]',
+    #                      MapCompose(remove_tags, custom_remove_tags, clean_info))
+    #     # loader.add_value('is_medicare', '是')
+    #     # loader.add_value('medicare_type', '成都市医保、工伤保险定点医院')
+    #     # loader.add_value('registered_channel', '')
+    #     loader.add_value('dataSource_from', self.data_source_from)
+    #     loader.add_value('update_time', now_day())
+    #     hospital_info_item = loader.load_item()
+    #     yield hospital_info_item
 
     def parse_hospital_info(self, response):
         self.logger.info('>>>>>>正在抓取{}:医院信息>>>>>>')
