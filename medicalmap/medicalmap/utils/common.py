@@ -243,6 +243,27 @@ def get_county(h_pro, h_city, hospital_address):
         return None
 
 
+def get_county2(h_city, hospital_address):
+    """
+    :param h_city: the name of the city
+    :param hospital_address: the address og hospital
+    :return: hospital county
+    """
+    res = re.sub(r'中国|湖南省|湖南', '', hospital_address)
+    if res:
+        try:
+            county = re.search(r'^((.*?)县)|^((.*?)区)', res.replace(h_city, ''))
+            if county:
+                return county.group(0)
+            else:
+                return None
+        except Exception as e:
+            print('获取三级地址的时候出错了,原因是:{}'.format(repr(e)))
+            return None
+    else:
+        return None
+
+
 def get_city(value):
     value = re.sub(r'中国|湖南省|湖南', '', value)
     if value:
