@@ -249,10 +249,11 @@ def get_county2(h_city, hospital_address):
     :param hospital_address: the address og hospital
     :return: hospital county
     """
-    res = re.sub(r'中国|湖南省|湖南', '', hospital_address)
+    # res = re.sub(r'中国|湖南省|湖南', '', hospital_address)
+    res = re.sub(r'中国|江苏省|江苏|南京市|南京', '', hospital_address)
     if res:
         try:
-            county = re.search(r'^((.*?)县)|^((.*?)区)', res.replace(h_city, ''))
+            county = re.search(r'^((.*?)县)|^((.*?)区)', res)
             if county:
                 return county.group(0)
             else:
