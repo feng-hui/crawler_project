@@ -92,6 +92,10 @@ def match_special2(value):
         return value.split(':')[-1].strip()
     elif '/' in value:
         return value.split('/')[0].strip()
+    elif '、' in value:
+        return value.split('、')[0].strip()
+    elif '，' in value:
+        return value.split('，')[0].strip()
     else:
         return value
 
