@@ -52,29 +52,35 @@ class HnyyghSpider(scrapy.Spider):
     data_source_from = '湖南省统一预约挂号服务平台'
     hospital_post_url = 'http://www.hnyygh.com/searchDeptmentAction.action'
     dept_detail_url = 'http://www.hnyygh.com/searchOrderNumInfoAction.action'
+    doctor_url = 'http://www.hnyygh.com/ajaxSearchOrderNumInfoAction.action'
     doctor_detail_url = 'http://www.hnyygh.com/forwardDocInfo.action'
 
     # lua script
     dept_script = """
     function main(splash, args)
       splash.js_enabled = true
-      local ok, reason = splash:go{args.url, http_method="POST", formdata=args.data, headers=args.headers}
-      splash:wait(5)
+      local ok, reason = splash:go{args.url, http_method="POST", formdata=args.data}
       if ok then
+            splash:wait(5)
             return {html=splash:html()}
       end
     end
     """
 
     dept_script2 = """
-        function main(splash, args)
-          local ok, reason = splash:go{args.url, http_method="POST", formdata=args.data, headers=args.headers}
-          splash:wait(5)
-          if ok then
-                return {html=splash:html()}
-          end
-        end
-        """
+    function main(splash, args)
+      local ok, reason = splash:go{args.url, http_method="POST", formdata=args.data, headers=args.headers}
+      splash:jsfunc([[
+          var body = document.body
+          body.getElementsByClassName('.schedule_xuanze[platformHosId]').attr('platformHosId','14')
+          body.getElementsByClassName('.schedule_xuanze[platformDeptId]').attr('platformDeptId','132773')
+      ]])
+      splash:wait(5)
+      if ok then
+            return {html=splash:html()}
+      end
+    end
+    """
 
     def start_requests(self):
         for each_url in self.start_urls:
@@ -112,12 +118,13 @@ class HnyyghSpider(scrapy.Spider):
                         })
                         splash_args = {
                             'url': self.hospital_post_url,
-                            'headers': self.headers,
+                            # 'headers': self.headers,
                             'lua_source': self.dept_script,
                             'data': data
                         }
                         yield SplashRequest(self.hospital_post_url,
                                             endpoint='execute',
+                                            headers=self.headers,
                                             args=splash_args,
                                             dont_filter=True,
                                             callback=self.parse_hospital_info)
@@ -180,33 +187,61 @@ class HnyyghSpider(scrapy.Spider):
                             dept_name = dept_name.group(1)
                             org_name = org_name.group(1)
                             data = {
-                                'isSpTime': is_sp_time,
+                                'isSpTime': str(is_sp_time),
                                 'paymode': quote(pay_mode),
                                 'doctorCollectResult': '',
-                                'platformDeptId': dept_id,
+                                'platformDeptId': str(dept_id),
                                 'orgname': quote(org_name),
                                 'tempDeptName': quote(dept_name),
-                                'platformHosId': hos_id,
+                                'platformHosId': str(hos_id),
                                 'platformDoctorId': ''
                             }
                             self.headers.update({
                                 'Content-Type': 'application/x-www-form-urlencoded',
                                 'Origin': 'http://www.hnyygh.com',
-                                'Referer': 'http://www.hnyygh.com/searchDeptmentAction.action'
+                                'Referer': 'http://www.hnyygh.com/searchDeptmentAction.action',
+                                'Pragma': 'no-cache'
                             })
                             splash_args = {
                                 'url': self.dept_detail_url,
                                 'headers': self.headers,
-                                'lua_source': self.dept_script2,
+                                'lua_source': self.dept_script,
                                 'data': data
                             }
                             yield SplashRequest(self.dept_detail_url,
                                                 endpoint='execute',
                                                 args=splash_args,
                                                 dont_filter=True,
+                                                headers=self.headers,
                                                 callback=self.parse_hospital_dep_detail,
                                                 meta={'dept_type': dept_type,
                                                       'dept_name': dept_name})
+                            # 获取医生信息
+                            # data = {
+                            #     'platformDeptId': dept_id,
+                            #     'platformHosId': hos_id,
+                            #     'platformDoctorId': '',
+                            #     'nextNumInfo': '0'
+                            # }
+                            # self.headers.update({
+                            #     'Content-Type': 'application/x-www-form-urlencoded',
+                            #     'Origin': 'http://www.hnyygh.com',
+                            #     'Referer': 'http://www.hnyygh.com/searchOrderNumInfoAction.action'
+                            # })
+                            # splash_args = {
+                            #     'url': self.doctor_url,
+                            #     # 'headers': self.headers,
+                            #     'lua_source': self.dept_script,
+                            #     'data': data
+                            # }
+                            # yield SplashRequest(self.doctor_url,
+                            #                     endpoint='execute',
+                            #                     args=splash_args,
+                            #                     dont_filter=True,
+                            #                     headers=self.headers,
+                            #                     callback=self.parse_doctor_info,
+                            #                     meta={'dept_type': dept_type,
+                            #                           'dept_name': dept_name})
 
     def parse_hospital_dep_detail(self, response):
         self.logger.info('>>>>>>正在抓取:科室详细信息>>>>>>')
@@ -225,64 +260,66 @@ class HnyyghSpider(scrapy.Spider):
         dept_item = loader.load_item()
         yield dept_item
 
+    def parse_doctor_info(self, response):
         # 获取医生信息
-        # self.logger.info('>>>>>>正在抓取医生信息>>>>>>')
-        # doctor_links = response.xpath('//b[@class="f14"]/a/onclick').extract()
-        # if doctor_links:
-        #     for each_doctor_info in doctor_links[0:1]:
-        #         data_info = ''.join(re.findall(r'\S+', each_doctor_info))
-        #         is_sp_time = re.search(r'isSpTime:\'(.*?)\'', data_info)
-        #         dept_name = re.search(r'deptName:\'(.*?)\'', data_info, S)
-        #         doctor_name = re.search(r'doctName:\'(.*?)\'', data_info, S)
-        #         org_code = re.search(r'orgcode:\'(.*?)\'', data_info, S)
-        #         doctor_id = re.search(r'platformDoctId:\'(.*?)\'', data_info, S)
-        #         visit_level = re.search(r'visitLevel:\'(.*?)\'', data_info)
-        #         org_name = re.search(r'orgname:\'(.*?)\'', data_info, S)
-        #         dept_id = re.search(r'platformDeptId:\'(.*?)\'', data_info, S)
-        #         pay_mode = re.search(r'paymode:\'(.*?)\'', data_info, S)
-        #         if is_sp_time and dept_name and doctor_name and org_code \
-        #                 and doctor_id and visit_level and org_name and dept_id and pay_mode:
-        #             is_sp_time = is_sp_time.group(1)
-        #             dept_name = dept_name.group(1)
-        #             doctor_name = doctor_name.group(1)
-        #             org_code = org_code.group(1)
-        #             doctor_id = doctor_id.group(1)
-        #             visit_level = visit_level.group(1)
-        #             org_name = org_name.group(1)
-        #             dept_id = dept_id.group(1)
-        #             pay_mode = pay_mode.group()
-        #             doctor_level = visit_level.replace(dept_name, '')
-        #             data = {
-        #                 'isSpTime': is_sp_time,
-        #                 'docInfo.deptName': quote(dept_name),
-        #                 'docInfo.doctName': quote(doctor_name),
-        #                 'docInfo.platformDeptId': dept_id,
-        #                 'docInfo.orgcode': org_code,
-        #                 'docInfo.platformDoctId': doctor_id,
-        #                 'docInfo.visitLevel': visit_level,
-        #                 'orgname': quote(org_name),
-        #                 'platformDeptId': dept_id,
-        #                 'paymode': quote(pay_mode)
-        #             }
-        #             self.headers.update({
-        #                 'Content-Type': 'application/x-www-form-urlencoded',
-        #                 'Origin': 'http://www.hnyygh.com',
-        #                 'Referer': 'http://www.hnyygh.com/searchOrderNumInfoAction.action'
-        #             })
-        #             splash_args = {
-        #                 'url': self.dept_detail_url,
-        #                 'headers': self.headers,
-        #                 'lua_source': self.dept_script,
-        #                 'data': data
-        #             }
-        #             yield SplashRequest(self.doctor_detail_url,
-        #                                 endpoint='execute',
-        #                                 args=splash_args,
-        #                                 dont_filter=True,
-        #                                 callback=self.parse_doctor_info_detail,
-        #                                 meta={'dept_type': dept_type,
-        #                                       'dept_name': dept_name,
-        #                                       'doctor_level': doctor_level})
+        self.logger.info('>>>>>>正在抓取医生信息>>>>>>')
+        dept_type = response.meta.get('dept_type')
+        doctor_links = response.xpath('//div[@class="time_middle"]/div[1]/div[2]/div/b/a/onclick').extract()
+        if doctor_links:
+            for each_doctor_info in doctor_links[0:1]:
+                data_info = ''.join(re.findall(r'\S+', each_doctor_info))
+                is_sp_time = re.search(r'isSpTime:\'(.*?)\'', data_info)
+                dept_name = re.search(r'deptName:\'(.*?)\'', data_info, S)
+                doctor_name = re.search(r'doctName:\'(.*?)\'', data_info, S)
+                org_code = re.search(r'orgcode:\'(.*?)\'', data_info, S)
+                doctor_id = re.search(r'platformDoctId:\'(.*?)\'', data_info, S)
+                visit_level = re.search(r'visitLevel:\'(.*?)\'', data_info)
+                org_name = re.search(r'orgname:\'(.*?)\'', data_info, S)
+                dept_id = re.search(r'platformDeptId:\'(.*?)\'', data_info, S)
+                pay_mode = re.search(r'paymode:\'(.*?)\'', data_info, S)
+                if is_sp_time and dept_name and doctor_name and org_code \
+                        and doctor_id and visit_level and org_name and dept_id and pay_mode:
+                    is_sp_time = is_sp_time.group(1)
+                    dept_name = dept_name.group(1)
+                    doctor_name = doctor_name.group(1)
+                    org_code = org_code.group(1)
+                    doctor_id = doctor_id.group(1)
+                    visit_level = visit_level.group(1)
+                    org_name = org_name.group(1)
+                    dept_id = dept_id.group(1)
+                    pay_mode = pay_mode.group()
+                    doctor_level = visit_level.replace(dept_name, '')
+                    data = {
+                        'isSpTime': is_sp_time,
+                        'docInfo.deptName': quote(dept_name),
+                        'docInfo.doctName': quote(doctor_name),
+                        'docInfo.platformDeptId': dept_id,
+                        'docInfo.orgcode': org_code,
+                        'docInfo.platformDoctId': doctor_id,
+                        'docInfo.visitLevel': visit_level,
+                        'orgname': quote(org_name),
+                        'platformDeptId': dept_id,
+                        'paymode': quote(pay_mode)
+                    }
+                    self.headers.update({
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Origin': 'http://www.hnyygh.com',
+                        'Referer': 'http://www.hnyygh.com/searchOrderNumInfoAction.action'
+                    })
+                    splash_args = {
+                        'url': self.dept_detail_url,
+                        'headers': self.headers,
+                        'lua_source': self.dept_script,
+                        'data': data
+                    }
+                    yield SplashRequest(self.doctor_detail_url,
+                                        endpoint='execute',
+                                        args=splash_args,
+                                        dont_filter=True,
+                                        callback=self.parse_doctor_info_detail,
+                                        meta={'dept_type': dept_type,
+                                              'dept_name': dept_name,
+                                              'doctor_level': doctor_level})
 
     def parse_doctor_info_detail(self, response):
         self.logger.info('>>>>>>正在抓取医生详细信息>>>>>>')

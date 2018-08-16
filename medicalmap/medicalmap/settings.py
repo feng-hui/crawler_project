@@ -17,7 +17,7 @@ NEWSPIDER_MODULE = 'medicalmap.spiders'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'medicalmap (+http://www.yourdomain.com)'
-USER_AGENT = 'Mozilla/5.0 (compatible;Baiduspider-render/2.0; +http://www.baidu.com/search/spider.html)'
+# USER_AGENT = 'Mozilla/5.0 (compatible;Baiduspider-render/2.0; +http://www.baidu.com/search/spider.html)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
