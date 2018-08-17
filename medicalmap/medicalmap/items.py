@@ -320,7 +320,7 @@ class DoctorInfoItem(scrapy.Item):
         params = [
             self.get('doctor_name', '暂无,出现异常'),
             self.get('dept_name', '暂无,出现异常'),
-            self.get('hospital_name'),
+            self.get('hospital_name', '暂无,出现异常'),
             self.get('sex'),
             self.get('doctor_level'),
             self.get('doctor_intro'),

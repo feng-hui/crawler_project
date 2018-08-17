@@ -18,18 +18,6 @@ def now_day():
     return datetime.datetime.now().strftime('%Y-%m-%d')
 
 
-def get_doctor_intro(value):
-    """
-    返回医生简介和医生擅长的信息,
-    适用于金堂县第一人民医院获取医生擅长的信息可用
-    """
-    res = re.search(r'简介：(.*?)$', value, S)
-    if res:
-        return res.group(1)
-    else:
-        return ''
-
-
 def custom_remove_tags(value):
     """正则表达式去除\n\t\r等相关字符"""
     return ''.join(re.findall(r'\S', value, S)).strip()
@@ -49,9 +37,15 @@ def clean_info(value):
     """
     去除字段值一些无用的信息
     只适用于成都市青白江区中医医院:|川化病区内科查房指导|门诊坐诊、内科查房指导|科室介绍|暂无内容
+    替换各种符号为空
 
     """
-    return re.sub(r'[：:()]', '', value).strip()
+    return re.sub(r'[：:()\[\]]', '', value).strip()
+
+
+def clean_info2(value):
+    """去掉多余字样"""
+    return re.sub('暂无介绍|暂无简介', '', value).strip()
 
 
 def match_special(value):
@@ -62,16 +56,9 @@ def match_special(value):
     if '：' in value:
         return value.split('：')[-1]
     elif ':' in value:
-        # res = re.search(r'专家门诊时间：(.*?)$', value, S)
-        # if res:
-        #     return res.group(1).strip()
-        # else:
-        #     return None
         return value.split(':')[-1]
     elif '|' in value:
         return value.split('|')[0]
-    elif '医院列表' in value:
-        return value.replace('医院列表', '')
     else:
         return value
 
@@ -98,6 +85,18 @@ def match_special2(value):
         return value.split('，')[0].strip()
     else:
         return value
+
+
+def get_doctor_intro(value):
+    """
+    返回医生简介和医生擅长的信息,
+    适用于金堂县第一人民医院获取医生擅长的信息可用
+    """
+    res = re.search(r'简介：(.*?)$', value, S)
+    if res:
+        return res.group(1)
+    else:
+        return ''
 
 
 def get_reg_info(value):
