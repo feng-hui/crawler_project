@@ -53,11 +53,11 @@ COOKIES_ENABLED = False
 
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
-DOWNLOADER_MIDDLEWARES = {
-   'medicalmap.middlewares.ProxyMiddleWare': 543,
-   # 'scrapy.downloadermiddlewares.redirect.RedirectMiddleware': None,
-   # 'medicalmap.middlewares.CustomRedirectMiddleWare': 600,
-}
+# DOWNLOADER_MIDDLEWARES = {
+#    'medicalmap.middlewares.ProxyMiddleWare': 543,
+#    # 'scrapy.downloadermiddlewares.redirect.RedirectMiddleware': None,
+#    # 'medicalmap.middlewares.CustomRedirectMiddleWare': 600,
+# }
 
 # Enable or disable extensions
 # See https://doc.scrapy.org/en/latest/topics/extensions.html
@@ -67,9 +67,9 @@ DOWNLOADER_MIDDLEWARES = {
 
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-ITEM_PIPELINES = {
-   'medicalmap.pipelines.MysqlPipeline': 300,
-}
+# ITEM_PIPELINES = {
+#    'medicalmap.pipelines.MysqlPipeline': 300,
+# }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html

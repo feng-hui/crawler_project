@@ -33,6 +33,10 @@ def remove_number2(value):
     return re.sub(r'\d+', '', value)
 
 
+def get_number(value):
+    pass
+
+
 def clean_info(value):
     """
     去除字段值一些无用的信息
@@ -71,12 +75,14 @@ def match_special2(value):
     """
     if '（' in value:
         return value.split('（')[0].strip()
+    elif '(' in value:
+        return value.split('(')[0].strip()
     elif '-' in value:
         return value.split('-')[0].strip()
     elif '_' in value:
         return value.split('_')[0].strip()
     elif ':' in value:
-        return value.split(':')[-1].strip()
+        return value.split(':')[0].strip()
     elif '/' in value:
         return value.split('/')[0].strip()
     elif '、' in value:
@@ -276,6 +282,20 @@ def get_city(value):
             return res.group(0)
         else:
             return None
+    else:
+        return None
+
+
+def get_hospital_info(hospital_info, cut_start, cut_end):
+    """
+    :param hospital_info: 医院信息
+    :param cut_start: 需要匹配的信息开始
+    :param cut_end: 需要匹配的信息结束
+    :return: 返回对应的信息,适用于陕西省预约诊疗服务平台 2018-08-18
+    """
+    res = re.search(r'{}(.*?){}'.format(cut_start, cut_end), hospital_info.replace('<关闭>', ''), S)
+    if res:
+        return res.group(1)
     else:
         return None
 
