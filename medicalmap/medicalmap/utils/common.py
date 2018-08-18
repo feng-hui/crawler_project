@@ -34,7 +34,13 @@ def remove_number2(value):
 
 
 def get_number(value):
-    pass
+    """获取字符串里的数字"""
+    res = re.search(r'(\d+.\d+)', value)
+    if res:
+        # return res.group(1)
+        return '{0}{1}'.format(res.group(1), '元')
+    else:
+        return None
 
 
 def clean_info(value):
@@ -309,3 +315,4 @@ if __name__ == "__main__":
     print(get_county('四川省', '成都市', '四川省成都市晋江县锦江区红星路四段14号'))
     print(clean_info('08/17(上午)'))
     print(get_city('衡阳市珠晖区湖北路36号（火车站斜对面）'))
+    print(get_number('参考费用：25.00元'))

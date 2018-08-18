@@ -5,8 +5,8 @@ from scrapy.http import Request
 from urllib.parse import urljoin
 from w3lib.html import remove_tags
 from scrapy.loader.processors import MapCompose
-from medicalmap.utils.common import now_day, custom_remove_tags, match_special2, get_hospital_info
-from medicalmap.items import CommonLoader2, HospitalInfoItem, HospitalDepItem, DoctorInfoItem, DoctorRegInfoItem
+from medicalmap.utils.common import now_day, custom_remove_tags, match_special2, get_hospital_info, get_number
+from medicalmap.items import CommonLoader2, HospitalInfoItem, HospitalDepItem, DoctorInfoItem
 
 
 class SxyyghSpider(scrapy.Spider):
@@ -32,7 +32,7 @@ class SxyyghSpider(scrapy.Spider):
     }
     custom_settings = {
         # 延迟设置
-        'DOWNLOAD_DELAY': 5,
+        # 'DOWNLOAD_DELAY': 5,
         # 自动限速设置
         'AUTOTHROTTLE_ENABLED': True,
         'AUTOTHROTTLE_START_DELAY': 1,
@@ -48,11 +48,11 @@ class SxyyghSpider(scrapy.Spider):
 
     def start_requests(self):
         # 获取医院和科室信息
-        # for each_url in self.start_urls:
-        #     yield Request(each_url, headers=self.headers, callback=self.parse, dont_filter=True)
+        for each_url in self.start_urls[0:1]:
+            yield Request(each_url, headers=self.headers, callback=self.parse, dont_filter=True)
 
         # 获取医院信息
-        yield Request(self.doctor_entry, headers=self.headers, callback=self.parse_doctor_info, dont_filter=True)
+        # yield Request(self.doctor_entry, headers=self.headers, callback=self.parse_doctor_info, dont_filter=True)
 
     def parse(self, response):
         self.logger.info('>>>>>>正在抓取:医院信息>>>>>>')
@@ -60,7 +60,7 @@ class SxyyghSpider(scrapy.Spider):
             all_hospital_links = response.xpath('//table[@id="T1"]/tr/td[2]/a/@href').extract()
             hospital_type = response.xpath('//td[contains(text(),"类型")]/ancestor::tr[1]/td[2]'
                                            '/table/tr/td/span[@class="btn_x"]/a/text()').extract_first('')
-            for each_hospital_link in all_hospital_links:
+            for each_hospital_link in all_hospital_links[0:1]:
                 hospital_link = urljoin(self.hospital_host, each_hospital_link)
                 self.headers['Referer'] = response.url
                 yield Request(hospital_link,
@@ -69,10 +69,15 @@ class SxyyghSpider(scrapy.Spider):
                               dont_filter=True,
                               meta={'hospital_type': hospital_type})
             # 分页
-            pagination = response.xpath('//form[@id="fy"]/a[not(contains(text(),"末页"))]'
-                                        '[position()>1]/@href').extract()
-            for each_pagination in pagination:
-                next_page_link = urljoin(self.host, each_pagination)
+            page_num = re.search(r'page=(.*?)$', response.url)
+            if not page_num:
+                page_num = '1'
+            else:
+                page_num = page_num.group(1)
+            next_page = response.xpath(r'//form[@id="fy"]/b[contains(text(),"[{}]")]/'
+                                       r'following::a[1]/@href'.format(page_num)).extract_first('')
+            if next_page:
+                next_page_link = urljoin(self.host, next_page)
                 self.headers['Referer'] = response.url
                 yield Request(next_page_link,
                               headers=self.headers,
@@ -91,7 +96,7 @@ class SxyyghSpider(scrapy.Spider):
                                                                                   '"title_yh14"]').extract())))
             hospital_address = get_hospital_info(hospital_info, '地址：', '查看地图')
             hospital_phone = get_hospital_info(hospital_info, '电话：', '官网')
-            hospital_intro = get_hospital_info(hospital_info, '简介：', '$')
+            hospital_intro = get_hospital_info(hospital_info, '简介：', '$').replace('...更多&gt;&gt;', '')
             loader = CommonLoader2(item=HospitalInfoItem(), response=response)
             loader.add_xpath('hospital_name', '//span[@class="title"]/text()', MapCompose(custom_remove_tags))
             loader.add_xpath('hospital_level', '//span[@class="dj"]/text()', MapCompose(custom_remove_tags))
@@ -136,7 +141,7 @@ class SxyyghSpider(scrapy.Spider):
         self.logger.info('>>>>>>正在抓取:医生信息>>>>>>')
         try:
             all_doctors = response.xpath('//table[@id="T1"]/tr')
-            for each_hospital_link in all_doctors[6:7]:
+            for each_hospital_link in all_doctors:
                 doctor_link = each_hospital_link.xpath('td[2]/a/@href').extract_first('')
                 diagnosis_fee = each_hospital_link.xpath('td[last()]').extract_first('')
                 if doctor_link:
@@ -148,10 +153,15 @@ class SxyyghSpider(scrapy.Spider):
                                   dont_filter=True,
                                   meta={'diagnosis_fee': diagnosis_fee})
             # 分页
-            pagination = response.xpath('//form[@id="fy"]/a[not(contains(text(),"末页"))]'
-                                        '[position()>1]/@href').extract()
-            for each_pagination in pagination:
-                next_page_link = urljoin(self.host, each_pagination)
+            page_num = re.search(r'page=(.*?)$', response.url)
+            if not page_num:
+                page_num = '1'
+            else:
+                page_num = page_num.group(1)
+            next_page = response.xpath(r'//form[@id="fy"]/b[contains(text(),"[{}]")]/'
+                                       r'following::a[1]/@href'.format(page_num)).extract_first('')
+            if next_page:
+                next_page_link = urljoin(self.host, next_page)
                 self.headers['Referer'] = response.url
                 yield Request(next_page_link,
                               headers=self.headers,
@@ -188,7 +198,7 @@ class SxyyghSpider(scrapy.Spider):
                              MapCompose(remove_tags, custom_remove_tags))
             loader.add_value('diagnosis_amt',
                              diagnosis_fee,
-                             MapCompose(remove_tags, custom_remove_tags, match_special2))
+                             MapCompose(remove_tags, custom_remove_tags, get_number))
             loader.add_value('update_time', now_day())
             doctor_item = loader.load_item()
             yield doctor_item

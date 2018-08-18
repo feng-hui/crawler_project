@@ -265,11 +265,11 @@ class HospitalInfoTestItem(scrapy.Item):
 class HospitalDepItem(scrapy.Item):
     """
     科室信息表
-    hospital_id     医院ID
+    hospital_id      医院ID
     dept_type        科室类别 一级科室名称
     dept_name        科室名称 二级科室名称
-    dep_intro       科室介绍
-    update_time         更新时间
+    dep_intro        科室介绍
+    update_time      更新时间
     """
     dept_name = scrapy.Field()
     hospital_name = scrapy.Field()
@@ -301,7 +301,7 @@ class DoctorInfoItem(scrapy.Item):
     doctor_intro    医生简称
     doctor_goodAt   医生擅长
     diagnosis_amt   医生诊疗费用
-    update_time         更新时间
+    update_time     更新时间
     """
     doctor_name = scrapy.Field()
     dept_name = scrapy.Field()
