@@ -102,19 +102,19 @@ COOKIES_ENABLED = False
 # MONGODB_DOC_DR = 'doctor_reg_info'
 
 # MYSQL SETTINGS TEST SERVER
-MYSQL_HOST = '192.168.99.19'
-MYSQL_PORT = 3306
-MYSQL_DB = 'medical_map_update'
-# MYSQL_DB = 'test'
-MYSQL_USER = 'medicalmap1'
-MYSQL_PASSWORD = 'medicalmap#1'
-
-# MYSQL SETTINGS LOCALHOST SERVER
-# MYSQL_HOST = 'localhost'
+# MYSQL_HOST = '192.168.99.19'
 # MYSQL_PORT = 3306
 # MYSQL_DB = 'medical_map_update'
-# MYSQL_USER = 'root'
-# MYSQL_PASSWORD = 'capricorn1203!'
+# # MYSQL_DB = 'test'
+# MYSQL_USER = 'medicalmap1'
+# MYSQL_PASSWORD = 'medicalmap#1'
+
+# MYSQL SETTINGS LOCALHOST SERVER
+MYSQL_HOST = 'localhost'
+MYSQL_PORT = 3306
+MYSQL_DB = 'medical_map_update'
+MYSQL_USER = 'root'
+MYSQL_PASSWORD = 'capricorn1203!'
 
 # DUPEFILTER_DEBUG SETTINGS
 DUPEFILTER_DEBUG = True
@@ -131,4 +131,4 @@ HTTPERROR_ALLOWED_CODES = [429, 503, 404, 302]
 # HTTPERROR_ALLOW_ALL = True  # 默认为false,[Pass all responses, regardless of its status code.]
 
 # Whether the Redirect middleware will be enabled. Default: True
-REDIRECT_ENABLED = False
+# REDIRECT_ENABLED = False
