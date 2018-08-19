@@ -5,8 +5,8 @@ from re import S
 from w3lib.html import remove_tags
 from urllib.parse import quote
 from scrapy.loader.processors import MapCompose
-from scrapy_splash.request import SplashRequest, SplashFormRequest
-from medicalmap.items import CommonLoader2, HospitalInfoItem, HospitalDepItem, DoctorInfoItem, DoctorRegInfoItem
+from scrapy_splash.request import SplashRequest
+from medicalmap.items import CommonLoader2, HospitalInfoItem, HospitalDepItem, DoctorInfoItem
 from medicalmap.utils.common import now_day, custom_remove_tags, match_special, clean_info, get_city, get_county2
 
 
@@ -330,6 +330,3 @@ class HnyyghSpider(scrapy.Spider):
         loader.add_value('update_time', now_day())
         doctor_item = loader.load_item()
         yield doctor_item
-
-    def parse_doctor_reg_info(self, response):
-        self.logger.info('>>>>>>正在抓取:医生排班信息>>>>>>')
