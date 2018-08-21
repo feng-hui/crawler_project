@@ -275,16 +275,18 @@ class HospitalDepItem(scrapy.Item):
     hospital_name = scrapy.Field()
     dept_type = scrapy.Field()
     dept_info = scrapy.Field()
+    dataSource_from = scrapy.Field()
     update_time = scrapy.Field()
 
     def get_sql_info(self):
-        insert_sql = "insert into department_info(dept_name,hospital_name,dept_type,dept_info,update_time) " \
-                     "values(%s,%s,%s,%s,%s) on duplicate key update update_time=values(update_time)"
+        insert_sql = "insert into department_info(dept_name,hospital_name,dept_type,dept_info,dataSource_from," \
+                     "update_time) values(%s,%s,%s,%s,%s,%s) on duplicate key update update_time=values(update_time)"
         params = [
             self.get('dept_name', '暂无,出现异常'),
             self.get('hospital_name', '暂无,出现异常'),
             self.get('dept_type'),
             self.get('dept_info'),
+            self.get('dataSource_from'),
             self.get('update_time')
         ]
         return insert_sql, params
@@ -311,12 +313,13 @@ class DoctorInfoItem(scrapy.Item):
     doctor_intro = scrapy.Field()
     doctor_goodAt = scrapy.Field()
     diagnosis_amt = scrapy.Field()
+    dataSource_from = scrapy.Field()
     update_time = scrapy.Field()
 
     def get_sql_info(self):
         insert_sql = "insert into doctor_info(doctor_name,dept_name,hospital_name,sex," \
-                     "doctor_level,doctor_intro,doctor_goodAt,diagnosis_amt,update_time) " \
-                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                     "doctor_level,doctor_intro,doctor_goodAt,diagnosis_amt,dataSource_from,update_time) " \
+                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
         params = [
             self.get('doctor_name', '暂无,出现异常'),
             self.get('dept_name', '暂无,出现异常'),
@@ -326,6 +329,7 @@ class DoctorInfoItem(scrapy.Item):
             self.get('doctor_intro'),
             self.get('doctor_goodAt'),
             self.get('diagnosis_amt'),
+            self.get('dataSource_from'),
             self.get('update_time'),
         ]
         # insert_sql = "update doctor_info set doctor_intro=%s,doctor_goodat=%s,doctor_level=%s,dept_name=%s " \
@@ -355,6 +359,7 @@ class DoctorRegInfoItem(scrapy.Item):
     hospital_name = scrapy.Field()
     dept_name = scrapy.Field()
     reg_info = scrapy.Field()
+    dataSource_from = scrapy.Field()
     update_time = scrapy.Field()
 
     def get_sql_info(self):
@@ -381,6 +386,7 @@ class HospitalAliasItem(scrapy.Item):
     """
     hospital_name = scrapy.Field()
     hospital_alias_name = scrapy.Field()
+    dataSource_from = scrapy.Field()
     update_time = scrapy.Field()
 
     def get_sql_info(self):

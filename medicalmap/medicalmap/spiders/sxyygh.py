@@ -40,19 +40,20 @@ class SxyyghSpider(scrapy.Spider):
         'AUTOTHROTTLE_TARGET_CONCURRENCY': 16.0,
         'AUTOTHROTTLE_DEBUG': True,
         # 并发请求数的控制,默认为16
-        'CONCURRENT_REQUESTS': 16
+        'CONCURRENT_REQUESTS': 32
     }
     host = 'http://sxyygh.com'
     hospital_host = 'http://sxyygh.com/gh/'
     doctor_entry = 'http://sxyygh.com/gh/index_doctor.asp'
+    dataSource_from = '山西省预约诊疗服务平台'
 
     def start_requests(self):
         # 获取医院和科室信息
-        for each_url in self.start_urls[0:1]:
-            yield Request(each_url, headers=self.headers, callback=self.parse, dont_filter=True)
+        # for each_url in self.start_urls:
+        #     yield Request(each_url, headers=self.headers, callback=self.parse, dont_filter=True)
 
         # 获取医院信息
-        # yield Request(self.doctor_entry, headers=self.headers, callback=self.parse_doctor_info, dont_filter=True)
+        yield Request(self.doctor_entry, headers=self.headers, callback=self.parse_doctor_info, dont_filter=True)
 
     def parse(self, response):
         self.logger.info('>>>>>>正在抓取:医院信息>>>>>>')
@@ -60,7 +61,7 @@ class SxyyghSpider(scrapy.Spider):
             all_hospital_links = response.xpath('//table[@id="T1"]/tr/td[2]/a/@href').extract()
             hospital_type = response.xpath('//td[contains(text(),"类型")]/ancestor::tr[1]/td[2]'
                                            '/table/tr/td/span[@class="btn_x"]/a/text()').extract_first('')
-            for each_hospital_link in all_hospital_links[0:1]:
+            for each_hospital_link in all_hospital_links:
                 hospital_link = urljoin(self.hospital_host, each_hospital_link)
                 self.headers['Referer'] = response.url
                 yield Request(hospital_link,
@@ -75,7 +76,8 @@ class SxyyghSpider(scrapy.Spider):
             else:
                 page_num = page_num.group(1)
             next_page = response.xpath(r'//form[@id="fy"]/b[contains(text(),"[{}]")]/'
-                                       r'following::a[1]/@href'.format(page_num)).extract_first('')
+                                       r'following::a[1][not(contains(text(),"末页"))]'
+                                       r'/@href'.format(page_num)).extract_first('')
             if next_page:
                 next_page_link = urljoin(self.host, next_page)
                 self.headers['Referer'] = response.url
@@ -94,9 +96,11 @@ class SxyyghSpider(scrapy.Spider):
             hospital_category = '{0}{1}'.format(hospital_type, '医院') if hospital_type else None
             hospital_info = custom_remove_tags(remove_tags(''.join(response.xpath('//td[@class='
                                                                                   '"title_yh14"]').extract())))
-            hospital_address = get_hospital_info(hospital_info, '地址：', '查看地图')
+            hospital_address = get_hospital_info(hospital_info, '地址：', '电话：')
+            hospital_address = hospital_address.replace('查看地图', '') if hospital_address else None
             hospital_phone = get_hospital_info(hospital_info, '电话：', '官网')
-            hospital_intro = get_hospital_info(hospital_info, '简介：', '$').replace('...更多&gt;&gt;', '')
+            hospital_intro = get_hospital_info(hospital_info, '简介：', '$')
+            hospital_intro = hospital_intro.replace('...更多&gt;&gt;', '') if hospital_intro else None
             loader = CommonLoader2(item=HospitalInfoItem(), response=response)
             loader.add_xpath('hospital_name', '//span[@class="title"]/text()', MapCompose(custom_remove_tags))
             loader.add_xpath('hospital_level', '//span[@class="dj"]/text()', MapCompose(custom_remove_tags))
@@ -159,7 +163,8 @@ class SxyyghSpider(scrapy.Spider):
             else:
                 page_num = page_num.group(1)
             next_page = response.xpath(r'//form[@id="fy"]/b[contains(text(),"[{}]")]/'
-                                       r'following::a[1]/@href'.format(page_num)).extract_first('')
+                                       r'following::a[1][not(contains(text(),"末页"))]'
+                                       r'/@href'.format(page_num)).extract_first('')
             if next_page:
                 next_page_link = urljoin(self.host, next_page)
                 self.headers['Referer'] = response.url
@@ -199,11 +204,9 @@ class SxyyghSpider(scrapy.Spider):
             loader.add_value('diagnosis_amt',
                              diagnosis_fee,
                              MapCompose(remove_tags, custom_remove_tags, get_number))
+            loader.add_value('dataSource_from', self.data_source_from)
             loader.add_value('update_time', now_day())
             doctor_item = loader.load_item()
             yield doctor_item
         except Exception as e:
             self.logger.error('在抓取医生详细信息的过程中出错了,原因是：{}'.format(repr(e)))
-
-
-

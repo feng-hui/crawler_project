@@ -76,7 +76,7 @@ class HnyyghSpider(scrapy.Spider):
         all_hospital_links = response.xpath('//div[@id="fl_yiyuan_nr"]/div/ul/li/a['
                                             'not(contains(text(),"升级中")) and not(contains(text(),"建设中"))]')
         try:
-            for each_hospital_link in all_hospital_links[1:2]:
+            for each_hospital_link in all_hospital_links[4:5]:
                 # hospital_name = each_link.xpath('text()').extract_first('')
                 data_info = each_hospital_link.xpath('@onclick').extract_first('')
                 if data_info:
@@ -112,12 +112,14 @@ class HnyyghSpider(scrapy.Spider):
                                             headers=self.headers,
                                             args=splash_args,
                                             dont_filter=True,
-                                            callback=self.parse_hospital_info)
+                                            callback=self.parse_hospital_info,
+                                            meta={'hospital_name': org_name})
         except Exception as e:
             self.logger.error(repr(e))
 
     def parse_hospital_info(self, response):
-        self.logger.info('>>>>>>正在抓取医院信息和科室信息>>>>>>')
+        hospital_name = response.meta.get('hospital_name')
+        self.logger.info('>>>>>>正在抓取[{}]医院信息和科室信息>>>>>>'.format(hospital_name))
         hospital_city = response.xpath('//div[@class="jieshao_zi"]/p[4]/text()').extract()
         if hospital_city:
             hospital_address = custom_remove_tags(''.join(hospital_city))
@@ -140,13 +142,14 @@ class HnyyghSpider(scrapy.Spider):
         loader.add_xpath('hospital_intro',
                          '//div[@id="starlist"]',
                          MapCompose(remove_tags, custom_remove_tags, clean_info))
+        loader.add_value('registered_channel', self.data_source_from)
         loader.add_value('dataSource_from', self.data_source_from)
         loader.add_value('update_time', now_day())
         hospital_info_item = loader.load_item()
         yield hospital_info_item
 
         # 获取科室信息
-        self.logger.info('>>>>>>正在抓取科室信息>>>>>>')
+        self.logger.info('>>>>>>正在抓取[{}]科室信息>>>>>>'.format(hospital_name))
         dept_links = response.xpath('//div[@class="xuanze_kslb"]')
         if dept_links:
             for each_dept_link in dept_links:
@@ -199,7 +202,8 @@ class HnyyghSpider(scrapy.Spider):
                                                 headers=self.headers,
                                                 callback=self.parse_hospital_dep_detail,
                                                 meta={'dept_type': dept_type,
-                                                      'dept_name': dept_name})
+                                                      'dept_name': dept_name,
+                                                      'hospital_name': org_name})
                             # 获取医生信息
                             data = {
                                 'platformDeptId': dept_id,
@@ -226,28 +230,33 @@ class HnyyghSpider(scrapy.Spider):
                                                 callback=self.parse_doctor_info,
                                                 meta={'dept_type': dept_type,
                                                       'dept_name': dept_name,
-                                                      'dept_id': dept_id})
+                                                      'dept_id': dept_id,
+                                                      'hospital_name': org_name})
 
     def parse_hospital_dep_detail(self, response):
-        self.logger.info('>>>>>>正在抓取:科室详细信息>>>>>>')
+        hospital_name = response.meta.get('hospital_name')
+        self.logger.info('>>>>>>正在抓取[{}]科室详细信息>>>>>>'.format(hospital_name))
         dept_type = response.meta.get('dept_type')
         dept_name = response.meta.get('dept_name')
-        loader = CommonLoader2(item=HospitalDepItem(), response=response)
-        loader.add_value('dept_name', dept_name, MapCompose(custom_remove_tags))
-        loader.add_xpath('hospital_name',
-                         '//div[@class="schedule_zi"]/p[1]/font[1]/text()',
-                         MapCompose(custom_remove_tags))
-        loader.add_value('dept_type', dept_type, MapCompose(custom_remove_tags))
-        loader.add_xpath('dept_info',
-                         '//div[@id="schedule_jienr"]',
-                         MapCompose(remove_tags, custom_remove_tags))
-        loader.add_value('update_time', now_day())
-        dept_item = loader.load_item()
-        yield dept_item
+        if dept_name and hospital_name:
+            loader = CommonLoader2(item=HospitalDepItem(), response=response)
+            loader.add_value('dept_name', dept_name, MapCompose(custom_remove_tags))
+            # loader.add_xpath('hospital_name',
+            #                  '//div[@class="schedule_zi"]/p[1]/font[1]/text()',
+            #                  MapCompose(custom_remove_tags))
+            loader.add_value('hospital_name', hospital_name, MapCompose(custom_remove_tags))
+            loader.add_value('dept_type', dept_type, MapCompose(custom_remove_tags))
+            loader.add_xpath('dept_info',
+                             '//div[@id="schedule_jienr"]',
+                             MapCompose(remove_tags, custom_remove_tags))
+            loader.add_value('dataSource_from', self.data_source_from)
+            loader.add_value('update_time', now_day())
+            dept_item = loader.load_item()
+            yield dept_item
 
     def parse_doctor_info(self, response):
         # 获取医生信息
-        self.logger.info('>>>>>>正在抓取医生信息>>>>>>')
+        self.logger.info('>>>>>>正在抓取[{}]医生信息>>>>>>'.format(response.meta.get('hospital_name')))
         dept_type = response.meta.get('dept_type')
         dept_id_backup = response.meta.get('dept_id')
         # doctor_links = response.xpath('//div[@class="time_middle"]/div[1]/div[2]/div/b/a/onclick').extract()
@@ -308,18 +317,26 @@ class HnyyghSpider(scrapy.Spider):
                                             callback=self.parse_doctor_info_detail,
                                             meta={'dept_type': dept_type,
                                                   'dept_name': dept_name,
-                                                  'doctor_level': doctor_level})
+                                                  'doctor_level': doctor_level,
+                                                  'hospital_name': org_name,
+                                                  'doctor_name': doctor_name})
         except Exception as e:
             self.logger.error(repr(e))
 
     def parse_doctor_info_detail(self, response):
-        self.logger.info('>>>>>>正在抓取医生详细信息>>>>>>')
+        hospital_name = response.meta.get('hospital_name')
+        self.logger.info('>>>>>>正在抓取[{}]医生详细信息>>>>>>'.format(hospital_name))
         dept_name = response.meta.get('dept_name')
         doctor_level = response.meta.get('doctor_level')
+        doctor_name = response.meta.get('doctor_name')
         loader = CommonLoader2(item=DoctorInfoItem(), response=response)
-        loader.add_xpath('doctor_name', '//span[@class="info-name"]/text()', MapCompose(custom_remove_tags))
+        loader.add_value('doctor_name', doctor_name, MapCompose(custom_remove_tags))
+        # loader.add_xpath('doctor_name', '//span[@class="info-name"]/text()', MapCompose(custom_remove_tags))
         loader.add_value('dept_name', dept_name)
-        loader.add_xpath('hospital_name', '//div[@class="item gray"]/span[1]/a/text()', MapCompose(custom_remove_tags))
+        # loader.add_xpath('hospital_name',
+        #                  '//div[@class="item gray"]/span[1]/a/text()',
+        #                  MapCompose(custom_remove_tags))
+        loader.add_value('hospital_name', hospital_name, MapCompose(custom_remove_tags))
         loader.add_value('doctor_level', doctor_level)
         loader.add_xpath('doctor_intro',
                          '//div[@class="info-main"]/div[3]/span',
@@ -327,6 +344,7 @@ class HnyyghSpider(scrapy.Spider):
         loader.add_xpath('doctor_goodAt',
                          '//div[@class="info-main"]/div[4]/span',
                          MapCompose(remove_tags, custom_remove_tags, match_special))
+        loader.add_value('dataSource_from', self.data_source_from)
         loader.add_value('update_time', now_day())
         doctor_item = loader.load_item()
         yield doctor_item

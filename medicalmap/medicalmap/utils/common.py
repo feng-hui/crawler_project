@@ -264,11 +264,11 @@ def get_county2(h_city, hospital_address):
     :param hospital_address: the address og hospital
     :return: hospital county
     """
-    # res = re.sub(r'中国|湖南省|湖南', '', hospital_address)
-    res = re.sub(r'中国|江苏省|江苏|南京市|南京', '', hospital_address)
+    res = re.sub(r'中国|湖南省|湖南', '', hospital_address)
+    # res = re.sub(r'中国|江苏省|江苏|南京市|南京', '', hospital_address)
     if res:
         try:
-            county = re.search(r'^((.*?)县)|^((.*?)区)', res)
+            county = re.search(r'^((.*?)县)|^((.*?)区)', res.replace(h_city, ''))
             if county:
                 return county.group(0)
             else:
@@ -299,9 +299,12 @@ def get_hospital_info(hospital_info, cut_start, cut_end):
     :param cut_end: 需要匹配的信息结束
     :return: 返回对应的信息,适用于陕西省预约诊疗服务平台 2018-08-18
     """
-    res = re.search(r'{}(.*?){}'.format(cut_start, cut_end), hospital_info.replace('<关闭>', ''), S)
-    if res:
-        return res.group(1)
+    if hospital_info:
+        res = re.search(r'{}(.*?){}'.format(cut_start, cut_end), hospital_info.replace('<关闭>', ''), S)
+        if res:
+            return res.group(1)
+        else:
+            return None
     else:
         return None
 
