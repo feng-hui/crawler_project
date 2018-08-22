@@ -5,8 +5,8 @@ from scrapy.http import Request
 from urllib.parse import urljoin
 from w3lib.html import remove_tags
 from scrapy.loader.processors import MapCompose
-from medicalmap.utils.common import now_day, custom_remove_tags, match_special2, get_hospital_info, get_number
 from medicalmap.items import CommonLoader2, HospitalInfoItem, HospitalDepItem, DoctorInfoItem
+from medicalmap.utils.common import now_day, custom_remove_tags, match_special2, get_hospital_info, get_number
 
 
 class SxyyghSpider(scrapy.Spider):
@@ -36,16 +36,16 @@ class SxyyghSpider(scrapy.Spider):
         # 自动限速设置
         'AUTOTHROTTLE_ENABLED': True,
         'AUTOTHROTTLE_START_DELAY': 1,
-        'AUTOTHROTTLE_MAX_DELAY': 5,
-        'AUTOTHROTTLE_TARGET_CONCURRENCY': 16.0,
+        'AUTOTHROTTLE_MAX_DELAY': 3,
+        'AUTOTHROTTLE_TARGET_CONCURRENCY': 32.0,
         'AUTOTHROTTLE_DEBUG': True,
         # 并发请求数的控制,默认为16
-        'CONCURRENT_REQUESTS': 32
+        'CONCURRENT_REQUESTS': 100
     }
     host = 'http://sxyygh.com'
     hospital_host = 'http://sxyygh.com/gh/'
     doctor_entry = 'http://sxyygh.com/gh/index_doctor.asp'
-    dataSource_from = '山西省预约诊疗服务平台'
+    data_source_from = '山西省预约诊疗服务平台'
 
     def start_requests(self):
         # 获取医院和科室信息
@@ -115,8 +115,8 @@ class SxyyghSpider(scrapy.Spider):
                              MapCompose(custom_remove_tags))
             loader.add_value('hospital_phone', hospital_phone, MapCompose(custom_remove_tags))
             loader.add_value('hospital_intro', hospital_intro, MapCompose(custom_remove_tags))
-            loader.add_value('registered_channel', '山西省预约诊疗服务平台')
-            loader.add_value('dataSource_from', '山西省预约诊疗服务平台')
+            loader.add_value('registered_channel', self.data_source_from)
+            loader.add_value('dataSource_from', self.data_source_from)
             loader.add_value('update_time', now_day())
             hospital_info_item = loader.load_item()
             yield hospital_info_item
@@ -135,6 +135,7 @@ class SxyyghSpider(scrapy.Spider):
                                           '//span[@class="title"]/text()',
                                           MapCompose(custom_remove_tags))
                     dept_loader.add_value('dept_info', '')
+                    dept_loader.add_value('dataSource_from', self.data_source_from)
                     dept_loader.add_value('update_time', now_day())
                     dept_item = dept_loader.load_item()
                     yield dept_item
