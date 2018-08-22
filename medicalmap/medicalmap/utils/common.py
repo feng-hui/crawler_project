@@ -3,8 +3,9 @@
 # @time   : 18-7-5 上午10:16
 # @author : Feng_Hui
 # @email  : capricorn1203@126.com
-import datetime
 import re
+import time
+import datetime
 from re import S
 
 
@@ -16,6 +17,11 @@ def now_year():
 def now_day():
     """返回当前日期的年月日"""
     return datetime.datetime.now().strftime('%Y-%m-%d')
+
+
+def timestamp():
+    """返回当前时间的时间戳,13位"""
+    return str(int(time.time() * 1000))
 
 
 def custom_remove_tags(value):
@@ -258,17 +264,17 @@ def get_county(h_pro, h_city, hospital_address):
         return None
 
 
-def get_county2(h_city, hospital_address):
+def get_county2(useless_info, hospital_address):
     """
+    :param useless_info
     :param h_city: the name of the city
     :param hospital_address: the address og hospital
     :return: hospital county
     """
-    res = re.sub(r'中国|湖南省|湖南', '', hospital_address)
-    # res = re.sub(r'中国|江苏省|江苏|南京市|南京', '', hospital_address)
+    res = re.sub(r'{0}'.format(useless_info), '', hospital_address)
     if res:
         try:
-            county = re.search(r'^((.*?)县)|^((.*?)区)', res.replace(h_city, ''))
+            county = re.search(r'^((.*?)县)|^((.*?)区)', res)
             if county:
                 return county.group(0)
             else:
