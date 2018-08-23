@@ -38,6 +38,7 @@ class GuahaoSpider(scrapy.Spider):
         'CONCURRENT_REQUESTS': 100
     }
     host = 'http://www.guahao.gov.cn'
+    hospital_entry = 'http://www.guahao.gov.cn/hospitallist.xhtml'
     hospital_info_url = 'http://www.guahao.gov.cn/hospdetail.xhtml?HIS_CD={}&channel=JSON'
     next_hospital_url = 'http://www.guahao.gov.cn/hospitallist.xhtml?ARE_ID=&PAG_NO={}&PAG_CNT={}&' \
                         'TOT_REC_NUM={}&t={}'
@@ -55,33 +56,14 @@ class GuahaoSpider(scrapy.Spider):
 
     def parse(self, response):
         all_hospital = response.xpath('//div[@class="bg_kk hospitalInfo"]')
-        for each_hospital in all_hospital:
+        for each_hospital in all_hospital[0:1]:
             # 获取医院信息
             hospital_id = each_hospital.xpath('@attr').extract_first('')
             hospital_type = each_hospital.xpath('@attr_histyp').extract_first('')
             hospital_name = each_hospital.xpath('p[@class="hisNm"]/text()').extract_first('')
-            if hospital_id and hospital_type == '1':
-                hospital_link = self.hospital_info_url.format(hospital_id)
-                dept_link = self.dept_url.format(hospital_id)
-
-                # 获取医院信息
-                self.headers['Referer'] = dept_link
-                yield Request(hospital_link,
-                              headers=self.headers,
-                              callback=self.parse_hospital_info,
-                              dont_filter=True,
-                              meta={'hospital_type': hospital_type})
-
-                # 获取科室信息
-                self.headers['Referer'] = response.url
-                yield Request(dept_link,
-                              headers=self.headers,
-                              callback=self.parse_hospital_dep,
-                              dont_filter=True,
-                              meta={'hospital_name': hospital_name})
-            # elif hospital_id and hospital_type == '0':
+            # if hospital_id and hospital_type == '1':
             #     hospital_link = self.hospital_info_url.format(hospital_id)
-            #     dept_link = self.dept_url2.format(hospital_id)
+            #     dept_link = self.dept_url.format(hospital_id)
             #
             #     # 获取医院信息
             #     self.headers['Referer'] = dept_link
@@ -90,6 +72,24 @@ class GuahaoSpider(scrapy.Spider):
             #                   callback=self.parse_hospital_info,
             #                   dont_filter=True,
             #                   meta={'hospital_type': hospital_type})
+            #
+            #     # 获取科室信息
+            #     self.headers['Referer'] = response.url
+            #     yield Request(dept_link,
+            #                   headers=self.headers,
+            #                   callback=self.parse_hospital_dep,
+            #                   dont_filter=True,
+            #                   meta={'hospital_name': hospital_name})
+            if hospital_id and hospital_type == '0':
+                # hospital_link = self.hospital_info_url.format(hospital_id)
+                dept_link = self.dept_url2.format(hospital_id)
+
+                # 获取科室信息
+                self.headers['Referer'] = response.url
+                yield Request(dept_link,
+                              headers=self.headers,
+                              callback=self.parse_hospital_transfer,
+                              dont_filter=True)
             else:
                 pass
 
@@ -152,6 +152,32 @@ class GuahaoSpider(scrapy.Spider):
             yield hospital_info_item
         except Exception as e:
             self.logger.error('在抓取医院详细信息过程中出错了,原因是：{}'.format(repr(e)))
+
+    def parse_hospital_transfer(self, response):
+        """科室信息中转页"""
+        self.logger.info('>>>>>>正在抓取科室信息中转页>>>>>>')
+        all_hospital = response.xpath('//span[@class="branchHis"]')
+        for each_hospital in all_hospital[0:1]:
+            each_hospital_id = each_hospital.xpath('@id').extract_first('')
+            each_hospital_name = each_hospital.xpath('b/text()').extract_first('')
+            if each_hospital_id and each_hospital_name:
+                dept_link = self.dept_url.format(each_hospital_id)
+
+                # 获取医院信息
+                hospital_link = self.hospital_info_url.format(each_hospital_id)
+                self.headers['Referer'] = dept_link
+                yield Request(hospital_link,
+                              headers=self.headers,
+                              callback=self.parse_hospital_info,
+                              dont_filter=True)
+
+                # 获取科室信息
+                self.headers['Referer'] = self.hospital_entry
+                yield Request(dept_link,
+                              headers=self.headers,
+                              callback=self.parse_hospital_dep,
+                              dont_filter=True,
+                              meta={'hospital_name': each_hospital_name})
 
     def parse_hospital_dep(self, response):
         self.logger.info('>>>>>>正在抓取科室信息>>>>>>')
@@ -244,11 +270,13 @@ class GuahaoSpider(scrapy.Spider):
             # 分页
             has_next = response.xpath('//a[@class="pb_next"]')
             if has_next:
-                hos_id = re.search(r'HIS_CD=(.*?)&', response.url)
-                dept_id = re.search(r'DEP_ID=(.*?)$', response.url)
+                # hos_id = re.search(r'HIS_CD=(.*?)&', response.url)
+                # dept_id = re.search(r'DEP_ID=(.*?)$', response.url)
+                hos_id  = response.xpath('//input[@name="HIS_CD"]/@value').extract_first('')
+                dept_id = response.xpath('//input[@name="DEP_ID"]/@value').extract_first('')
                 if hos_id and dept_id:
-                    hos_id = hos_id.group(1)
-                    dept_id = dept_id.group(1)
+                    # hos_id = hos_id.group(1)
+                    # dept_id = dept_id.group(1)
                     now_page = response.xpath('//a[@class="pb_on"]/text()').extract_first('')
                     total_page = response.xpath('//a[contains(text(),"尾页")]/@pagval').extract_first('')
                     total_doctor_num = response.xpath('//input[@name="TOT_REC_NUM"]/@value').extract_first('')
