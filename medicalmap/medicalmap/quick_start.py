@@ -21,7 +21,7 @@ from scrapy.cmdline import execute
 # execute('scrapy crawl slbjy'.split())  # 双流区妇幼保健院  2018-07-31 医院+科室+医生
 # execute('scrapy crawl a_hospital'.split())  # 医学百科  2018-07-31 医院+科室+医院别名
 # execute('scrapy crawl imicams'.split())  # 中国医院科技影响力排行  2018-08-07 排行信息
-# execute('scrapy crawl hnyygh'.split())  # 湖南省统一预约挂号系统  2018-08-13 医院+科室+医生+排班
+execute('scrapy crawl hnyygh'.split())  # 湖南省统一预约挂号系统  2018-08-13 医院+科室+医生+排班
 # execute('scrapy crawl nj12320'.split())  # 南京市统一预约挂号系统  2018-08-16 医院+科室+医生+排班
 # execute('scrapy crawl sxyygh'.split())  # 山西省统一预约挂号系统  2018-08-17 医院+科室+医生+排班
-execute('scrapy crawl guahao'.split())  # 广州市统一预约挂号系统  2018-08-22 医院+科室+医生+排班
+# execute('scrapy crawl guahao'.split())  # 广州市统一预约挂号系统  2018-08-22 医院+科室+医生+排班

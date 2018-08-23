@@ -2,8 +2,8 @@
 import re
 import scrapy
 from re import S
-from w3lib.html import remove_tags
 from urllib.parse import quote
+from w3lib.html import remove_tags
 from scrapy.loader.processors import MapCompose
 from scrapy_splash.request import SplashRequest
 from medicalmap.items import CommonLoader2, HospitalInfoItem, HospitalDepItem, DoctorInfoItem
@@ -36,7 +36,7 @@ class HnyyghSpider(scrapy.Spider):
         'AUTOTHROTTLE_DEBUG': True,
         # 并发请求数的控制,默认为16
         # 'CONCURRENT_REQUESTS': 16
-        'SPLASH_URL': 'http://101.132.105.200:8050/',
+        'SPLASH_URL': 'http://localhost:8050/',
         'DOWNLOADER_MIDDLEWARES': {
             'scrapy_splash.SplashCookiesMiddleware': 723,
             'scrapy_splash.SplashMiddleware': 725,
