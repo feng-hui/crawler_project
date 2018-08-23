@@ -39,12 +39,14 @@ class GuahaoSpider(scrapy.Spider):
     }
     host = 'http://www.guahao.gov.cn'
     hospital_info_url = 'http://www.guahao.gov.cn/hospdetail.xhtml?HIS_CD={}&channel=JSON'
+    next_hospital_url = 'http://www.guahao.gov.cn/hospitallist.xhtml?ARE_ID=&PAG_NO={}&PAG_CNT={}&' \
+                        'TOT_REC_NUM={}&t={}'
     dept_url = 'http://www.guahao.gov.cn/deplist.xhtml?HIS_CD={}'
     dept_url2 = 'http://www.guahao.gov.cn/hospital_branch.xhtml?HIS_CD={}'
     doctor_list_url = 'http://www.guahao.gov.cn/doctorslist.xhtml?HIS_CD={}&DEP_ID={}'
     doctor_url = 'http://www.guahao.gov.cn/doc_detail.xhtml?HIS_CD={}&DEP_ID={}&DOC_ID={}'
     next_doctor_url = 'http://www.guahao.gov.cn/doctorslist.xhtml?PAG_NO={}&PAG_CNT={}' \
-                      '&TOT_REC_NUM=15&HIS_CD={}&DEP_ID={}&t={}'
+                      '&TOT_REC_NUM={}&HIS_CD={}&DEP_ID={}&t={}'
     data_source_from = '广州市统一预约挂号系统'
 
     def start_requests(self):
@@ -91,6 +93,26 @@ class GuahaoSpider(scrapy.Spider):
             else:
                 pass
 
+        # 翻页
+        has_next = response.xpath('//a[@class="pb_next"]')
+        if has_next:
+            now_page = response.xpath('////input[@name="PAG_NO"]/@value').extract_first('')
+            total_page = response.xpath('////input[@name="PAG_CNT"]/@value').extract_first('')
+            total_doctor_num = response.xpath('//input[@name="TOT_REC_NUM"]/@value').extract_first('')
+            if now_page and total_page and total_doctor_num:
+                next_page_num = int(now_page) + 1
+                total_page_num = int(total_page)
+                if next_page_num <= total_page_num:
+                    next_page_link = self.next_hospital_url.format(str(next_page_num),
+                                                                   total_page,
+                                                                   total_doctor_num,
+                                                                   timestamp())
+                    self.headers['Referer'] = response.url
+                    yield Request(next_page_link,
+                                  headers=self.headers,
+                                  callback=self.parse,
+                                  dont_filter=True)
+
     def parse_hospital_info(self, response):
         self.logger.info('>>>>>>正在抓取:医院详细信息>>>>>>')
         try:
@@ -124,6 +146,7 @@ class GuahaoSpider(scrapy.Spider):
             loader.add_value('hospital_intro', hospital_info.get('HIS_RM'))
             loader.add_value('registered_channel', self.data_source_from)
             loader.add_value('dataSource_from', self.data_source_from)
+            loader.add_value('hospital_url', response.url)
             loader.add_value('update_time', now_day())
             hospital_info_item = loader.load_item()
             yield hospital_info_item
@@ -140,13 +163,13 @@ class GuahaoSpider(scrapy.Spider):
                 dept_info = each_dept_link.xpath('ul/li/a')
                 for each_dept_info in dept_info:
                     # 获取科室信息
-                    dept_name = each_dept_info.xpath('text()').extract_first('')
+                    dept_name = each_dept_info.xpath('@title').extract_first('')
                     dept_link = each_dept_info.xpath('@onclick').extract_first('')
                     dept_link2 = each_dept_info.xpath('@href').extract_first('')
                     dept_loader = CommonLoader2(item=HospitalDepItem(), response=response)
                     dept_loader.add_value('dept_name', dept_name)
                     dept_loader.add_value('dept_type', dept_type)
-                    dept_loader.add_xpath('hospital_name', hospital_name)
+                    dept_loader.add_value('hospital_name', hospital_name)
                     dept_loader.add_value('dept_info', '')
                     dept_loader.add_value('dataSource_from', self.data_source_from)
                     dept_loader.add_value('update_time', now_day())
@@ -213,6 +236,7 @@ class GuahaoSpider(scrapy.Spider):
                     # loader.add_xpath('doctor_goodAt', '')
                     # loader.add_value('diagnosis_amt', '')
                     loader.add_value('dataSource_from', self.data_source_from)
+                    loader.add_value('crawled_url', response.url)
                     loader.add_value('update_time', now_day())
                     doctor_item = loader.load_item()
                     yield doctor_item
@@ -227,12 +251,14 @@ class GuahaoSpider(scrapy.Spider):
                     dept_id = dept_id.group(1)
                     now_page = response.xpath('//a[@class="pb_on"]/text()').extract_first('')
                     total_page = response.xpath('//a[contains(text(),"尾页")]/@pagval').extract_first('')
-                    if now_page and total_page:
+                    total_doctor_num = response.xpath('//input[@name="TOT_REC_NUM"]/@value').extract_first('')
+                    if now_page and total_page and total_doctor_num:
                         next_page_num = int(now_page) + 1
                         total_page_num = int(total_page)
                         if next_page_num <= total_page_num:
                             next_page_link = self.next_doctor_url.format(str(next_page_num),
                                                                          total_page,
+                                                                         total_doctor_num,
                                                                          hos_id,
                                                                          dept_id,
                                                                          timestamp())
@@ -240,7 +266,11 @@ class GuahaoSpider(scrapy.Spider):
                             yield Request(next_page_link,
                                           headers=self.headers,
                                           callback=self.parse_doctor_info,
-                                      dont_filter=True)
+                                          dont_filter=True,
+                                          meta={
+                                              'dept_name': dept_name,
+                                              'hospital_name': hospital_name
+                                          })
         except Exception as e:
             self.logger.error('在抓取医生信息的过程中出错了,原因是：{}'.format(repr(e)))
 
@@ -262,9 +292,9 @@ class GuahaoSpider(scrapy.Spider):
             # loader.add_value('doctor_goodAt', '')
             # loader.add_value('diagnosis_amt', '')
             loader.add_value('dataSource_from', self.data_source_from)
+            loader.add_value('crawled_url', response.url)
             loader.add_value('update_time', now_day())
             doctor_item = loader.load_item()
             yield doctor_item
         except Exception as e:
             self.logger.error('在抓取医生详细信息的过程中出错了,原因是：{}'.format(repr(e)))
-
