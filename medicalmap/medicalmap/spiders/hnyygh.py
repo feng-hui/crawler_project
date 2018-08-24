@@ -76,7 +76,7 @@ class HnyyghSpider(scrapy.Spider):
         all_hospital_links = response.xpath('//div[@id="fl_yiyuan_nr"]/div/ul/li/a['
                                             'not(contains(text(),"升级中")) and not(contains(text(),"建设中"))]')
         try:
-            for each_hospital_link in all_hospital_links[12:13]:
+            for each_hospital_link in all_hospital_links[30:39]:
                 # hospital_name = each_link.xpath('text()').extract_first('')
                 data_info = each_hospital_link.xpath('@onclick').extract_first('')
                 if data_info:
@@ -124,7 +124,8 @@ class HnyyghSpider(scrapy.Spider):
         if hospital_city:
             hospital_address = custom_remove_tags(''.join(hospital_city))
             hospital_city2 = get_city(hospital_address)
-            hospital_county = get_county2(hospital_city2, hospital_address)
+            useless_info = '中国|湖南省|湖南|{}'.format(hospital_city2)
+            hospital_county = get_county2(useless_info, hospital_address)
         else:
             hospital_county = None
         loader = CommonLoader2(item=HospitalInfoItem(), response=response)

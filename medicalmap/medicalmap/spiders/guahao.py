@@ -56,7 +56,7 @@ class GuahaoSpider(scrapy.Spider):
 
     def parse(self, response):
         all_hospital = response.xpath('//div[@class="bg_kk hospitalInfo"]')
-        for each_hospital in all_hospital[0:1]:
+        for each_hospital in all_hospital:
             # 获取医院信息
             hospital_id = each_hospital.xpath('@attr').extract_first('')
             hospital_type = each_hospital.xpath('@attr_histyp').extract_first('')
@@ -157,7 +157,7 @@ class GuahaoSpider(scrapy.Spider):
         """科室信息中转页"""
         self.logger.info('>>>>>>正在抓取科室信息中转页>>>>>>')
         all_hospital = response.xpath('//span[@class="branchHis"]')
-        for each_hospital in all_hospital[0:1]:
+        for each_hospital in all_hospital:
             each_hospital_id = each_hospital.xpath('@id').extract_first('')
             each_hospital_name = each_hospital.xpath('b/text()').extract_first('')
             if each_hospital_id and each_hospital_name:
