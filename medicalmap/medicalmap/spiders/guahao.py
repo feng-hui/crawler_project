@@ -61,26 +61,26 @@ class GuahaoSpider(scrapy.Spider):
             hospital_id = each_hospital.xpath('@attr').extract_first('')
             hospital_type = each_hospital.xpath('@attr_histyp').extract_first('')
             hospital_name = each_hospital.xpath('p[@class="hisNm"]/text()').extract_first('')
-            # if hospital_id and hospital_type == '1':
-            #     hospital_link = self.hospital_info_url.format(hospital_id)
-            #     dept_link = self.dept_url.format(hospital_id)
-            #
-            #     # 获取医院信息
-            #     self.headers['Referer'] = dept_link
-            #     yield Request(hospital_link,
-            #                   headers=self.headers,
-            #                   callback=self.parse_hospital_info,
-            #                   dont_filter=True,
-            #                   meta={'hospital_type': hospital_type})
-            #
-            #     # 获取科室信息
-            #     self.headers['Referer'] = response.url
-            #     yield Request(dept_link,
-            #                   headers=self.headers,
-            #                   callback=self.parse_hospital_dep,
-            #                   dont_filter=True,
-            #                   meta={'hospital_name': hospital_name})
-            if hospital_id and hospital_type == '0':
+            if hospital_id and hospital_type == '1':
+                hospital_link = self.hospital_info_url.format(hospital_id)
+                dept_link = self.dept_url.format(hospital_id)
+
+                # 获取医院信息
+                self.headers['Referer'] = dept_link
+                yield Request(hospital_link,
+                              headers=self.headers,
+                              callback=self.parse_hospital_info,
+                              dont_filter=True,
+                              meta={'hospital_type': hospital_type})
+
+                # 获取科室信息
+                self.headers['Referer'] = response.url
+                yield Request(dept_link,
+                              headers=self.headers,
+                              callback=self.parse_hospital_dep,
+                              dont_filter=True,
+                              meta={'hospital_name': hospital_name})
+            elif hospital_id and hospital_type == '0':
                 # hospital_link = self.hospital_info_url.format(hospital_id)
                 dept_link = self.dept_url2.format(hospital_id)
 
