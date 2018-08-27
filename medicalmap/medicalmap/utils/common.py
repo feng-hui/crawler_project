@@ -325,3 +325,8 @@ if __name__ == "__main__":
     print(clean_info('08/17(上午)'))
     print(get_city('衡阳市珠晖区湖北路36号（火车站斜对面）'))
     print(get_number('参考费用：25.00元'))
+    ss = '等级:二级合格医院区域:海淀区分类:北京大学附属医院'
+    res2 = ss.split(':')
+    print(res2)
+    res = re.search(r'(.*等|.*级|.*合格)(.*?)$', res2[1].replace('区域', ''))
+    print(res.group(2))
