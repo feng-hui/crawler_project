@@ -76,7 +76,7 @@ class HnyyghSpider(scrapy.Spider):
         all_hospital_links = response.xpath('//div[@id="fl_yiyuan_nr"]/div/ul/li/a['
                                             'not(contains(text(),"升级中")) and not(contains(text(),"建设中"))]')
         try:
-            for each_hospital_link in all_hospital_links[30:39]:
+            for each_hospital_link in all_hospital_links:
                 # hospital_name = each_link.xpath('text()').extract_first('')
                 data_info = each_hospital_link.xpath('@onclick').extract_first('')
                 if data_info:
