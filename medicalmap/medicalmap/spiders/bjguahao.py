@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 import re
-import json
 import scrapy
 from scrapy.http import Request
 from urllib.parse import urljoin
 from scrapy.loader.processors import MapCompose
-from medicalmap.items import CommonLoader2, HospitalInfoItem, HospitalDepItem, DoctorInfoItem
-from medicalmap.utils.common import now_day, custom_remove_tags, get_county2, match_special, timestamp
+from medicalmap.items import CommonLoader2, HospitalInfoItem
+from medicalmap.utils.common import now_day, custom_remove_tags
 from w3lib.html import remove_tags
 
 
