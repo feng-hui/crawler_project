@@ -119,22 +119,22 @@ class BjguahaoSpider(scrapy.Spider):
                               })
 
             # 获取科室信息
-            # all_dept_links = response.xpath('//div[@class="kfyuks_yyksbox"]')
-            # for each_dept_link in all_dept_links:
-            #     dept_type = each_dept_link.xpath('div[1]/text()').extract_first('')
-            #     dept_info = each_dept_link.xpath('div[2]/div/ul/li/a/text()').extract()
-            #     for each_dept_info in dept_info:
-            #         dept_loader = CommonLoader2(item=HospitalDepItem(), response=response)
-            #         dept_loader.add_value('dept_name', each_dept_info, MapCompose(custom_remove_tags))
-            #         dept_loader.add_value('dept_type', dept_type, MapCompose(custom_remove_tags))
-            #         dept_loader.add_xpath('hospital_name',
-            #                               '//p[@class="yygh_box_top_p"]/strong/text()',
-            #                               MapCompose(custom_remove_tags))
-            #         dept_loader.add_value('dept_info', '')
-            #         dept_loader.add_value('dataSource_from', self.data_source_from)
-            #         dept_loader.add_value('update_time', now_day())
-            #         dept_item = dept_loader.load_item()
-            #         yield dept_item
+            all_dept_links = response.xpath('//div[@class="kfyuks_yyksbox"]')
+            for each_dept_link in all_dept_links:
+                dept_type = each_dept_link.xpath('div[1]/text()').extract_first('')
+                dept_info = each_dept_link.xpath('div[2]/div/ul/li/a/text()').extract()
+                for each_dept_info in dept_info:
+                    dept_loader = CommonLoader2(item=HospitalDepItem(), response=response)
+                    dept_loader.add_value('dept_name', each_dept_info, MapCompose(custom_remove_tags))
+                    dept_loader.add_value('dept_type', dept_type, MapCompose(custom_remove_tags))
+                    dept_loader.add_xpath('hospital_name',
+                                          '//p[@class="yygh_box_top_p"]/strong/text()',
+                                          MapCompose(custom_remove_tags))
+                    dept_loader.add_value('dept_info', '')
+                    dept_loader.add_value('dataSource_from', self.data_source_from)
+                    dept_loader.add_value('update_time', now_day())
+                    dept_item = dept_loader.load_item()
+                    yield dept_item
         except Exception as e:
             self.logger.error('在抓取医院详细信息过程中出错了,原因是：{}'.format(repr(e)))
 
