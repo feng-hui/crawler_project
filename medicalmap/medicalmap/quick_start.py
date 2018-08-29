@@ -26,4 +26,4 @@ from scrapy.cmdline import execute
 # execute('scrapy crawl sxyygh'.split())  # 山西省统一预约挂号系统  2018-08-17 医院+科室+医生
 # execute('scrapy crawl guahao'.split())  # 广州市统一预约挂号系统  2018-08-22 医院+科室+医生
 # execute('scrapy crawl bjguahao'.split())  # 北京市预约挂号统一平台  2018-08-27 医院+科室+医生
-execute('scrapy crawl a39'.split())  # 39健康网  2018-08-28 医院+科室+医生
+execute('scrapy crawl 39'.split())  # 39健康网  2018-08-28 医院+科室+医生

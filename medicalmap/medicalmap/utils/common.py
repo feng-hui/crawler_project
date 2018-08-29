@@ -7,6 +7,8 @@ import re
 import time
 import datetime
 from re import S
+MUNICIPALITY = ['北京市', '上海市', '天津市', '重庆市']
+MUNICIPALITY2 = ['北京', '上海', '天津', '重庆']
 
 
 def now_year():
@@ -94,7 +96,7 @@ def match_special2(value):
     elif '_' in value:
         return value.split('_')[0].strip()
     elif ':' in value:
-        return value.split(':')[0].strip()
+        return value.split(':')[-1].strip()
     elif '/' in value:
         return value.split('/')[0].strip()
     elif '、' in value:
@@ -286,8 +288,9 @@ def get_county2(useless_info, hospital_address):
         return None
 
 
-def get_city(value):
-    value = re.sub(r'中国|湖南省|湖南', '', value)
+def get_city(useless_info, hospital_address):
+    """获取医院所在市信息"""
+    value = re.sub(r'{0}'.format(useless_info), '', hospital_address)
     if value:
         res = re.search(r'^((.*?)市)', value)
         if res:
@@ -315,18 +318,18 @@ def get_hospital_info(hospital_info, cut_start, cut_end):
         return None
 
 
-if __name__ == "__main__":
-    # print(remove_number('701'))
-    # print(now_year(), type(now_year()))
-    # print(now_day(), type(now_day()))
-    # print(get_reg_info('门诊时间：星期二:下午,星期三:上午、下午、晚班'))
-    # print(get_hospital_alias('中日友好医院（卫生部中日友好医院）'))
-    print(get_county('四川省', '成都市', '四川省成都市晋江县锦江区红星路四段14号'))
-    print(clean_info('08/17(上午)'))
-    print(get_city('衡阳市珠晖区湖北路36号（火车站斜对面）'))
-    print(get_number('参考费用：25.00元'))
-    ss = '等级:二级合格医院区域:海淀区分类:北京大学附属医院'
-    res2 = ss.split(':')
-    print(res2)
-    res = re.search(r'(.*等|.*级|.*合格)(.*?)$', res2[1].replace('区域', ''))
-    print(res.group(2))
+# if __name__ == "__main__":
+#     # print(remove_number('701'))
+#     # print(now_year(), type(now_year()))
+#     # print(now_day(), type(now_day()))
+#     # print(get_reg_info('门诊时间：星期二:下午,星期三:上午、下午、晚班'))
+#     # print(get_hospital_alias('中日友好医院（卫生部中日友好医院）'))
+#     print(get_county('四川省', '成都市', '四川省成都市晋江县锦江区红星路四段14号'))
+#     print(clean_info('08/17(上午)'))
+#     print(get_city('衡阳市珠晖区湖北路36号（火车站斜对面）'))
+#     print(get_number('参考费用：25.00元'))
+#     ss = '等级:二级合格医院区域:海淀区分类:北京大学附属医院'
+#     res2 = ss.split(':')
+#     print(res2)
+#     res = re.search(r'(.*等|.*级|.*合格)(.*?)$', res2[1].replace('区域', ''))
+#     print(res.group(2))
