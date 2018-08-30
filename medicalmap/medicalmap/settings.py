@@ -123,7 +123,7 @@ DUPEFILTER_DEBUG = True
 RETRY_TIMES = 20  # 默认值为2
 
 # RETRY_HTTP_CODES Default: [500, 502, 503, 504, 408]
-RETRY_HTTP_CODES = [500, 502, 503, 504, 408, 403, 404, 429, 302]
+RETRY_HTTP_CODES = [500, 502, 503, 504, 408, 403, 404, 429]
 
 # HTTPERROR_ALLOWED_CODES：默认为[],[Pass all responses with non-200 status codes contained in this list.]
 HTTPERROR_ALLOWED_CODES = [429, 503, 404, 302]
@@ -131,4 +131,4 @@ HTTPERROR_ALLOWED_CODES = [429, 503, 404, 302]
 # HTTPERROR_ALLOW_ALL = True  # 默认为false,[Pass all responses, regardless of its status code.]
 
 # Whether the Redirect middleware will be enabled. Default: True
-REDIRECT_ENABLED = False
+# REDIRECT_ENABLED = False

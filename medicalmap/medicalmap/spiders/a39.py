@@ -14,7 +14,7 @@ class A39Spider(scrapy.Spider):
     name = '39'
     allowed_domains = ['39.net']
     start_urls = [
-        'http://yyk.39.net/guangdong/hospitals/',
+        'http://yyk.39.net/hubei/hospitals/',
         # 'http://yyk.39.net/shanghai/hospitals/'
     ]
     headers = {
@@ -38,7 +38,7 @@ class A39Spider(scrapy.Spider):
         'AUTOTHROTTLE_TARGET_CONCURRENCY': 32.0,
         'AUTOTHROTTLE_DEBUG': True,
         # 并发请求数的控制,默认为16
-        'CONCURRENT_REQUESTS': 100
+        'CONCURRENT_REQUESTS': 128
     }
     host = 'http://yyk.39.net/'
     hospital_url = 'http://yyk.39.net/hospital/'
@@ -55,7 +55,7 @@ class A39Spider(scrapy.Spider):
         self.logger.info('>>>>>>正在抓取所有医院信息>>>>>>')
         all_hospitals = response.xpath('//div[@class="serach-left-list"]/ul/li')
         hospital_pro = response.xpath('//div[@id="yyk_header_location"]/strong/text()').extract_first('')
-        for each_hospital in all_hospitals[1:2]:
+        for each_hospital in all_hospitals[0:1]:
             each_hospital_link = each_hospital.xpath('a/@href').extract_first('')
             each_hospital_name = each_hospital.xpath('div[1]/div[1]/a/text()').extract_first('')
             if each_hospital_link:
@@ -257,7 +257,7 @@ class A39Spider(scrapy.Spider):
         self.logger.info('>>>>>>正在抓取[{}]医生信息>>>>>>'.format(hospital_name))
         try:
             all_doctors_link = response.xpath('//dt[contains(@id,"doctor")]/a/@href').extract()
-            for each_doctor_link in all_doctors_link[0:1]:
+            for each_doctor_link in all_doctors_link:
                 doctor_link = urljoin(self.host, each_doctor_link)
                 self.headers['Referer'] = response.url
                 yield Request(doctor_link,
