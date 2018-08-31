@@ -260,6 +260,7 @@ class A39Spider(scrapy.Spider):
             dept_doctor_cnt = response.meta.get('dept_doctor_cnt')
             if dept_doctor_cnt:
                 self.logger.info('[{}]-[{}]有[{}]个医生'.format(hospital_name, dept_name, dept_doctor_cnt))
+                # 其他医生
                 all_doctors_in_dept = response.xpath('//li[contains(@class,"labdoctor")]')
                 dept_doctor_cnt2 = str(len(all_doctors_in_dept))
                 self.logger.info('[{}]-[{}]有[{}]个医生'.format(hospital_name, dept_name, dept_doctor_cnt2))
@@ -279,6 +280,8 @@ class A39Spider(scrapy.Spider):
                                           'doctor_name': doctor_name,
                                           'doctor_level': doctor_level
                                       })
+            # 推荐专家
+            
         except Exception as e:
             self.logger.error('在抓取医院科室详细信息过程中出错了,原因是：{}'.format(repr(e)))
 

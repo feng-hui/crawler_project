@@ -156,10 +156,5 @@ class CustomRedirectMiddleWare(RedirectMiddleware):
             redirected = request.replace(url=redirected_url)
             return self._redirect(redirected, request, spider, response.status)
 
-        # if response.status == 302:
-        #     redirected_url = request.url
-        #     redirected = self._redirect_request_using_get(request, redirected_url)
-        #     return self._redirect(redirected, request, spider, response.status)
-
         redirected = self._redirect_request_using_get(request, redirected_url)
         return self._redirect(redirected, request, spider, response.status)

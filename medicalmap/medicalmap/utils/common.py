@@ -107,6 +107,42 @@ def match_special2(value):
         return value
 
 
+def get_county2(useless_info, hospital_address):
+    """
+    :param useless_info
+    :param h_city: the name of the city
+    :param hospital_address: the address og hospital
+    :return: hospital county
+    """
+    res = re.sub(r'{0}'.format(useless_info), '', hospital_address)
+    if res:
+        try:
+            county = re.search(r'^((.*?)县)|^((.*?)区)', res)
+            if county:
+                return county.group(0)
+            else:
+                return None
+        except Exception as e:
+            print('获取三级地址的时候出错了,原因是:{}'.format(repr(e)))
+            return None
+    else:
+        return None
+
+
+def get_city(useless_info, hospital_address):
+    """获取医院所在市信息"""
+    value = re.sub(r'{0}'.format(useless_info), '', hospital_address)
+    if value:
+        res = re.search(r'^((.*?)市)', value)
+        if res:
+            return res.group(0)
+        else:
+            return None
+    else:
+        return None
+
+
+# 非通用系列
 def get_doctor_intro(value):
     """
     返回医生简介和医生擅长的信息,
@@ -261,41 +297,6 @@ def get_county(h_pro, h_city, hospital_address):
                 return None
         except Exception as e:
             print('获取三级地址的时候出错了,原因是:{}'.format(repr(e)))
-            return None
-    else:
-        return None
-
-
-def get_county2(useless_info, hospital_address):
-    """
-    :param useless_info
-    :param h_city: the name of the city
-    :param hospital_address: the address og hospital
-    :return: hospital county
-    """
-    res = re.sub(r'{0}'.format(useless_info), '', hospital_address)
-    if res:
-        try:
-            county = re.search(r'^((.*?)县)|^((.*?)区)', res)
-            if county:
-                return county.group(0)
-            else:
-                return None
-        except Exception as e:
-            print('获取三级地址的时候出错了,原因是:{}'.format(repr(e)))
-            return None
-    else:
-        return None
-
-
-def get_city(useless_info, hospital_address):
-    """获取医院所在市信息"""
-    value = re.sub(r'{0}'.format(useless_info), '', hospital_address)
-    if value:
-        res = re.search(r'^((.*?)市)', value)
-        if res:
-            return res.group(0)
-        else:
             return None
     else:
         return None
