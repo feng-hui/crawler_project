@@ -7,14 +7,14 @@ from w3lib.html import remove_tags
 from scrapy.loader.processors import MapCompose
 from medicalmap.items import CommonLoader2, HospitalInfoItem, HospitalDepItem, DoctorInfoItem, HospitalAliasItem
 from medicalmap.utils.common import now_day, custom_remove_tags, get_county2, match_special2, get_city, \
-    MUNICIPALITY2, match_special
+    MUNICIPALITY2, match_special, clean_info2
 
 
 class A39Spider(scrapy.Spider):
     name = '39'
     allowed_domains = ['39.net']
     start_urls = [
-        'http://yyk.39.net/hubei/hospitals/',
+        'http://yyk.39.net/jiangsu/hospitals/',
         # 'http://yyk.39.net/shanghai/hospitals/'
     ]
     headers = {
@@ -88,16 +88,16 @@ class A39Spider(scrapy.Spider):
                                       'hospital_name': each_hospital_name
                                   })
 
-            # 获取医生信息
-            doctors_link = each_hospital.xpath('div[@class="as"]/a[contains(text(),'
-                                               '"推荐专家")]/@href').extract_first('')
-            if doctors_link:
-                self.headers['Referer'] = response.url
-                yield Request(urljoin(self.host, doctors_link),
-                              headers=self.headers,
-                              callback=self.parse_doctor_info,
-                              dont_filter=True,
-                              meta={'hospital_name': each_hospital_name})
+            # 获取医生信息,入口:医院列表页面[推荐专家],存在的问题:部分医生没有科室
+            # doctors_link = each_hospital.xpath('div[@class="as"]/a[contains(text(),'
+            #                                    '"推荐专家")]/@href').extract_first('')
+            # if doctors_link:
+            #     self.headers['Referer'] = response.url
+            #     yield Request(urljoin(self.host, doctors_link),
+            #                   headers=self.headers,
+            #                   callback=self.parse_doctor_info,
+            #                   dont_filter=True,
+            #                   meta={'hospital_name': each_hospital_name})
 
         # 翻页
         # has_next = response.xpath('//div[@class="next"]/a[contains(text(),"下一页")]/@href').extract_first('')
@@ -213,10 +213,11 @@ class A39Spider(scrapy.Spider):
             all_dept_links = response.xpath('//div[@class="lab-list"]/div')
             for each_dept_link in all_dept_links:
                 dept_type = each_dept_link.xpath('div/a/text()').extract_first('')
-                dept_info = each_dept_link.xpath('ul/li/a')
+                dept_info = each_dept_link.xpath('ul/li')
                 for each_dept_info in dept_info:
-                    dept_name = each_dept_info.xpath('text()').extract_first('')
-                    dept_detail_link = each_dept_info.xpath('@href').extract_first('')
+                    dept_name = each_dept_info.xpath('a/text()').extract_first('')
+                    dept_doctor_cnt = each_dept_info.xpath('span/b[1]/text()').extract_first('')
+                    dept_detail_link = each_dept_info.xpath('a/@href').extract_first('')
                     dept_loader = CommonLoader2(item=HospitalDepItem(), response=response)
                     dept_loader.add_value('dept_name', dept_name, MapCompose(custom_remove_tags))
                     dept_loader.add_value('dept_type', dept_type, MapCompose(custom_remove_tags))
@@ -234,21 +235,50 @@ class A39Spider(scrapy.Spider):
                                       callback=self.parse_hospital_dep_detail,
                                       meta={
                                           'dept_name': dept_name,
-                                          'dept_loader': dept_loader
+                                          'dept_loader': dept_loader,
+                                          'dept_doctor_cnt': dept_doctor_cnt,
+                                          'hospital_name': hospital_name
                                       },
                                       dont_filter=True)
         except Exception as e:
             self.logger.error('在抓取医院科室信息过程中出错了,原因是：{}'.format(repr(e)))
 
     def parse_hospital_dep_detail(self, response):
-        self.logger.info('>>>>>>正在抓取:科室详细信息>>>>>>')
+        hospital_name = response.meta.get('hospital_name')
+        self.logger.info('>>>>>>正在抓取:[{}]科室详细信息>>>>>>'.format(hospital_name))
         try:
+            # 获取科室详细信息
             dept_loader = response.meta.get('dept_loader')
-            dept_info = ''.join(response.xpath('//div[@class="sum-text"]').extract()).replace('暂无相关信息', '')
-            dept_loader.add_value('dept_info', dept_info, MapCompose(remove_tags, custom_remove_tags))
+            dept_name = response.meta.get('dept_name')
+            dept_info = ''.join(response.xpath('//div[@class="sum-text"]').extract())
+            dept_loader.add_value('dept_info', dept_info, MapCompose(remove_tags, custom_remove_tags, clean_info2))
             dept_loader.add_value('crawled_url', response.url)
             dept_item = dept_loader.load_item()
             yield dept_item
+
+            # 获取医生信息
+            dept_doctor_cnt = response.meta.get('dept_doctor_cnt')
+            if dept_doctor_cnt:
+                self.logger.info('[{}]-[{}]有[{}]个医生'.format(hospital_name, dept_name, dept_doctor_cnt))
+                all_doctors_in_dept = response.xpath('//li[contains(@class,"labdoctor")]')
+                dept_doctor_cnt2 = str(len(all_doctors_in_dept))
+                self.logger.info('[{}]-[{}]有[{}]个医生'.format(hospital_name, dept_name, dept_doctor_cnt2))
+                for each_doctor in all_doctors_in_dept:
+                    doctor_name = each_doctor.xpath('strong/a/text()').extract_first('')
+                    doctor_level = each_doctor.xpath('cite/text()').extract_first('')
+                    doctor_link = each_doctor.xpath('strong/a/@href').extract_first('')
+                    if doctor_name and doctor_link:
+                        self.headers['Referer'] = response.url
+                        yield Request(urljoin(self.host, doctor_link),
+                                      headers=self.headers,
+                                      callback=self.parse_doctor_info_detail,
+                                      dont_filter=True,
+                                      meta={
+                                          'hospital_name': hospital_name,
+                                          'dept_name': dept_name,
+                                          'doctor_name': doctor_name,
+                                          'doctor_level': doctor_level
+                                      })
         except Exception as e:
             self.logger.error('在抓取医院科室详细信息过程中出错了,原因是：{}'.format(repr(e)))
 
@@ -282,36 +312,26 @@ class A39Spider(scrapy.Spider):
             self.logger.error('在抓取医生信息的过程中出错了,原因是：{}'.format(repr(e)))
 
     def parse_doctor_info_detail(self, response):
-        self.logger.info('>>>>>>正在抓取医生详细信息>>>>>>')
+        hospital_name = response.meta.get('hospital_name')
+        self.logger.info('>>>>>>正在抓取[{}]医生详细信息>>>>>>'.format(hospital_name))
         try:
-            hospital_name = response.meta.get('hospital_name')
-            d_n = response.xpath('//dd[contains(text(),"出诊地点")]/a[2]/text()').extract_first('')
-            dept_name = d_n if d_n else '默认其他科室'
+            doctor_name = response.meta.get('doctor_name')
+            dept_name = response.meta.get('dept_name')
+            doctor_level = response.meta.get('doctor_level')
             doc_gt1 = remove_tags(''.join(response.xpath('//div[@class="intro_more"]').extract()))
-            doc_gt2 = response.xpath('//dd[contains(text(),"擅长领域")]/'
-                                     'text()').extract_first('').replace('暂无相应资料。', '')
+            doc_gt2 = response.xpath('//dd[contains(text(),"擅长领域")]/text()').extract_first('')
             doctor_good_at = doc_gt1.replace('[关闭]', '') if doc_gt1 else doc_gt2
             loader = CommonLoader2(item=DoctorInfoItem(), response=response)
-            loader.add_xpath('doctor_name',
-                             '//div[@class="doc-detail doc-wrap clearfix"]/dl[1]/dt[1]/b/text()',
-                             MapCompose(custom_remove_tags))
-            # loader.add_xpath('dept_name',
-            #                  '//dd[contains(text(),"出诊地点")]/a[2]/text()',
-            #                  MapCompose(custom_remove_tags))
-            # loader.add_xpath('hospital_name',
-            #                  '//dd[contains(text(),"出诊地点")]/a[1]/text()',
-            #                  MapCompose(custom_remove_tags))
+            loader.add_value('doctor_name', doctor_name, MapCompose(custom_remove_tags))
             loader.add_value('dept_name', dept_name, MapCompose(custom_remove_tags))
             loader.add_value('hospital_name', hospital_name, MapCompose(custom_remove_tags))
-            loader.add_xpath('doctor_level',
-                             '//div[@class="doc-detail doc-wrap clearfix"]/dl[1]/dt[1]/span/i[1]/text()',
-                             MapCompose(custom_remove_tags))
+            loader.add_value('doctor_level', doctor_level, MapCompose(custom_remove_tags))
             loader.add_xpath('doctor_intro',
                              '//div[@class="hos-guide-box1"]',
                              MapCompose(remove_tags, custom_remove_tags))
             loader.add_value('doctor_goodAt',
                              doctor_good_at,
-                             MapCompose(custom_remove_tags, match_special))
+                             MapCompose(custom_remove_tags, match_special, clean_info2))
             loader.add_value('dataSource_from', self.data_source_from)
             loader.add_value('crawled_url', response.url)
             loader.add_value('update_time', now_day())
