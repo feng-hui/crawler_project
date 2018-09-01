@@ -100,11 +100,11 @@ class A39Spider(scrapy.Spider):
             #                   meta={'hospital_name': each_hospital_name})
 
         # 翻页
-        # has_next = response.xpath('//div[@class="next"]/a[contains(text(),"下一页")]/@href').extract_first('')
-        # if has_next:
-        #     next_page_link = urljoin(self.host, has_next)
-        #     self.headers['Referer'] = response.url
-        #     yield Request(next_page_link, headers=self.headers, callback=self.parse)
+        has_next = response.xpath('//div[@class="next"]/a[contains(text(),"下一页")]/@href').extract_first('')
+        if has_next:
+            next_page_link = urljoin(self.host, has_next)
+            self.headers['Referer'] = response.url
+            yield Request(next_page_link, headers=self.headers, callback=self.parse)
 
     def parse_hospital_info(self, response):
         hospital_name = response.meta.get('hospital_name')
