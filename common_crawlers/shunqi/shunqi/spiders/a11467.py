@@ -5,7 +5,7 @@ from scrapy.http import Request
 from shunqi.items import ShunqiItem, ShunQiItemLoader
 from urllib.parse import urljoin
 from shunqi.type_id import TYPE_ID_LIST
-from scrapy.exceptions import CloseSpider
+# from scrapy.exceptions import CloseSpider
 
 
 class A11467Spider(scrapy.Spider):
@@ -44,9 +44,9 @@ class A11467Spider(scrapy.Spider):
     def parse_detail(self, response):
         source_code = response.body.decode()
         self.log('正在抓取的企业最终页的链接为：{}'.format(response.url))
-        if '采集大神饶命' in source_code:
-            self.log('该ip已经被反爬……')
-            # raise CloseSpider('爬取频率过高,出现反爬,请降低频率或使用代理ip……')
+        # if '采集大神饶命' in source_code:
+        #     self.log('该ip已经被反爬……')
+        #     # raise CloseSpider('爬取频率过高,出现反爬,请降低频率或使用代理ip……')
         loader = ShunQiItemLoader(item=ShunqiItem(), response=response)
         loader.add_xpath('name', '//div[@id="logo"]/h1/text()')
         loader.add_xpath('address', '//dl[@class="codl"]/dd[1]/text()')
