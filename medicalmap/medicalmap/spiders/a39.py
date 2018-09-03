@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 import scrapy
+from scrapy import signals
 from scrapy.http import Request
 from urllib.parse import urljoin
 from w3lib.html import remove_tags
@@ -14,7 +15,7 @@ class A39Spider(scrapy.Spider):
     name = '39'
     allowed_domains = ['39.net']
     start_urls = [
-        'http://yyk.39.net/jiangsu/hospitals/',
+        'http://yyk.39.net/beijing/hospitals/',
         # 'http://yyk.39.net/shanghai/hospitals/'
     ]
     headers = {
@@ -35,10 +36,10 @@ class A39Spider(scrapy.Spider):
         'AUTOTHROTTLE_ENABLED': True,
         'AUTOTHROTTLE_START_DELAY': 1,
         'AUTOTHROTTLE_MAX_DELAY': 3,
-        'AUTOTHROTTLE_TARGET_CONCURRENCY': 32.0,
+        'AUTOTHROTTLE_TARGET_CONCURRENCY': 64.0,
         'AUTOTHROTTLE_DEBUG': True,
         # 并发请求数的控制,默认为16
-        'CONCURRENT_REQUESTS': 128
+        'CONCURRENT_REQUESTS': 200
     }
     host = 'http://yyk.39.net/'
     hospital_url = 'http://yyk.39.net/hospital/'
@@ -46,6 +47,8 @@ class A39Spider(scrapy.Spider):
     dept_postfix = '_labs.html'
     next_doctor_url = 'http://yyk.39.net/hospital/{}.html?pageNo={}'
     data_source_from = '39健康网'
+    dc_cnt_from_dept = 0
+    dc_cnt_from_dept_detail = 0
 
     def start_requests(self):
         for each_area_url in self.start_urls:
@@ -259,10 +262,15 @@ class A39Spider(scrapy.Spider):
             # 获取医生信息
             dept_doctor_cnt = response.meta.get('dept_doctor_cnt')
             if dept_doctor_cnt:
+                self.dc_cnt_from_dept += int(dept_doctor_cnt)
                 self.logger.info('[{}]-[{}]有[{}]个医生'.format(hospital_name, dept_name, dept_doctor_cnt))
                 # 其他医生
                 all_doctors_in_dept = response.xpath('//li[contains(@class,"labdoctor")]')
-                dept_doctor_cnt2 = str(len(all_doctors_in_dept))
+                all_doctors_in_dept2 = response.xpath('//li[contains(@class,"labdoctor")]/strong/a/@href|'
+                                                      '//ul[@class="exp-ys"]/li/a/@href').extract()
+                dept_doctor_cnt2 = str(len(set(all_doctors_in_dept2)))
+                self.dc_cnt_from_dept_detail += int(dept_doctor_cnt2)
+                self.crawler.signals.connect(self.output_statistics, signals.spider_closed)
                 self.logger.info('[{}]-[{}]有[{}]个医生'.format(hospital_name, dept_name, dept_doctor_cnt2))
                 for each_doctor in all_doctors_in_dept:
                     doctor_name = each_doctor.xpath('strong/a/text()').extract_first('')
@@ -281,7 +289,27 @@ class A39Spider(scrapy.Spider):
                                           'doctor_level': doctor_level
                                       })
             # 推荐专家
-            
+            expert_recommend = response.xpath('//ul[@class="exp-ys"]/li')
+            for each_expert in expert_recommend:
+                each_doctor_link = each_expert.xpath('a/@href').extract_first('')
+                if each_doctor_link:
+                    recommend_expert = response.xpath('//li[contains(@class,"labdoctor")]/strong/a[contains'
+                                                      '(@href,"{}")]/@href'.format(each_doctor_link)).extract_first('')
+                    if not recommend_expert:
+                        each_doctor_name = each_expert.xpath('div/strong/a/text()').extract_first('')
+                        each_doctor_level = each_expert.xpath('div/cite/text()').extract_first('')
+                        if each_doctor_name and each_doctor_name:
+                            self.headers['Referer'] = response.url
+                            yield Request(urljoin(self.host, each_doctor_link),
+                                          headers=self.headers,
+                                          callback=self.parse_doctor_info_detail,
+                                          dont_filter=True,
+                                          meta={
+                                              'hospital_name': hospital_name,
+                                              'dept_name': dept_name,
+                                              'doctor_name': each_doctor_name,
+                                              'doctor_level': each_doctor_level.strip().split(' ')[0]
+                                          })
         except Exception as e:
             self.logger.error('在抓取医院科室详细信息过程中出错了,原因是：{}'.format(repr(e)))
 
@@ -342,3 +370,8 @@ class A39Spider(scrapy.Spider):
             yield doctor_item
         except Exception as e:
             self.logger.error('在抓取医生详细信息的过程中出错了,原因是：{}'.format(repr(e)))
+
+    def output_statistics(self):
+        """输出统计信息"""
+        self.crawler.stats.set_value('dc_cnt_from_dept/count', self.dc_cnt_from_dept)
+        self.crawler.stats.set_value('dc_cnt_from_dept_detail/count', self.dc_cnt_from_dept_detail)
