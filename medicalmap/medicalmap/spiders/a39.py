@@ -12,7 +12,7 @@ from medicalmap.utils.common import now_day, custom_remove_tags, get_county2, ma
 
 
 class A39Spider(scrapy.Spider):
-    name = '39' 
+    name = '39'
     allowed_domains = ['39.net']
     start_urls = [
         'http://yyk.39.net/beijing/hospitals/',
