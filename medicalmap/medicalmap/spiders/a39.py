@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 import scrapy
-from scrapy import signals
+# from scrapy import signals
 from scrapy.http import Request
 from urllib.parse import urljoin
 from w3lib.html import remove_tags
@@ -15,8 +15,10 @@ class A39Spider(scrapy.Spider):
     name = '39'
     allowed_domains = ['39.net']
     start_urls = [
-        'http://yyk.39.net/beijing/hospitals/',
-        # 'http://yyk.39.net/shanghai/hospitals/'
+        # 'http://yyk.39.net/beijing/hospitals/',
+        'http://yyk.39.net/shanghai/hospitals/',
+        'http://yyk.39.net/tianjin/hospitals/',
+        'http://yyk.39.net/chongqing/hospitals/'
     ]
     headers = {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
@@ -36,10 +38,10 @@ class A39Spider(scrapy.Spider):
         'AUTOTHROTTLE_ENABLED': True,
         'AUTOTHROTTLE_START_DELAY': 1,
         'AUTOTHROTTLE_MAX_DELAY': 3,
-        'AUTOTHROTTLE_TARGET_CONCURRENCY': 64.0,
+        'AUTOTHROTTLE_TARGET_CONCURRENCY': 128.0,
         'AUTOTHROTTLE_DEBUG': True,
         # 并发请求数的控制,默认为16
-        'CONCURRENT_REQUESTS': 200
+        'CONCURRENT_REQUESTS': 1000
     }
     host = 'http://yyk.39.net/'
     hospital_url = 'http://yyk.39.net/hospital/'
@@ -58,7 +60,7 @@ class A39Spider(scrapy.Spider):
         self.logger.info('>>>>>>正在抓取所有医院信息>>>>>>')
         all_hospitals = response.xpath('//div[@class="serach-left-list"]/ul/li')
         hospital_pro = response.xpath('//div[@id="yyk_header_location"]/strong/text()').extract_first('')
-        for each_hospital in all_hospitals[0:1]:
+        for each_hospital in all_hospitals:
             each_hospital_link = each_hospital.xpath('a/@href').extract_first('')
             each_hospital_name = each_hospital.xpath('div[1]/div[1]/a/text()').extract_first('')
             if each_hospital_link:
@@ -262,16 +264,17 @@ class A39Spider(scrapy.Spider):
             # 获取医生信息
             dept_doctor_cnt = response.meta.get('dept_doctor_cnt')
             if dept_doctor_cnt:
+                self.logger.info('>>>>>>正在抓取:[{}]医生信息>>>>>>'.format(hospital_name))
                 self.dc_cnt_from_dept += int(dept_doctor_cnt)
-                self.logger.info('[{}]-[{}]有[{}]个医生'.format(hospital_name, dept_name, dept_doctor_cnt))
+                # self.logger.info('[{}]-[{}]有[{}]个医生'.format(hospital_name, dept_name, dept_doctor_cnt))
                 # 其他医生
                 all_doctors_in_dept = response.xpath('//li[contains(@class,"labdoctor")]')
                 all_doctors_in_dept2 = response.xpath('//li[contains(@class,"labdoctor")]/strong/a/@href|'
                                                       '//ul[@class="exp-ys"]/li/a/@href').extract()
                 dept_doctor_cnt2 = str(len(set(all_doctors_in_dept2)))
                 self.dc_cnt_from_dept_detail += int(dept_doctor_cnt2)
-                self.crawler.signals.connect(self.output_statistics, signals.spider_closed)
-                self.logger.info('[{}]-[{}]有[{}]个医生'.format(hospital_name, dept_name, dept_doctor_cnt2))
+                # self.crawler.signals.connect(self.output_statistics, signals.spider_closed)
+                # self.logger.info('[{}]-[{}]有[{}]个医生'.format(hospital_name, dept_name, dept_doctor_cnt2))
                 for each_doctor in all_doctors_in_dept:
                     doctor_name = each_doctor.xpath('strong/a/text()').extract_first('')
                     doctor_level = each_doctor.xpath('cite/text()').extract_first('')

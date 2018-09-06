@@ -54,7 +54,7 @@ COOKIES_ENABLED = False
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
-   # 'medicalmap.middlewares.ProxyMiddleWare': 543,
+   'medicalmap.middlewares.ProxyMiddleWare': 543,
    'scrapy.downloadermiddlewares.redirect.RedirectMiddleware': None,
    'medicalmap.middlewares.CustomRedirectMiddleWare': 600,
 }
