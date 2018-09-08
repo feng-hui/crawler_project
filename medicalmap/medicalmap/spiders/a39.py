@@ -15,7 +15,7 @@ class A39Spider(scrapy.Spider):
     name = '39'
     allowed_domains = ['39.net']
     start_urls = [
-        # 'http://yyk.39.net/beijing/hospitals/',
+        'http://yyk.39.net/beijing/hospitals/',
         'http://yyk.39.net/shanghai/hospitals/',
         'http://yyk.39.net/tianjin/hospitals/',
         'http://yyk.39.net/chongqing/hospitals/'
