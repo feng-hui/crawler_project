@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
-import re
 import json
 import scrapy
-from scrapy.http import Request, FormRequest
 from urllib.parse import urljoin
 from w3lib.html import remove_tags
+from scrapy.http import Request, FormRequest
 from scrapy.loader.processors import MapCompose
-from medicalmap.items import CommonLoader2, HospitalInfoItem, HospitalDepItem, DoctorInfoItem, HospitalAliasItem
-from medicalmap.utils.common import now_day, custom_remove_tags, get_county2, match_special2, get_city, \
-    MUNICIPALITY2, match_special, clean_info2
+from medicalmap.utils.common import now_day, custom_remove_tags, get_county2, match_special, clean_info2
+from medicalmap.items import CommonLoader2, HospitalInfoItem, HospitalDepItem, DoctorInfoItem, DoctorRegInfoItem
 
 
 class ZsyjjkwSpider(scrapy.Spider):
@@ -30,13 +28,13 @@ class ZsyjjkwSpider(scrapy.Spider):
     }
     custom_settings = {
         # 延迟设置
-        # 'DOWNLOAD_DELAY': 5,
+        # 'DOWNLOAD_DELAY': 1,
         # 自动限速设置
         'AUTOTHROTTLE_ENABLED': True,
         'AUTOTHROTTLE_START_DELAY': 1,
         'AUTOTHROTTLE_MAX_DELAY': 3,
         'AUTOTHROTTLE_TARGET_CONCURRENCY': 32.0,
-        'AUTOTHROTTLE_DEBUG': True,
+        'AUTOTHROTTLE_DEBUG': False,
         # 并发请求数的控制,默认为16
         'CONCURRENT_REQUESTS': 16
     }
@@ -110,7 +108,7 @@ class ZsyjjkwSpider(scrapy.Spider):
                 dept_detail_link = each_dept_link.xpath('@href').extract_first('')
                 dept_loader = CommonLoader2(item=HospitalDepItem(), response=response)
                 dept_loader.add_value('dept_name', dept_name, MapCompose(custom_remove_tags))
-                dept_loader.add_xpath('hospital_name', hospital_name, MapCompose(custom_remove_tags))
+                dept_loader.add_value('hospital_name', hospital_name, MapCompose(custom_remove_tags))
                 dept_loader.add_value('dataSource_from', self.data_source_from)
                 dept_loader.add_value('update_time', now_day())
 
@@ -157,27 +155,60 @@ class ZsyjjkwSpider(scrapy.Spider):
         hospital_name = response.meta.get('hospital_name')
         self.logger.info('>>>>>>正在抓取[{}]医生详细信息>>>>>>'.format(hospital_name))
         try:
-            doctor_name = response.meta.get('doctor_name')
-            dept_name = response.meta.get('dept_name')
-            doctor_level = response.meta.get('doctor_level')
-            doc_gt1 = remove_tags(''.join(response.xpath('//div[@class="intro_more"]').extract()))
-            doc_gt2 = response.xpath('//dd[contains(text(),"擅长领域")]/text()').extract_first('')
-            doctor_good_at = doc_gt1.replace('[关闭]', '') if doc_gt1 else doc_gt2
+            # 获取医生信息
             loader = CommonLoader2(item=DoctorInfoItem(), response=response)
-            loader.add_value('doctor_name', doctor_name, MapCompose(custom_remove_tags))
-            loader.add_value('dept_name', dept_name, MapCompose(custom_remove_tags))
-            loader.add_value('hospital_name', hospital_name, MapCompose(custom_remove_tags))
-            loader.add_value('doctor_level', doctor_level, MapCompose(custom_remove_tags))
+            loader.add_xpath('doctor_name',
+                             '//td/b[contains(text(),"姓名")]/ancestor::td[1]/text()',
+                             MapCompose(custom_remove_tags))
+            loader.add_xpath('dept_name',
+                             '//td/b[contains(text(),"科室")]/ancestor::td[1]/text()',
+                             MapCompose(custom_remove_tags))
+            loader.add_xpath('hospital_name',
+                             '//li[@class="text-09"]/a[last()]/text()',
+                             MapCompose(custom_remove_tags))
+            loader.add_xpath('doctor_level',
+                             '//td/b[contains(text(),"职称")]/ancestor::td[1]/text()',
+                             MapCompose(custom_remove_tags))
             loader.add_xpath('doctor_intro',
-                             '//div[@class="hos-guide-box1"]',
-                             MapCompose(remove_tags, custom_remove_tags))
-            loader.add_value('doctor_goodAt',
-                             doctor_good_at,
-                             MapCompose(custom_remove_tags, match_special, clean_info2))
+                             '//li[@class="li-01"]',
+                             MapCompose(remove_tags, custom_remove_tags, match_special, clean_info2))
             loader.add_value('dataSource_from', self.data_source_from)
             loader.add_value('crawled_url', response.url)
             loader.add_value('update_time', now_day())
             doctor_item = loader.load_item()
             yield doctor_item
+
+            # 获取医生排班信息
+            self.logger.info('>>>>>>正在抓取[{}]医生排班信息>>>>>>'.format(hospital_name))
+            has_doctor_scheduling = response.xpath('//div[@id="message"][contains(text(),"暂无可预约的排班")]')
+            if not has_doctor_scheduling:
+                doctor_scheduling_tr = response.xpath('//div[@id="message"]/following::table[1]/'
+                                                      'tr[position()>1]')
+                all_scheduling_date = response.xpath('//div[@id="message"]/following::table[1]/tr[1]'
+                                                     '/td[position()>1]').extract()
+                scheduling_date_list = custom_remove_tags(remove_tags(','.join(all_scheduling_date))).split(',')
+                for each_td in doctor_scheduling_tr:
+                    scheduling_time = each_td.xpath('td[1]/text()').extract_first('')
+                    scheduling_info = each_td.xpath('td[position()>1]')
+                    for index, each_s_i in enumerate(scheduling_info):
+                        has_scheduling = each_s_i.xpath('div')
+                        if has_scheduling:
+                            each_scheduling_date = scheduling_date_list[index][0:3]
+                            reg_info = '{0}{1}'.format(each_scheduling_date, scheduling_time)
+                            reg_loader = CommonLoader2(item=DoctorRegInfoItem(), response=response)
+                            reg_loader.add_xpath('doctor_name',
+                                                 '//td/b[contains(text(),"姓名")]/ancestor::td[1]/text()',
+                                                 MapCompose(custom_remove_tags))
+                            reg_loader.add_xpath('dept_name',
+                                                 '//td/b[contains(text(),"科室")]/ancestor::td[1]/text()',
+                                                 MapCompose(custom_remove_tags))
+                            reg_loader.add_xpath('hospital_name',
+                                                 '//li[@class="text-09"]/a[last()]/text()',
+                                                 MapCompose(custom_remove_tags))
+                            reg_loader.add_value('reg_info', reg_info)
+                            reg_loader.add_value('dataSource_from', self.data_source_from)
+                            reg_loader.add_value('update_time', now_day())
+                            reg_item = reg_loader.load_item()
+                            yield reg_item
         except Exception as e:
             self.logger.error('在抓取医生详细信息的过程中出错了,原因是：{}'.format(repr(e)))
