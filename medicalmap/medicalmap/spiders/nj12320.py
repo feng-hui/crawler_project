@@ -7,9 +7,8 @@ from scrapy.http import Request, FormRequest
 from urllib.parse import urljoin
 from w3lib.html import remove_tags
 from scrapy.loader.processors import MapCompose
-from medicalmap.utils.common import now_day, now_year, custom_remove_tags, get_county2,\
-    match_special2, clean_info, clean_info2
 from medicalmap.items import CommonLoader2, HospitalInfoItem, HospitalDepItem, DoctorInfoItem, DoctorRegInfoItem
+from medicalmap.utils.common import now_day, custom_remove_tags, get_county2, match_special2, clean_info, clean_info2
 
 
 class Nj12320Spider(scrapy.Spider):
@@ -46,6 +45,7 @@ class Nj12320Spider(scrapy.Spider):
                             'depid=&principalship=&docname=&depName=&hoscode={}&stdDepid=&parentStdDepid=' \
                             '&changeFlay=0&currentpage={}&disid=&bigCode=&allDoctors=0&currentWeekCount=1' \
                             '&schcode=&hosCfgCode=&__multiselect_haveNum=&selectPage={}'
+    data_source_from = '南京市预约挂号服务平台'
 
     def start_requests(self):
         for each_url in self.start_urls:
@@ -113,7 +113,7 @@ class Nj12320Spider(scrapy.Spider):
             # 获取区或县
             hospital_address = response.xpath('//div[@class="yy_js clearfix"]/div/dl/dd[1]/text()').extract_first('')
             if hospital_address:
-                hospital_county = get_county2('', hospital_address)
+                hospital_county = get_county2('中国|江苏省|江苏|南京市|南京', hospital_address)
             else:
                 hospital_county = None
 
@@ -133,8 +133,9 @@ class Nj12320Spider(scrapy.Spider):
                              '//div[@class="yy_js clearfix"]/div/dl/dd[2]/text()',
                              MapCompose(custom_remove_tags))
             loader.add_xpath('hospital_intro', '//dd[@id="wrap"]', MapCompose(remove_tags, custom_remove_tags))
-            loader.add_value('registered_channel', '南京市预约挂号服务平台')
-            loader.add_value('dataSource_from', '南京市预约挂号服务平台')
+            loader.add_value('registered_channel', self.data_source_from)
+            loader.add_value('dataSource_from', self.data_source_from)
+            loader.add_value('hospital_url', response.url)
             loader.add_value('update_time', now_day())
             hospital_info_item = loader.load_item()
             yield hospital_info_item
@@ -155,6 +156,8 @@ class Nj12320Spider(scrapy.Spider):
         loader.add_xpath('dept_name', '//div[@class="zrys"]/p/strong/text()', MapCompose(custom_remove_tags))
         loader.add_xpath('hospital_name', '//div[@class="yy_til"]/h2/text()', MapCompose(custom_remove_tags))
         loader.add_xpath('dept_info', '//div[@class="zrys"]/dl/dd', MapCompose(remove_tags, custom_remove_tags))
+        loader.add_value('dataSource_from', self.data_source_from)
+        loader.add_value('crawled_url', response.url)
         loader.add_value('update_time', now_day())
         dept_item = loader.load_item()
         yield dept_item
@@ -226,6 +229,8 @@ class Nj12320Spider(scrapy.Spider):
                              '//div[@class="zrys"]/dl/dd',
                              MapCompose(remove_tags, custom_remove_tags, clean_info2))
             loader.add_value('diagnosis_amt', diagnosis_amt)
+            loader.add_value('dataSource_from', self.data_source_from)
+            loader.add_value('crawled_url', response.url)
             loader.add_value('update_time', now_day())
             doctor_item = loader.load_item()
             yield doctor_item
@@ -240,7 +245,9 @@ class Nj12320Spider(scrapy.Spider):
             #         reg_loader = CommonLoader2(item=DoctorRegInfoItem(), response=response)
             #         reg_loader.add_value('doctor_name', doctor_name, MapCompose(custom_remove_tags))
             #         reg_loader.add_value('dept_name', dept_name, MapCompose(custom_remove_tags))
-            #         reg_loader.add_xpath('hospital_name', '//div[@class="yy_til"]/h2/text()', MapCompose(custom_remove_tags))
+            #         reg_loader.add_xpath('hospital_name',
+            #                              '//div[@class="yy_til"]/h2/text()',
+            #                              MapCompose(custom_remove_tags))
             #         reg_loader.add_value('reg_info', reg_info, MapCompose(custom_remove_tags))
             #         reg_loader.add_value('update_time', now_day())
             #         reg_item = reg_loader.load_item()
