@@ -63,8 +63,8 @@ def clean_info(value):
 
 def clean_info2(value):
     """去掉多余字样"""
-    return re.sub('暂无介绍内容|暂无介绍|暂无简介|暂无相关信息|暂无科室介绍信息|'
-                  '暂无科室介绍|暂无相应资料。',
+    return re.sub('暂无介绍内容|暂无介绍信息|暂无介绍|暂无简介|暂无相关信息|暂无科室介绍信息|'
+                  '暂无科室介绍|暂无相应资料。|null',
                   '',
                   value).strip()
 

@@ -51,17 +51,17 @@ class ZhyyghSpider(scrapy.Spider):
     def parse(self, response):
         self.logger.info('>>>>>>正在抓取所有医院信息>>>>>>')
         try:
-            all_hospital = response.xpath('//h6/a[contains(@href,"hospital.jsp")')
-            for each_hospital in all_hospital:
-                each_hospital_link = each_hospital.xpth('@href').extract_first('')
-                each_hospital_name = each_hospital.xpth('text()').extract_first('')
+            all_hospital = response.xpath('//h6/a[contains(@href,"hospital.jsp")]')
+            for each_hospital in all_hospital[0:1]:
+                each_hospital_link = each_hospital.xpath('@href').extract_first('')
+                each_hospital_name = each_hospital.xpath('text()').extract_first('')
                 if each_hospital_link:
                     each_hospital_link = urljoin(self.host, each_hospital_link)
                     self.headers['Referer'] = response.url
-                    yield Request(each_hospital_link,
-                                  headers=self.headers,
-                                  callback=self.parse_hospital_info,
-                                  dont_filter=True)
+                    # yield Request(each_hospital_link,
+                    #               headers=self.headers,
+                    #               callback=self.parse_hospital_info,
+                    #               dont_filter=True)
 
                     # 获取科室信息
                     hospital_id = re.search(r'hospital_id=(\d+)', each_hospital_link)
@@ -98,7 +98,7 @@ class ZhyyghSpider(scrapy.Spider):
             loader.add_xpath('hospital_phone',
                              '//b[contains(text(),"医院全称")]/ancestor::td[1]/text()',
                              MapCompose(custom_remove_tags))
-            loader.add_value('hospital_intro',
+            loader.add_xpath('hospital_intro',
                              '//b[contains(text(),"简介")]/ancestor::td[1]',
                              MapCompose(remove_tags, custom_remove_tags, match_special))
             loader.add_value('registered_channel', self.data_source_from)
@@ -116,31 +116,32 @@ class ZhyyghSpider(scrapy.Spider):
         try:
             all_dept = response.xpath('//table[@id="deptlist"]/tr')
             for each_dept in all_dept:
-                dept_type = each_dept.xpath('//table[@id="deptlist"]/tbody/tr/td[1][@rowspan]'
-                                            '/text()').extract_first('')
+                dept_type = each_dept.xpath('td[1][@rowspan]/text()').extract_first('')
                 if dept_type:
                     self.temp_dept_type = dept_type
-                dept_name = each_dept.xpath('td/a/text()').extract_first('')
-                dept_detail_link = each_dept.xpath('td/a/@href').extract_first('')
-                if dept_name and dept_detail_link:
-                    dept_loader = CommonLoader2(item=HospitalDepItem(), response=response)
-                    dept_loader.add_value('dept_name', dept_name, MapCompose(custom_remove_tags))
-                    dept_loader.add_value('hospital_name', hospital_name, MapCompose(custom_remove_tags))
-                    dept_loader.add_value('dept_type', self.temp_dept_type, MapCompose(custom_remove_tags))
-                    dept_loader.add_value('dataSource_from', self.data_source_from)
-                    dept_loader.add_value('update_time', now_day())
-
-                    # 获取科室详细信息
+                all_dept_td = each_dept.xpath('td[not(@rowspan)]')
+                for each_dept_td in all_dept_td:
+                    dept_name = each_dept_td.xpath('a/text()').extract_first('')
+                    dept_detail_link = each_dept_td.xpath('a/@href').extract_first('')
                     if dept_name and dept_detail_link:
-                        self.headers['Referer'] = response.url
-                        yield Request(urljoin(self.host, dept_detail_link),
-                                      headers=self.headers,
-                                      callback=self.parse_hospital_dep_detail,
-                                      meta={
-                                          'dept_name': dept_name,
-                                          'dept_loader': dept_loader,
-                                          'hospital_name': hospital_name
-                                      },
+                        dept_loader = CommonLoader2(item=HospitalDepItem(), response=response)
+                        dept_loader.add_value('dept_name', dept_name, MapCompose(custom_remove_tags))
+                        dept_loader.add_value('hospital_name', hospital_name, MapCompose(custom_remove_tags))
+                        dept_loader.add_value('dept_type', self.temp_dept_type, MapCompose(custom_remove_tags))
+                        dept_loader.add_value('dataSource_from', self.data_source_from)
+                        dept_loader.add_value('update_time', now_day())
+
+                        # 获取科室详细信息
+                        if dept_name and dept_detail_link:
+                            self.headers['Referer'] = response.url
+                            yield Request(urljoin(self.host, dept_detail_link),
+                                          headers=self.headers,
+                                          callback=self.parse_hospital_dep_detail,
+                                          meta={
+                                              'dept_name': dept_name,
+                                              'dept_loader': dept_loader,
+                                              'hospital_name': hospital_name
+                                          },
                                       dont_filter=True)
         except Exception as e:
             self.logger.error('在抓取医院科室信息过程中出错了,原因是：{}'.format(repr(e)))
@@ -151,8 +152,10 @@ class ZhyyghSpider(scrapy.Spider):
         try:
             # 获取科室详细信息
             dept_loader = response.meta.get('dept_loader')
-            dept_info = ''.join(response.xpath('//div[@class="kuang-s04"]').extract())
-            dept_loader.add_value('dept_info', dept_info, MapCompose(remove_tags, custom_remove_tags, clean_info2))
+            dept_info = ''.join(response.xpath('//p[contains(text(),"科室简介")]/ancestor::tr[1]').extract())
+            dept_loader.add_value('dept_info',
+                                  dept_info,
+                                  MapCompose(remove_tags, custom_remove_tags, clean_info2, match_special))
             dept_loader.add_value('crawled_url', response.url)
             dept_item = dept_loader.load_item()
             yield dept_item
