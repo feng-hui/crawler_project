@@ -42,7 +42,9 @@ class ZhyyghSpider(scrapy.Spider):
     host = 'https://www.zhyygh.cn/web/'
     entry_url = 'https://www.zhyygh.cn/web/hospital_list.jsp'
     dept_url = 'https://www.zhyygh.cn/web/include/hospital/dept_listNew.jsp?hospital_id={}&t={}'
+    doctor_url = 'https://www.zhyygh.cn/web/include/hospital/doctor_listNew.jsp?hospital_id={}&t={}'
     temp_dept_type = ''
+    temp_dept_name = ''
     data_source_from = '珠海预约挂号平台'
 
     def start_requests(self):
@@ -52,26 +54,36 @@ class ZhyyghSpider(scrapy.Spider):
         self.logger.info('>>>>>>正在抓取所有医院信息>>>>>>')
         try:
             all_hospital = response.xpath('//h6/a[contains(@href,"hospital.jsp")]')
-            for each_hospital in all_hospital[0:1]:
+            for each_hospital in all_hospital:
                 each_hospital_link = each_hospital.xpath('@href').extract_first('')
                 each_hospital_name = each_hospital.xpath('text()').extract_first('')
                 if each_hospital_link:
                     each_hospital_link = urljoin(self.host, each_hospital_link)
                     self.headers['Referer'] = response.url
-                    # yield Request(each_hospital_link,
-                    #               headers=self.headers,
-                    #               callback=self.parse_hospital_info,
-                    #               dont_filter=True)
+                    yield Request(each_hospital_link,
+                                  headers=self.headers,
+                                  callback=self.parse_hospital_info,
+                                  dont_filter=True)
 
                     # 获取科室信息
                     hospital_id = re.search(r'hospital_id=(\d+)', each_hospital_link)
                     if hospital_id:
                         hospital_id = hospital_id.group(1)
+                        # 科室信息
                         dept_link = self.dept_url.format(hospital_id, timestamp())
                         self.headers['Referer'] = response.url
                         yield Request(dept_link,
                                       headers=self.headers,
                                       callback=self.parse_hospital_dep,
+                                      meta={
+                                          'hospital_name': each_hospital_name
+                                      })
+                        # 医生信息
+                        doctor_link = self.doctor_url.format(hospital_id, timestamp())
+                        self.headers['Referer'] = response.url
+                        yield Request(doctor_link,
+                                      headers=self.headers,
+                                      callback=self.parse_doctor_info,
                                       meta={
                                           'hospital_name': each_hospital_name
                                       })
@@ -142,12 +154,13 @@ class ZhyyghSpider(scrapy.Spider):
                                               'dept_loader': dept_loader,
                                               'hospital_name': hospital_name
                                           },
-                                      dont_filter=True)
+                                          dont_filter=True)
         except Exception as e:
             self.logger.error('在抓取医院科室信息过程中出错了,原因是：{}'.format(repr(e)))
 
     def parse_hospital_dep_detail(self, response):
         hospital_name = response.meta.get('hospital_name')
+        dept_name = response.meta.get('dept_name')
         self.logger.info('>>>>>>正在抓取:[{}]科室详细信息>>>>>>'.format(hospital_name))
         try:
             # 获取科室详细信息
@@ -160,42 +173,70 @@ class ZhyyghSpider(scrapy.Spider):
             dept_item = dept_loader.load_item()
             yield dept_item
 
-            # 获取医生信息
-            self.logger.info('>>>>>>正在抓取:[{}]医生信息>>>>>>'.format(hospital_name))
-            all_doctors_in_dept = response.xpath('//div[@id="recoudOld"]/ul/li[1]/a/@href').extract()
-            for each_doctor_link in all_doctors_in_dept:
-                self.headers['Referer'] = response.url
-                yield Request(urljoin(self.host, each_doctor_link),
-                              headers=self.headers,
-                              callback=self.parse_doctor_info_detail,
-                              dont_filter=True)
+            # 获取医生信息,医生数据偏少
+            # self.logger.info('>>>>>>正在抓取:[{}]医生信息>>>>>>'.format(hospital_name))
+            # all_doctors_in_dept = response.xpath('//li[contains(@onclick,"doctor.jsp")]/@onclick').extract()
+            # self.logger.info('[{}]有{}个医生'.format(hospital_name, len(all_doctors_in_dept)))
+            # for each_doctor_link in all_doctors_in_dept:
+            #     self.headers['Referer'] = response.url
+            #     each_doctor_link = re.search(r'\'(.*?)\'', each_doctor_link)
+            #     if each_doctor_link:
+            #         yield Request(urljoin(self.host, each_doctor_link.group(1)),
+            #                       headers=self.headers,
+            #                       callback=self.parse_doctor_info_detail,
+            #                       meta={
+            #                           'dept_name': dept_name,
+            #                           'hospital_name': hospital_name
+            #                       })
         except Exception as e:
             self.logger.error('在抓取医院科室详细信息过程中出错了,原因是：{}'.format(repr(e)))
 
+    def parse_doctor_info(self, response):
+        hospital_name = response.meta.get('hospital_name')
+        self.logger.info('>>>>>>正在抓取:[{}]医生信息>>>>>>'.format(hospital_name))
+        try:
+            all_dept = response.xpath('//table[@id="deptlist"]/tr')
+            for each_dept in all_dept:
+                dept_name = each_dept.xpath('td[1][@rowspan]/text()').extract_first('')
+                if dept_name:
+                    self.temp_dept_name = dept_name
+                all_doctor_links = each_dept.xpath('td[not(@rowspan)]/a/@href').extract()
+                for each_doctor_link in all_doctor_links:
+                    self.headers['Referer'] = response.url
+                    yield Request(urljoin(self.host, each_doctor_link),
+                                  headers=self.headers,
+                                  callback=self.parse_doctor_info_detail,
+                                  meta={
+                                      'dept_name': self.temp_dept_name,
+                                      'hospital_name': hospital_name
+                                  },
+                                  dont_filter=True)
+        except Exception as e:
+            self.logger.error('在抓取医生信息过程中出错了,原因是：{}'.format(repr(e)))
+
     def parse_doctor_info_detail(self, response):
         hospital_name = response.meta.get('hospital_name')
+        dept_name = response.meta.get('dept_name')
         self.logger.info('>>>>>>正在抓取[{}]医生详细信息>>>>>>'.format(hospital_name))
         try:
             # 获取医生信息
             loader = CommonLoader2(item=DoctorInfoItem(), response=response)
             loader.add_xpath('doctor_name',
-                             '//td/b[contains(text(),"姓名")]/ancestor::td[1]/text()',
-                             MapCompose(custom_remove_tags))
-            loader.add_xpath('dept_name',
-                             '//td/b[contains(text(),"科室")]/ancestor::td[1]/text()',
-                             MapCompose(custom_remove_tags))
+                             '//td/b[contains(text(),"姓名")]/ancestor::td[1]',
+                             MapCompose(remove_tags, custom_remove_tags, match_special))
+            loader.add_value('dept_name', dept_name, MapCompose(custom_remove_tags))
             loader.add_xpath('hospital_name',
-                             '//li[@class="text-09"]/a[last()]/text()',
+                             '//div[@class="page_position"]/a[last()-1]/text()',
                              MapCompose(custom_remove_tags))
             loader.add_xpath('sex',
-                             '//td/b[contains(text(),"性别")]/ancestor::td[1]/text()',
-                             MapCompose(custom_remove_tags))
-            loader.add_xpath('doctor_level',
-                             '//td/b[contains(text(),"职称")]/ancestor::td[1]/text()',
-                             MapCompose(custom_remove_tags))
-            loader.add_xpath('doctor_intro',
-                             '//li[@class="li-01"]',
+                             '//td/b[contains(text(),"性别")]/ancestor::td[1]',
                              MapCompose(remove_tags, custom_remove_tags, match_special, clean_info2))
+            loader.add_xpath('doctor_level',
+                             '//td/b[contains(text(),"职称")]/ancestor::td[1]',
+                             MapCompose(remove_tags, custom_remove_tags, match_special, clean_info2))
+            loader.add_xpath('doctor_intro',
+                             '//td/b[contains(text(),"医生简介")]/ancestor::td[1]',
+                             MapCompose(remove_tags, custom_remove_tags, clean_info2))
             loader.add_value('dataSource_from', self.data_source_from)
             loader.add_value('crawled_url', response.url)
             loader.add_value('update_time', now_day())
@@ -204,12 +245,10 @@ class ZhyyghSpider(scrapy.Spider):
 
             # 获取医生排班信息
             self.logger.info('>>>>>>正在抓取[{}]医生排班信息>>>>>>'.format(hospital_name))
-            has_doctor_scheduling = response.xpath('//div[@id="message"][contains(text(),"暂无可预约的排班")]')
-            if not has_doctor_scheduling:
-                doctor_scheduling_tr = response.xpath('//div[@id="message"]/following::table[1]/'
-                                                      'tr[position()>1]')
-                all_scheduling_date = response.xpath('//div[@id="message"]/following::table[1]/tr[1]'
-                                                     '/td[position()>1]').extract()
+            has_doctor_scheduling = response.xpath('//td/div[@class="doctor-work"]')
+            if has_doctor_scheduling:
+                doctor_scheduling_tr = response.xpath('//table[@class="workTable"]/tbody/tr')
+                all_scheduling_date = response.xpath('//table[@class="workTable"]/thead/tr/td[position()>1]').extract()
                 scheduling_date_list = custom_remove_tags(remove_tags(','.join(all_scheduling_date))).split(',')
                 for each_td in doctor_scheduling_tr:
                     scheduling_time = each_td.xpath('td[1]/text()').extract_first('')
@@ -221,19 +260,17 @@ class ZhyyghSpider(scrapy.Spider):
                             reg_info = '{0}{1}'.format(each_scheduling_date, scheduling_time)
                             reg_loader = CommonLoader2(item=DoctorRegInfoItem(), response=response)
                             reg_loader.add_xpath('doctor_name',
-                                                 '//td/b[contains(text(),"姓名")]/ancestor::td[1]/text()',
-                                                 MapCompose(custom_remove_tags))
-                            reg_loader.add_xpath('dept_name',
-                                                 '//td/b[contains(text(),"科室")]/ancestor::td[1]/text()',
-                                                 MapCompose(custom_remove_tags))
+                                                 '//td/b[contains(text(),"姓名")]/ancestor::td[1]',
+                                                 MapCompose(remove_tags, custom_remove_tags, match_special))
+                            reg_loader.add_value('dept_name', dept_name, MapCompose(custom_remove_tags))
                             reg_loader.add_xpath('hospital_name',
-                                                 '//li[@class="text-09"]/a[last()]/text()',
+                                                 '//div[@class="page_position"]/a[last()-1]/text()',
                                                  MapCompose(custom_remove_tags))
                             reg_loader.add_value('reg_info', reg_info)
                             reg_loader.add_value('dataSource_from', self.data_source_from)
+                            reg_loader.add_value('crawled_url', response.url)
                             reg_loader.add_value('update_time', now_day())
                             reg_item = reg_loader.load_item()
                             yield reg_item
         except Exception as e:
             self.logger.error('在抓取医生详细信息的过程中出错了,原因是：{}'.format(repr(e)))
-

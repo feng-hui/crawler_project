@@ -367,17 +367,21 @@ class DoctorRegInfoItem(scrapy.Item):
     dept_name = scrapy.Field()
     reg_info = scrapy.Field()
     dataSource_from = scrapy.Field()
+    crawled_url = scrapy.Field()
     update_time = scrapy.Field()
 
     def get_sql_info(self):
-        insert_sql = "insert into doctor_reg_info(doctor_name,hospital_name,dept_name,reg_info,update_time) " \
-                     "values(%s,%s,%s,%s,%s) " \
+        insert_sql = "insert into doctor_reg_info(doctor_name,hospital_name,dept_name,reg_info,dataSource_from," \
+                     "crawled_url,update_time) " \
+                     "values(%s,%s,%s,%s,%s,%s,%s) " \
                      "on duplicate key update update_time=values(update_time)"
         params = [
             self.get('doctor_name', '暂无,出现异常'),
             self.get('hospital_name', '暂无,出现异常'),
             self.get('dept_name', '暂无,出现异常'),
             self.get('reg_info'),
+            self.get('dataSource_from'),
+            self.get('crawled_url'),
             self.get('update_time')
         ]
         return insert_sql, params
