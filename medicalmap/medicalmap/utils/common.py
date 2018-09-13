@@ -95,7 +95,7 @@ def match_special2(value):
     elif '(' in value:
         return value.split('(')[0].strip()
     elif '-' in value:
-        return value.split('-')[0].strip()
+        return value.split('-')[-1].strip()
     elif '_' in value:
         return value.split('_')[0].strip()
     elif ':' in value:

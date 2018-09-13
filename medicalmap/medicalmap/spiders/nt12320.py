@@ -8,7 +8,7 @@ from w3lib.html import remove_tags
 from scrapy.loader.processors import MapCompose
 from medicalmap.items import CommonLoader2, HospitalInfoItem, HospitalDepItem, DoctorInfoItem, DoctorRegInfoItem
 from medicalmap.utils.common import now_day, custom_remove_tags, get_county2, match_special, match_special2, \
-    clean_info, clean_info2
+    clean_info, clean_info2, now_year
 
 
 class Nt12320Spider(scrapy.Spider):
@@ -42,10 +42,11 @@ class Nt12320Spider(scrapy.Spider):
     }
     host = 'https://www.nt12320.cn'
     search_hos_url = 'https://www.nt12320.cn/ntres/reservation/hos_search.do'
-    doctor_pagination_url = 'http://www.nj12320.org/njres/reservation/hos_showReservation.do?' \
-                            'depid=&principalship=&docname=&depName=&hoscode={}&stdDepid=&parentStdDepid=' \
-                            '&changeFlay=0&currentpage={}&disid=&bigCode=&allDoctors=0&currentWeekCount=1' \
-                            '&schcode=&hosCfgCode=&__multiselect_haveNum=&selectPage={}'
+    doctor_pagination_url = 'https://www.nt12320.cn/ntres/reservation/hos_showReservation.do?' \
+                            'depid=&principalship=&docname=&depName=&hoscode={}&stdDepid=' \
+                            '&parentStdDepid=&changeFlay=0&currentpage={}&currentWeekCount=1' \
+                            '&disid=&bigCode=&allDoctors=0&startHour=&endHour=&schcode=' \
+                            '&__multiselect_haveNum=&selectPage={}'
     data_source_from = '南通市预约挂号服务平台'
 
     def start_requests(self):
@@ -67,13 +68,13 @@ class Nt12320Spider(scrapy.Spider):
                     self.headers.update({
                         'Referer': response.url,
                         'Content-Type': 'application/x-www-form-urlencoded',
-                        'Origin': 'http://www.nj12320.org'
+                        'Origin': 'http://www.nt12320.cn'
                     })
-                    # yield Request(hospital_link,
-                    #               headers=self.headers,
-                    #               callback=self.parse_hospital_info,
-                    #               meta={'hospital_level': hospital_level},
-                    #               dont_filter=True)
+                    yield Request(hospital_link,
+                                  headers=self.headers,
+                                  callback=self.parse_hospital_info,
+                                  meta={'hospital_level': hospital_level},
+                                  dont_filter=True)
 
                 # 获取医生信息
                 if all_doctor_links:
@@ -119,29 +120,29 @@ class Nt12320Spider(scrapy.Spider):
                 hospital_county = None
 
             # 获取医院信息
-            # loader = CommonLoader2(item=HospitalInfoItem(), response=response)
-            # loader.add_xpath('hospital_name', '//div[@class="yy_til"]/h2/text()', MapCompose(custom_remove_tags))
-            # loader.add_value('hospital_level',
-            #                  response.meta.get('hospital_level'),
-            #                  MapCompose(custom_remove_tags, clean_info))
-            # loader.add_xpath('hospital_addr',
-            #                  '//div[@class="yy_js clearfix"]/div/dl/dd[1]/text()',
-            #                  MapCompose(custom_remove_tags))
-            # loader.add_value('hospital_pro', '江苏省')
-            # loader.add_value('hospital_city', '南通市')
-            # loader.add_value('hospital_county', hospital_county)
-            # loader.add_xpath('hospital_phone',
-            #                  '//div[@class="yy_js clearfix"]/div/dl/dd[2]/text()',
-            #                  MapCompose(custom_remove_tags))
-            # loader.add_xpath('hospital_intro',
-            #                  '//em[contains(text(),"简介")]/ancestor::div[1]',
-            #                  MapCompose(remove_tags, custom_remove_tags, match_special, clean_info2))
-            # loader.add_value('registered_channel', self.data_source_from)
-            # loader.add_value('dataSource_from', self.data_source_from)
-            # loader.add_value('hospital_url', response.url)
-            # loader.add_value('update_time', now_day())
-            # hospital_info_item = loader.load_item()
-            # yield hospital_info_item
+            loader = CommonLoader2(item=HospitalInfoItem(), response=response)
+            loader.add_xpath('hospital_name', '//div[@class="yy_til"]/h2/text()', MapCompose(custom_remove_tags))
+            loader.add_value('hospital_level',
+                             response.meta.get('hospital_level'),
+                             MapCompose(custom_remove_tags, clean_info))
+            loader.add_xpath('hospital_addr',
+                             '//div[@class="yy_js clearfix"]/div/dl/dd[1]/text()',
+                             MapCompose(custom_remove_tags))
+            loader.add_value('hospital_pro', '江苏省')
+            loader.add_value('hospital_city', '南通市')
+            loader.add_value('hospital_county', hospital_county)
+            loader.add_xpath('hospital_phone',
+                             '//div[@class="yy_js clearfix"]/div/dl/dd[2]/text()',
+                             MapCompose(custom_remove_tags))
+            loader.add_xpath('hospital_intro',
+                             '//em[contains(text(),"简介")]/ancestor::div[1]',
+                             MapCompose(remove_tags, custom_remove_tags, match_special, clean_info2))
+            loader.add_value('registered_channel', self.data_source_from)
+            loader.add_value('dataSource_from', self.data_source_from)
+            loader.add_value('hospital_url', response.url)
+            loader.add_value('update_time', now_day())
+            hospital_info_item = loader.load_item()
+            yield hospital_info_item
 
             # 获取科室信息
             # self.logger.info('>>>>>>正在抓取{}:科室详细信息>>>>>>')
@@ -191,7 +192,7 @@ class Nt12320Spider(scrapy.Spider):
                                   },
                                   dont_filter=True)
             # 医生翻页
-            hos_code = re.search(r'hoscode=(\d+)', response.url)
+            hos_code = re.search(r'hoscode=(.*?)$', response.url) or re.search(r'hoscode=(.*?)&', response.url)
             next_page_number = response.xpath('//div[@id="fenye"]/a[contains(text(),"下一页")]/@href').extract_first('')
             now_page_number = response.xpath('//div[@id="fenye"]/a[@class="fenye_num_s"]/text()').extract_first('')
             if not now_page_number:
@@ -239,21 +240,23 @@ class Nt12320Spider(scrapy.Spider):
             yield doctor_item
 
             # 获取医生排班信息
-            # has_reg_info = response.xpath('//td/span[@class="doc_yuyue_time"]').extract()
-            # if has_reg_info:
-            #     for each_reg_info in has_reg_info:
-            #         reg_info_date = re.search(r'.*出诊时间：(.*?)\n', each_reg_info, S)
-            #         reg_info_date = reg_info_date.group(1) if reg_info_date else None
-            #         reg_info = '{0}-{1}'.format(now_year(), reg_info_date).replace('月', '-').replace('日', '')
-            #         reg_loader = CommonLoader2(item=DoctorRegInfoItem(), response=response)
-            #         reg_loader.add_value('doctor_name', doctor_name, MapCompose(custom_remove_tags))
-            #         reg_loader.add_value('dept_name', dept_name, MapCompose(custom_remove_tags))
-            #         reg_loader.add_xpath('hospital_name',
-            #                              '//div[@class="yy_til"]/h2/text()',
-            #                              MapCompose(custom_remove_tags))
-            #         reg_loader.add_value('reg_info', reg_info, MapCompose(custom_remove_tags))
-            #         reg_loader.add_value('update_time', now_day())
-            #         reg_item = reg_loader.load_item()
-            #         yield reg_item
+            has_reg_info = response.xpath('//td/span[@class="doc_yuyue_time"]').extract()
+            if has_reg_info:
+                for each_reg_info in has_reg_info:
+                    reg_info_date = re.search(r'.*出诊时间：(.*?)\n', each_reg_info, S)
+                    reg_info_date = reg_info_date.group(1) if reg_info_date else None
+                    reg_info = '{0}-{1}'.format(now_year(), reg_info_date).replace('月', '-').replace('日', '')
+                    reg_loader = CommonLoader2(item=DoctorRegInfoItem(), response=response)
+                    reg_loader.add_value('doctor_name', doctor_name, MapCompose(custom_remove_tags))
+                    reg_loader.add_value('dept_name', dept_name, MapCompose(custom_remove_tags))
+                    reg_loader.add_xpath('hospital_name',
+                                         '//div[@class="yy_til"]/h2/text()',
+                                         MapCompose(custom_remove_tags))
+                    reg_loader.add_value('reg_info', reg_info, MapCompose(custom_remove_tags))
+                    reg_loader.add_value('dataSource_from', self.data_source_from)
+                    reg_loader.add_value('crawled_url', response.url)
+                    reg_loader.add_value('update_time', now_day())
+                    reg_item = reg_loader.load_item()
+                    yield reg_item
         except Exception as e:
             self.logger.error('在抓取医生详细信息的过程中出错了,原因是：{}'.format(repr(e)))
