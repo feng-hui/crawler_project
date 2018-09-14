@@ -2,9 +2,9 @@
 import re
 import scrapy
 from re import S
-from scrapy.http import Request, FormRequest
 from urllib.parse import urljoin
 from w3lib.html import remove_tags
+from scrapy.http import Request, FormRequest
 from scrapy.loader.processors import MapCompose
 from medicalmap.items import CommonLoader2, HospitalInfoItem, HospitalDepItem, DoctorInfoItem, DoctorRegInfoItem
 from medicalmap.utils.common import now_day, custom_remove_tags, get_county2, match_special, match_special2, \
@@ -157,7 +157,9 @@ class Nt12320Spider(scrapy.Spider):
     def parse_hospital_dep_detail(self, response):
         self.logger.info('>>>>>>正在抓取科室详细信息>>>>>>')
         loader = CommonLoader2(item=HospitalDepItem(), response=response)
-        loader.add_xpath('dept_name', '//div[@class="zrys"]/p/strong/text()', MapCompose(custom_remove_tags))
+        loader.add_xpath('dept_name',
+                         '//div[@class="zrys"]/p/strong/text()',
+                         MapCompose(custom_remove_tags))
         loader.add_xpath('hospital_name', '//div[@class="yy_til"]/h2/text()', MapCompose(custom_remove_tags))
         loader.add_xpath('dept_info', '//div[@class="zrys"]/dl/dd', MapCompose(remove_tags, custom_remove_tags))
         loader.add_value('dataSource_from', self.data_source_from)
@@ -192,7 +194,7 @@ class Nt12320Spider(scrapy.Spider):
                                   },
                                   dont_filter=True)
             # 医生翻页
-            hos_code = re.search(r'hoscode=(.*?)$', response.url) or re.search(r'hoscode=(.*?)&', response.url)
+            hos_code = re.search(r'hoscode=(.*?)&', response.url) or re.search(r'hoscode=(.*?)$', response.url)
             next_page_number = response.xpath('//div[@id="fenye"]/a[contains(text(),"下一页")]/@href').extract_first('')
             now_page_number = response.xpath('//div[@id="fenye"]/a[@class="fenye_num_s"]/text()').extract_first('')
             if not now_page_number:
@@ -211,6 +213,7 @@ class Nt12320Spider(scrapy.Spider):
         try:
             doctor_name = response.meta.get('doctor_name')
             dept_name = response.meta.get('dept_name')
+            # dept_name = dept_name.split('-')[-1] if '-' in dept_name else dept_name
             doctor_level = response.meta.get('doctor_level')
             hospital_name = response.meta.get('hospital_name')
             # hospital_name2 = response.xpath('//div[@class="yy_til"]/h2/text()').extract_first('')
