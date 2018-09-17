@@ -92,6 +92,23 @@ class HospitalInfoItem(scrapy.Item):
     hospital_district   院区
     registered_channel  挂号渠道
     update_time         更新时间
+    # 新增字段           新增时间:2018.09.17
+    hospital_postcode   邮编
+    hospital_email      邮箱
+    hospital_official_website 官方网站
+    hospital_fax              传真
+    hospital_operation_mode   经营模式（国营或民营等）
+    hospital_id               医院ID
+    hospital_tags             医院标签
+    hospital_dept_num         医院科室数
+    hospital_doctor_num       医院医生数
+    hospital_route            到院路线
+    hospital_staff_num        医院员工数
+    hospital_logo_url         医院LOGO链接
+    hospital_img_url          医院图片地址
+    hospital_remarks          医院备注
+    gmt_created               创建时间
+    gmt_modified              更改时间
     """
     hospital_name = scrapy.Field()
     consulting_hour = scrapy.Field()
@@ -115,14 +132,35 @@ class HospitalInfoItem(scrapy.Item):
     dataSource_from = scrapy.Field()
     hospital_url = scrapy.Field()
     update_time = scrapy.Field()
+    hospital_postcode = scrapy.Field()
+    hospital_email = scrapy.Field()
+    hospital_official_website = scrapy.Field()
+    hospital_fax = scrapy.Field()
+    hospital_operation_mode = scrapy.Field()
+    hospital_id = scrapy.Field()
+    hospital_tags = scrapy.Field()
+    hospital_dept_num = scrapy.Field()
+    hospital_doctor_num = scrapy.Field()
+    hospital_route = scrapy.Field()
+    hospital_staff_num = scrapy.Field()
+    hospital_logo_url = scrapy.Field()
+    hospital_img_url = scrapy.Field()
+    hospital_remarks = scrapy.Field()
+    gmt_created = scrapy.Field()
+    gmt_modified = scrapy.Field()
 
     def get_sql_info(self):
         # 不更新,只插入
         insert_sql = "insert into hospital_info(hospital_name,consulting_hour,hospital_level,hospital_type," \
                      "hospital_category,hospital_addr,hospital_pro,hospital_city,hospital_county,hospital_phone," \
                      "hospital_intro,is_medicare,medicare_type,vaccine_name,is_cpc,is_bdc,cooperative_business," \
-                     "hospital_district,registered_channel,dataSource_from,hospital_url,update_time) " \
-                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                     "hospital_district,registered_channel,dataSource_from,hospital_url,update_time," \
+                     "hospital_postcode,hospital_email,hospital_official_website,hospital_fax," \
+                     "hospital_operation_mode,hospital_id,hospital_tags,hospital_dept_num,hospital_doctor_num," \
+                     "hospital_route,hospital_staff_num,hospital_logo_url,hospital_img_url,hospital_remarks," \
+                     "gmt_created,gmt_modified) " \
+                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s," \
+                     "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
         # 适用于有主键更新的情况
         # insert_sql = "insert into hospital_info(hospital_name,consulting_hour,hospital_level,hospital_type," \
         #              "hospital_category,hospital_addr,hospital_pro,hospital_city,hospital_county,hospital_phone," \
@@ -154,7 +192,23 @@ class HospitalInfoItem(scrapy.Item):
             self.get('registered_channel'),
             self.get('dataSource_from'),
             self.get('hospital_url'),
-            self.get('update_time')
+            self.get('update_time'),
+            self.get('hospital_postcode'),
+            self.get('hospital_email'),
+            self.get('hospital_official_website'),
+            self.get('hospital_fax'),
+            self.get('hospital_operation_mode'),
+            self.get('hospital_id'),
+            self.get('hospital_tags'),
+            self.get('hospital_dept_num'),
+            self.get('hospital_doctor_num'),
+            self.get('hospital_route'),
+            self.get('hospital_staff_num'),
+            self.get('hospital_logo_url'),
+            self.get('hospital_img_url'),
+            self.get('hospital_remarks'),
+            self.get('gmt_created'),
+            self.get('gmt_modified')
         ]
         return insert_sql, params
 
@@ -272,6 +326,12 @@ class HospitalDepItem(scrapy.Item):
     dept_name        科室名称 二级科室名称
     dep_intro        科室介绍
     update_time      更新时间
+    dept_id          科室ID
+    hospital_id      医院ID
+    dept_person_num  科室人数
+    dept_url         科室链接
+    gmt_created      创建时间
+    gmt_modified     更改时间
     """
     dept_name = scrapy.Field()
     hospital_name = scrapy.Field()
@@ -280,10 +340,17 @@ class HospitalDepItem(scrapy.Item):
     dataSource_from = scrapy.Field()
     crawled_url = scrapy.Field()
     update_time = scrapy.Field()
+    dept_id = scrapy.Field()
+    hospital_id = scrapy.Field()
+    dept_person_num = scrapy.Field()
+    dept_url = scrapy.Field()
+    gmt_created = scrapy.Field()
+    gmt_modified = scrapy.Field()
 
     def get_sql_info(self):
         insert_sql = "insert into department_info(dept_name,hospital_name,dept_type,dept_info,dataSource_from," \
-                     "crawled_url,update_time) values(%s,%s,%s,%s,%s,%s,%s) on duplicate key " \
+                     "crawled_url,update_time,dept_id,hospital_id,dept_person_num,dept_url,gmt_created,gmt_modified) " \
+                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) on duplicate key " \
                      "update update_time=values(update_time)"
         params = [
             self.get('dept_name', '暂无,出现异常'),
@@ -292,7 +359,13 @@ class HospitalDepItem(scrapy.Item):
             self.get('dept_info'),
             self.get('dataSource_from'),
             self.get('crawled_url'),
-            self.get('update_time')
+            self.get('update_time'),
+            self.get('dept_id'),
+            self.get('hospital_id'),
+            self.get('dept_person_num'),
+            self.get('dept_url'),
+            self.get('gmt_created'),
+            self.get('gmt_modified')
         ]
         return insert_sql, params
 
@@ -309,6 +382,13 @@ class DoctorInfoItem(scrapy.Item):
     doctor_goodAt   医生擅长
     diagnosis_amt   医生诊疗费用
     update_time     更新时间
+    doctor_academic_title   医生学术职称(教授、副教授等)
+    doctor_id       医生ID
+    dept_id         科室ID
+    hospital_id     医院ID
+    doctor_photo_url 医生照片链接
+    gmt_created      创建时间
+    gmt_modified     更改时间
     """
     doctor_name = scrapy.Field()
     dept_name = scrapy.Field()
@@ -321,11 +401,20 @@ class DoctorInfoItem(scrapy.Item):
     dataSource_from = scrapy.Field()
     crawled_url = scrapy.Field()
     update_time = scrapy.Field()
+    doctor_academic_title = scrapy.Field()
+    doctor_id = scrapy.Field()
+    dept_id = scrapy.Field()
+    hospital_id = scrapy.Field()
+    doctor_photo_url = scrapy.Field()
+    gmt_created = scrapy.Field()
+    gmt_modified = scrapy.Field()
 
     def get_sql_info(self):
         insert_sql = "insert into doctor_info(doctor_name,dept_name,hospital_name,sex,doctor_level," \
-                     "doctor_intro,doctor_goodAt,diagnosis_amt,dataSource_from,crawled_url,update_time) " \
-                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                     "doctor_intro,doctor_goodAt,diagnosis_amt,dataSource_from,crawled_url,update_time," \
+                     "doctor_academic_title,doctor_id,dept_id,hospital_id,doctor_photo_url,gmt_created," \
+                     "gmt_modified) " \
+                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
         params = [
             self.get('doctor_name', '暂无,出现异常'),
             self.get('dept_name', '暂无,出现异常'),
@@ -338,6 +427,13 @@ class DoctorInfoItem(scrapy.Item):
             self.get('dataSource_from'),
             self.get('crawled_url'),
             self.get('update_time'),
+            self.get('doctor_academic_title'),
+            self.get('doctor_id'),
+            self.get('dept_id'),
+            self.get('hospital_id'),
+            self.get('doctor_photo_url'),
+            self.get('gmt_created'),
+            self.get('gmt_modified')
         ]
         # insert_sql = "update doctor_info set doctor_intro=%s,doctor_goodat=%s,doctor_level=%s,dept_name=%s " \
         #              "where doctor_name=%s and hospital_name=%s"
@@ -361,6 +457,11 @@ class DoctorRegInfoItem(scrapy.Item):
     dept_name       科室名称
     reg_info        排班信息
     update_time     更新时间
+    doctor_id       医生ID
+    dept_id         科室ID
+    hospital_id     医院ID
+    gmt_created     创建时间
+    gmt_modified    更改时间
     """
     doctor_name = scrapy.Field()
     hospital_name = scrapy.Field()
@@ -369,11 +470,16 @@ class DoctorRegInfoItem(scrapy.Item):
     dataSource_from = scrapy.Field()
     crawled_url = scrapy.Field()
     update_time = scrapy.Field()
+    doctor_id = scrapy.Field()
+    dept_id = scrapy.Field()
+    hospital_id = scrapy.Field()
+    gmt_created = scrapy.Field()
+    gmt_modified = scrapy.Field()
 
     def get_sql_info(self):
         insert_sql = "insert into doctor_reg_info(doctor_name,hospital_name,dept_name,reg_info,dataSource_from," \
-                     "crawled_url,update_time) " \
-                     "values(%s,%s,%s,%s,%s,%s,%s) " \
+                     "crawled_url,update_time,doctor_id,dept_id,hospital_id,gmt_created,gmt_modified) " \
+                     "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) " \
                      "on duplicate key update update_time=values(update_time)"
         params = [
             self.get('doctor_name', '暂无,出现异常'),
@@ -382,7 +488,12 @@ class DoctorRegInfoItem(scrapy.Item):
             self.get('reg_info'),
             self.get('dataSource_from'),
             self.get('crawled_url'),
-            self.get('update_time')
+            self.get('update_time'),
+            self.get('doctor_id'),
+            self.get('dept_id'),
+            self.get('hospital_id'),
+            self.get('gmt_created'),
+            self.get('gmt_modified')
         ]
         return insert_sql, params
 
@@ -399,14 +510,20 @@ class HospitalAliasItem(scrapy.Item):
     hospital_alias_name = scrapy.Field()
     dataSource_from = scrapy.Field()
     update_time = scrapy.Field()
+    gmt_created = scrapy.Field()
+    gmt_modified = scrapy.Field()
 
     def get_sql_info(self):
-        insert_sql = "insert into hospital_alias(hospital_name,hospital_alisename,update_time) " \
-                     "values(%s,%s,%s)"
+        insert_sql = "insert into hospital_alias(hospital_name,hospital_alisename,dataSource_from,crawled_url," \
+                     "update_time,gmt_created,gmt_modified) values(%s,%s,%s,%s,%s,%s,%s)"
         params = [
             self.get('hospital_name', '暂无,出现异常'),
             self.get('hospital_alias_name', '暂无,出现异常'),
-            self.get('update_time')
+            self.get('dataSource_from'),
+            self.get('crawled_url'),
+            self.get('update_time'),
+            self.get('gmt_created'),
+            self.get('gmt_modified')
         ]
         return insert_sql, params
 
