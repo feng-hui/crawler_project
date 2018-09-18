@@ -5,9 +5,8 @@ from urllib.parse import urljoin
 from w3lib.html import remove_tags
 from scrapy.http import Request
 from scrapy.loader.processors import MapCompose
+from medicalmap.utils.common import now_day, custom_remove_tags, get_county2, match_special, clean_info2
 from medicalmap.items import CommonLoader2, HospitalInfoItem, HospitalDepItem, DoctorInfoItem, DoctorRegInfoItem
-from medicalmap.utils.common import now_day, custom_remove_tags, get_county2, match_special, clean_info2, timestamp
-
 
 
 class ZhyyghSpider(scrapy.Spider):
@@ -108,14 +107,14 @@ class ZhyyghSpider(scrapy.Spider):
             loader.add_value('hospital_city', '珠海市')
             loader.add_value('hospital_county', hospital_county, MapCompose(custom_remove_tags))
             loader.add_xpath('hospital_phone',
-                             '//b[contains(text(),"医院全称")]/ancestor::td[1]/text()',
+                             '//b[contains(text(),"联系电话")]/ancestor::td[1]/text()',
                              MapCompose(custom_remove_tags))
             loader.add_xpath('hospital_intro',
                              '//b[contains(text(),"简介")]/ancestor::td[1]',
                              MapCompose(remove_tags, custom_remove_tags, match_special))
             loader.add_value('registered_channel', self.data_source_from)
             loader.add_value('dataSource_from', self.data_source_from)
-            loader.add_value('hospital_url', response.url)
+            loader.add_value('crawled_url', response.url)
             loader.add_value('update_time', now_day())
             hospital_item = loader.load_item()
             yield hospital_item
