@@ -130,7 +130,7 @@ class HospitalInfoItem(scrapy.Item):
     hospital_district = scrapy.Field()
     registered_channel = scrapy.Field()
     dataSource_from = scrapy.Field()
-    hospital_url = scrapy.Field()
+    crawled_url = scrapy.Field()
     update_time = scrapy.Field()
     hospital_postcode = scrapy.Field()
     hospital_email = scrapy.Field()
@@ -154,7 +154,7 @@ class HospitalInfoItem(scrapy.Item):
         insert_sql = "insert into hospital_info(hospital_name,consulting_hour,hospital_level,hospital_type," \
                      "hospital_category,hospital_addr,hospital_pro,hospital_city,hospital_county,hospital_phone," \
                      "hospital_intro,is_medicare,medicare_type,vaccine_name,is_cpc,is_bdc,cooperative_business," \
-                     "hospital_district,registered_channel,dataSource_from,hospital_url,update_time," \
+                     "hospital_district,registered_channel,dataSource_from,crawled_url,update_time," \
                      "hospital_postcode,hospital_email,hospital_official_website,hospital_fax," \
                      "hospital_operation_mode,hospital_id,hospital_tags,hospital_dept_num,hospital_doctor_num," \
                      "hospital_route,hospital_staff_num,hospital_logo_url,hospital_img_url,hospital_remarks," \
@@ -191,7 +191,7 @@ class HospitalInfoItem(scrapy.Item):
             self.get('hospital_district'),
             self.get('registered_channel'),
             self.get('dataSource_from'),
-            self.get('hospital_url'),
+            self.get('crawled_url'),
             self.get('update_time'),
             self.get('hospital_postcode'),
             self.get('hospital_email'),

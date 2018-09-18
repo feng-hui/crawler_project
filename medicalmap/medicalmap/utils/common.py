@@ -21,6 +21,11 @@ def now_day():
     return datetime.datetime.now().strftime('%Y-%m-%d')
 
 
+def now_time():
+    """返回当前时间"""
+    return datetime.datetime.now()
+
+
 def timestamp():
     """返回当前时间的时间戳,13位"""
     return str(int(time.time() * 1000))
@@ -71,43 +76,53 @@ def clean_info2(value):
 
 def match_special(value):
     """
-    选择冒号右边的字符串
-    适用于类似[简介：相关文字]这样需要冒号右边文字的字符串的获取
+    选择标点符号左边的字符串
     """
     if '：' in value:
-        return value.split('：')[-1]
+        return value.split('：')[0].strip()
     elif ':' in value:
-        return value.split(':')[-1]
-    elif '|' in value:
-        return value.split('|')[0]
+        return value.split(':')[0].strip()
+    elif '（' in value:
+        return value.split('（')[0].strip()
+    elif '(' in value:
+        return value.split('(')[0].strip()
+    elif '/' in value:
+        return value.split('/')[0].strip()
+    elif '-' in value:
+        return value.split('-')[0].strip()
+    elif '_' in value:
+        return value.split('_')[0].strip()
+    elif '、' in value:
+        return value.split('、')[0].strip()
+    elif '，' in value:
+        return value.split('，')[0].strip()
     else:
         return value
 
 
 def match_special2(value):
     """
-    选择(右边的字符串
-    适用于类似[内三科（老..]这样需要冒号右边文字的字符串的获取
-    主要适用于：双流区中医医院科室信息
+    选择标点符号右边的字符串
     """
-    if '（' in value:
-        return value.split('（')[0].strip()
+    value = re.sub(r'https://|http://|//', '', value)
+    if '：' in value:
+        return value.split('：')[-1].strip()
+    elif ':' in value:
+        return value.split(':')[-1].strip()
+    elif '（' in value:
+        return value.split('（')[-1].strip()
     elif '(' in value:
-        return value.split('(')[0].strip()
+        return value.split('(')[-1].strip()
+    elif '/' in value:
+        return value.split('/')[-1].strip()
     elif '-' in value:
         return value.split('-')[-1].strip()
     elif '_' in value:
-        return value.split('_')[0].strip()
-    elif ':' in value:
-        return value.split(':')[-1].strip()
-    elif '：' in value:
-        return value.split('：')[-1].strip()
-    elif '/' in value:
-        return value.split('/')[0].strip()
+        return value.split('_')[-1].strip()
     elif '、' in value:
-        return value.split('、')[0].strip()
+        return value.split('、')[-1].strip()
     elif '，' in value:
-        return value.split('，')[0].strip()
+        return value.split('，')[-1].strip()
     else:
         return value
 
