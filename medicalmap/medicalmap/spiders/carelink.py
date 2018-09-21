@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import re
 import scrapy
 from scrapy.http import Request
 from urllib.parse import urljoin
@@ -41,6 +40,9 @@ class CarelinkSpider(scrapy.Spider):
     }
     host = 'https://www.carelink.cn'
     data_source_from = '快医网'
+    dept_url = 'https://www.carelink.cn/dep/departments.htm?hi={}&dep_id={}&sub_dep_id=0'
+    doctor_url = 'https://www.carelink.cn/hos/doctorsByDepartmentId.htm?hi={}&dep_id={}&' \
+                 'sub_dep_id=0&consult_type=1&curr=1'
 
     def start_requests(self):
         for each_url in self.start_urls:
@@ -48,26 +50,29 @@ class CarelinkSpider(scrapy.Spider):
 
     def parse(self, response):
         try:
-            all_hospital_links = response.xpath('//a[@class="search-result-hospital-name"]')
-            for each_hospital_link in all_hospital_links:
-                hospital_link = each_hospital_link.xpath('@href').extract_first('')
-                hospital_name = each_hospital_link.xpath('text()').extract_first('')
+            # data-type=1
+            all_hospital_links = response.xpath('//ul[@id="hospital-list"]/li')
+            for each_hospital_link in all_hospital_links[1:2]:
+                hospital_link = each_hospital_link.xpath('a/@href').extract_first('')
+                hospital_name = each_hospital_link.xpath('div[2]/p[1]/a/text()').extract_first('')
+                data_type = each_hospital_link.xpath('div[1]/@data-type').extract_first('')
+                hospital_id = each_hospital_link.xpath('div[1]/@data-id').extract_first('')
 
                 # 获取医院信息
                 if hospital_link:
                     hospital_link = urljoin(self.host, hospital_link)
-                    hospital_id = re.search(r'hi=(\d+)&', hospital_link)
                     self.headers['Referer'] = response.url
-                    yield Request(hospital_link,
-                                  headers=self.headers,
-                                  callback=self.parse_hospital_info,
-                                  dont_filter=True,
-                                  meta={
-                                      'hospital_name': hospital_name,
-                                      'hospital_id': hospital_id
-                                  })
-
-                # 翻页
+                    if data_type == '1':
+                        yield Request(hospital_link,
+                                      headers=self.headers,
+                                      callback=self.parse_hospital_info,
+                                      dont_filter=True,
+                                      meta={
+                                          'hospital_name': hospital_name,
+                                          'hospital_id': hospital_id,
+                                          'data_type': data_type
+                                      })
+            # 翻页
         except Exception as e:
             self.logger.error('在抓取医院信息的过程中出错了,原因是：{}'.format(repr(e)))
 
@@ -76,40 +81,87 @@ class CarelinkSpider(scrapy.Spider):
         self.logger.info('>>>>>>正在抓取[{}]医院详细信息>>>>>>'.format(hospital_name))
         try:
             hospital_id = response.meta.get('hospital_id')
-            hospital_img_url = response.xpath('//div[@class="divLeft_Img"]/img/@src').extract_first('')
-            hospital_img_url = urljoin(self.host, hospital_img_url) if hospital_img_url else ''
-            hospital_address = response.xpath('//div[@class="search-result-hospital-text"]/'
-                                              'p[4]/text()').extract_first('')
-            hospital_county = get_county2('中国|福建省|福建|厦门市|厦门', match_special2(hospital_address))
-            loader = CommonLoader2(item=HospitalInfoItem(), response=response)
-            loader.add_xpath('hospital_name',
-                             '//span[@class="search-result-hospital-name"]/text()',
-                             MapCompose(custom_remove_tags))
-            loader.add_value('hospital_addr', hospital_address, MapCompose(custom_remove_tags, match_special2))
-            loader.add_value('hospital_pro', '')
-            loader.add_value('hospital_city', '')
-            loader.add_value('hospital_county', hospital_county, MapCompose(custom_remove_tags))
-            loader.add_xpath('hospital_phone',
-                             '//div[@class="search-result-hospital-text"]/p[3]/text()',
-                             MapCompose(custom_remove_tags))
-            loader.add_xpath('hospital_intro',
-                             '//div[@class="introduceSpan"]',
-                             MapCompose(remove_tags, custom_remove_tags))
-            loader.add_value('registered_channel', self.data_source_from)
-            loader.add_value('dataSource_from', self.data_source_from)
-            loader.add_value('crawled_url', response.url)
-            loader.add_value('update_time', now_day())
-            loader.add_xpath('hospital_official_website',
-                             '//li[contains(text(),"官网")]/text()',
-                             MapCompose(custom_remove_tags, match_special2))
-            loader.add_xpath('hospital_route',
-                             '//li[contains(text(),"公交线路")]/text()',
-                             MapCompose(custom_remove_tags, match_special2))
-            loader.add_value('hospital_img_url', hospital_img_url)
-            loader.add_value('gmt_created', now_time())
-            loader.add_value('gmt_modified', now_time())
-            loader.add_value('hospital_id', hospital_id)
-            hospital_item = loader.load_item()
-            yield hospital_item
+            data_type = response.meta.get('data_type')
+            if data_type == '1':
+                hospital_address = response.xpath('///div[@class="search-result-hospital-text"]/'
+                                                  'p[4]/text()').extract_first('')
+                hospital_city = ''
+                hospital_county = get_county2('', match_special2(hospital_address))
+                loader = CommonLoader2(item=HospitalInfoItem(), response=response)
+                loader.add_xpath('hospital_name',
+                                 '//span[@class="search-result-hospital-name"]/text()',
+                                 MapCompose(custom_remove_tags))
+                loader.add_xpath('hospital_level',
+                                 '//div[@class="search-result-hospital-text"]/p[2]/text()',
+                                 MapCompose(custom_remove_tags))
+                loader.add_value('hospital_addr', hospital_address, MapCompose(custom_remove_tags))
+                loader.add_value('hospital_pro', '')
+                loader.add_value('hospital_city', '')
+                loader.add_value('hospital_county', hospital_county, MapCompose(custom_remove_tags))
+                loader.add_xpath('hospital_phone',
+                                 '//div[@class="search-result-hospital-text"]/p[3]/text()',
+                                 MapCompose(custom_remove_tags))
+                loader.add_xpath('hospital_intro',
+                                 '//li[@id="info"]/p',
+                                 MapCompose(remove_tags, custom_remove_tags))
+                loader.add_value('registered_channel', self.data_source_from)
+                loader.add_value('dataSource_from', self.data_source_from)
+                loader.add_value('crawled_url', response.url)
+                loader.add_value('update_time', now_day())
+                loader.add_xpath('hospital_route',
+                                 '//div[@class="search-result-hospital-text"]/p[5]/text()',
+                                 MapCompose(custom_remove_tags, match_special2))
+                loader.add_xpath('hospital_img_url', 'div[@class="search-result-hospital-img"]/img/@src')
+                loader.add_value('gmt_created', now_time())
+                loader.add_value('gmt_modified', now_time())
+                loader.add_value('hospital_id', hospital_id)
+                hospital_item = loader.load_item()
+                yield hospital_item
+
+                # 获取科室信息
+                all_dept_ids = response.xpath('//ul[@id="parent-list"]/li[@id]/@id').extract()
+                for each_dept_id in all_dept_ids:
+                    pass
+
+            elif data_type == '2':
+                pass
+                # hospital_address = response.xpath('//li[@id="address"]/p[2]/text()').extract_first('')
+                # hospital_city = ''
+                # hospital_county = get_county2('', match_special2(hospital_address))
+                # loader = CommonLoader2(item=HospitalInfoItem(), response=response)
+                # loader.add_xpath('hospital_name',
+                #                  '//p[@class="hospital-private-content-tit"]/text()',
+                #                  MapCompose(custom_remove_tags))
+                # loader.add_xpath('hospital_level',
+                #                  '//div[@class="search-result-hospital-text"]/p[2]/text()',
+                #                  MapCompose(custom_remove_tags))
+                # loader.add_value('hospital_addr', hospital_address, MapCompose(custom_remove_tags, match_special2))
+                # loader.add_value('hospital_pro', '')
+                # loader.add_value('hospital_city', '')
+                # loader.add_value('hospital_county', hospital_county, MapCompose(custom_remove_tags))
+                # loader.add_xpath('hospital_phone',
+                #                  '//div[@class="search-result-hospital-text"]/p[3]/text()',
+                #                  MapCompose(custom_remove_tags))
+                # loader.add_xpath('hospital_intro',
+                #                  '//li[@id="info"]/p',
+                #                  MapCompose(remove_tags, custom_remove_tags))
+                # loader.add_value('registered_channel', self.data_source_from)
+                # loader.add_value('dataSource_from', self.data_source_from)
+                # loader.add_value('crawled_url', response.url)
+                # loader.add_value('update_time', now_day())
+                # loader.add_xpath('hospital_route',
+                #                  '//li[@id="address"]/p[3]/text()',
+                #                  MapCompose(custom_remove_tags, match_special2))
+                # # loader.add_xpath('hospital_img_url', 'div[@class="search-result-hospital-img"]/img/@src')
+                # loader.add_value('gmt_created', now_time())
+                # loader.add_value('gmt_modified', now_time())
+                # loader.add_value('hospital_id', hospital_id)
+                # hospital_item = loader.load_item()
+                # yield hospital_item
+            else:
+                pass
         except Exception as e:
             self.logger.error('在抓取医院详细信息过程中出错了,原因是：{}'.format(repr(e)))
+
+    def parse_hospital_dep(self, response):
+        pass
