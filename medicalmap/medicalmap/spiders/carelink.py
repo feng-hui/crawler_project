@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 import scrapy
 from scrapy.http import Request
 from urllib.parse import urljoin
@@ -119,9 +120,20 @@ class CarelinkSpider(scrapy.Spider):
                 yield hospital_item
 
                 # 获取科室信息
-                all_dept_ids = response.xpath('//ul[@id="parent-list"]/li[@id]/@id').extract()
-                for each_dept_id in all_dept_ids:
-                    pass
+                # 从一级科室获取二级科室信息
+                all_dept = response.xpath('//ul[@id="parent-list"]/li[@id]')
+                for each_dept in all_dept:
+                    each_dept_id = each_dept.xpath('@id').extract_first('')
+                    each_dept_type = each_dept.xpath('div/span/text()').extract_first('')
+                    self.headers['Referer'] = response.url
+                    dept_link = self.dept_url.format(hospital_id, each_dept_id)
+                    yield Request(dept_link,
+                                  headers=self.headers,
+                                  callback=self.parse_hospital_dep,
+                                  meta={
+                                      'hospital_name': hospital_name,
+                                      'dept_name': each_dept_type
+                                  })
 
             elif data_type == '2':
                 pass
@@ -164,4 +176,25 @@ class CarelinkSpider(scrapy.Spider):
             self.logger.error('在抓取医院详细信息过程中出错了,原因是：{}'.format(repr(e)))
 
     def parse_hospital_dep(self, response):
-        pass
+        hospital_name = response.meta.get('hospital_name')
+        self.logger.info('>>>>>>正在抓取:[{}]科室信息>>>>>>'.format(hospital_name))
+        try:
+            dept_info = json.dumps(response.text)
+            all_dept_links = response.xpath('//div[@class="lab-list"]/div')
+            for each_dept_link in all_dept_links:
+                dept_type = each_dept_link.xpath('div/a/text()').extract_first('')
+                dept_info = each_dept_link.xpath('ul/li')
+                for each_dept_info in dept_info:
+                    dept_name = each_dept_info.xpath('a/text()').extract_first('')
+                    dept_doctor_cnt = each_dept_info.xpath('span/b[1]/text()').extract_first('')
+                    dept_detail_link = each_dept_info.xpath('a/@href').extract_first('')
+                    dept_loader = CommonLoader2(item=HospitalDepItem(), response=response)
+                    dept_loader.add_value('dept_name', dept_name, MapCompose(custom_remove_tags))
+                    dept_loader.add_value('dept_type', dept_type, MapCompose(custom_remove_tags))
+                    dept_loader.add_xpath('hospital_name',
+                                          '//div[@class="l"]/h2/text()',
+                                          MapCompose(custom_remove_tags))
+                    dept_loader.add_value('dataSource_from', self.data_source_from)
+                    dept_loader.add_value('update_time', now_day())
+        except Exception as e:
+            self.logger.error('在抓取医院科室信息过程中出错了,原因是：{}'.format(repr(e)))
