@@ -134,6 +134,7 @@ def get_county2(useless_info, hospital_address):
     :param hospital_address: the address og hospital
     :return: hospital county
     """
+    hospital_address = re.sub(r'^(.*?)市', '', hospital_address)
     res = re.sub(r'{0}'.format(useless_info), '', hospital_address)
     if res:
         try:
@@ -151,6 +152,7 @@ def get_county2(useless_info, hospital_address):
 
 def get_city(useless_info, hospital_address):
     """获取医院所在市信息"""
+    hospital_address = re.sub(r'^(.*?)省', '', hospital_address)
     value = re.sub(r'{0}'.format(useless_info), '', hospital_address)
     if value:
         res = re.search(r'^((.*?)市)', value)
