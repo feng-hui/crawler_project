@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 import re
-import json
 import scrapy
-from math import ceil
+from cpca import transform
 from scrapy.http import Request
 from urllib.parse import urljoin
 from w3lib.html import remove_tags
 from scrapy.loader.processors import MapCompose
-from medicalmap.utils.city_code import care_link_cookies, carelink_web3_provinces
 from medicalmap.items import CommonLoader2, HospitalInfoItem, HospitalDepItem, DoctorInfoItem
 from medicalmap.utils.common import now_day, custom_remove_tags, get_county2, match_special2, now_time, \
-    get_city, MUNICIPALITY
+    get_city, MUNICIPALITY, clean_info2
+from medicalmap.utils.city_code import *
 
 
 class CarelinkSpider(scrapy.Spider):
@@ -58,8 +57,17 @@ class CarelinkSpider(scrapy.Spider):
     pri_pre_id = '0'
 
     def start_requests(self):
-        self.headers['Cookie'] = care_link_cookies
-        yield Request(self.hospital_entry, headers=self.headers, callback=self.parse, dont_filter=True)
+        for each_province in carelink_web3_provinces:
+            carelink2_web3_city_location['provinceId'] = each_province.get('id')
+            carelink2_web3_city_location['provinceName'] = each_province.get('name')
+            carelink2_web3_city_location['provincePinyin'] = each_province.get('pingyin')
+            care_link_cookies = 'carelink_web3_hot_city={0};carelink_web3_provinces={1};' \
+                                'carelink2_web3_city_location={2}'.format(quote(json.dumps(carelink_web3_hot_city)),
+                                                                          quote(json.dumps(carelink_web3_provinces)),
+                                                                          quote(json.dumps(carelink2_web3_city_location)))
+            self.headers['Cookie'] = care_link_cookies
+            # print(care_link_cookies)
+            yield Request(self.hospital_entry, headers=self.headers, callback=self.parse, dont_filter=True)
 
     def parse(self, response):
         try:
@@ -84,7 +92,7 @@ class CarelinkSpider(scrapy.Spider):
                                       'data_type': data_type
                                   })
             # 翻页
-            has_next = response.xpath('//li[@id="more-hospital"]')
+            has_next = response.xpath('//li[@id="more-hospital"][not(contains(@class,"hide"))]')
             if has_next:
                 pub_pre_id = response.xpath('//ul[@id="hospital-list"]/li/div[1][@data-type="1"]/@data-id').extract()
                 pri_pre_id = response.xpath('//ul[@id="hospital-list"]/li/div[1][@data-type="2"]/@data-id').extract()
@@ -106,19 +114,23 @@ class CarelinkSpider(scrapy.Spider):
             if data_type == '1':
                 hospital_address = response.xpath('///div[@class="search-result-hospital-text"]/'
                                                   'p[4]/text()').extract_first('')
-                hospital_city = get_city('', hospital_address)
+                # hospital_city = get_city('', hospital_address)
                 # if hospital_city in MUNICIPALITY:
                 #     hospital_pro = ''
-                hospital_county = get_county2('', match_special2(hospital_address))
+                # hospital_county = get_county2('', match_special2(hospital_address))
+                df = transform([hospital_address])
+                hospital_pro = df.head()['省'][0]
+                hospital_city = df.head()['市'][0]
+                hospital_county = df.head()['区'][0]
                 loader = CommonLoader2(item=HospitalInfoItem(), response=response)
                 loader.add_xpath('hospital_name',
                                  '//span[@class="search-result-hospital-name"]/text()',
                                  MapCompose(custom_remove_tags))
                 loader.add_xpath('hospital_level',
                                  '//div[@class="search-result-hospital-text"]/p[2]/text()',
-                                 MapCompose(custom_remove_tags))
+                                 MapCompose(custom_remove_tags, clean_info2))
                 loader.add_value('hospital_addr', hospital_address, MapCompose(custom_remove_tags))
-                loader.add_value('hospital_pro', '浙江省')
+                loader.add_value('hospital_pro', hospital_pro)
                 loader.add_value('hospital_city', hospital_city)
                 loader.add_value('hospital_county', hospital_county, MapCompose(custom_remove_tags))
                 loader.add_xpath('hospital_phone',
@@ -171,24 +183,28 @@ class CarelinkSpider(scrapy.Spider):
             elif data_type == '2':
                 hospital_address = response.xpath('//p[@class="hospital-private-address-line fc-6"]'
                                                   '[contains(text(),"地址")]/text()').extract_first('')
-                hospital_city = get_city('', hospital_address)
-                if hospital_city in MUNICIPALITY:
-                    hospital_pro = ''
-                hospital_county = get_county2('', match_special2(hospital_address))
+                # hospital_city = get_city('', hospital_address)
+                # if hospital_city in MUNICIPALITY:
+                #     hospital_pro = ''
+                # hospital_county = get_county2('', match_special2(hospital_address))
+                df = transform([hospital_address])
+                hospital_pro = df.head()['省'][0]
+                hospital_city = df.head()['市'][0]
+                hospital_county = df.head()['区'][0]
                 loader = CommonLoader2(item=HospitalInfoItem(), response=response)
                 loader.add_xpath('hospital_name',
                                  '//p[@class="hospital-private-content-tit"]/text()',
                                  MapCompose(custom_remove_tags))
                 loader.add_value('hospital_addr', hospital_address, MapCompose(custom_remove_tags))
-                loader.add_value('hospital_pro', '')
+                loader.add_value('hospital_pro', hospital_pro)
                 loader.add_value('hospital_city', hospital_city)
                 loader.add_value('hospital_county', hospital_county, MapCompose(custom_remove_tags))
-                # loader.add_xpath('hospital_phone',
-                #                  '//div[@class="search-result-hospital-text"]/p[3]/text()',
-                #                  MapCompose(custom_remove_tags))
-                # loader.add_xpath('hospital_intro',
-                #                  '//li[@id="info"]/p',
-                #                  MapCompose(remove_tags, custom_remove_tags))
+                loader.add_xpath('hospital_phone',
+                                 '//div[@class="search-result-hospital-text"]/p[3]/text()',
+                                 MapCompose(custom_remove_tags))
+                loader.add_xpath('hospital_intro',
+                                 '//li[@id="info"]/p',
+                                 MapCompose(remove_tags, custom_remove_tags))
                 loader.add_value('registered_channel', self.data_source_from)
                 loader.add_value('dataSource_from', self.data_source_from)
                 loader.add_value('crawled_url', response.url)
@@ -257,9 +273,7 @@ class CarelinkSpider(scrapy.Spider):
                               meta={
                                   'data_type': str(hospital_type),
                                   'hospital_id': hospital_id,
-                                  'hospital_name': each_hospital_info.get('name'),
-                                  'hospital_level': each_hospital_info.get('levelName'),
-                                  'hospital_phone': each_hospital_info.get('phone')
+                                  'hospital_name': each_hospital_info.get('name')
                               })
 
             # 翻页
