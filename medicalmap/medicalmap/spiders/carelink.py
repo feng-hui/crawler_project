@@ -2,14 +2,15 @@
 import re
 import json
 import scrapy
+from math import ceil
 from scrapy.http import Request
 from urllib.parse import urljoin
 from w3lib.html import remove_tags
 from scrapy.loader.processors import MapCompose
+from medicalmap.utils.city_code import care_link_cookies
 from medicalmap.items import CommonLoader2, HospitalInfoItem, HospitalDepItem, DoctorInfoItem
 from medicalmap.utils.common import now_day, custom_remove_tags, get_county2, match_special2, now_time, \
     get_city, MUNICIPALITY
-from medicalmap.utils.city_code import care_link_cookies
 
 
 class CarelinkSpider(scrapy.Spider):
@@ -48,6 +49,8 @@ class CarelinkSpider(scrapy.Spider):
     dept_url = 'https://www.carelink.cn/dep/departments.htm?hi={}&dep_id={}&sub_dep_id=0'
     doctor_url = 'https://www.carelink.cn/hos/doctorsByDepartmentId.htm?hi={}&dep_id=0&' \
                  'sub_dep_id=0&consult_type=1&curr={}'
+    hospital_next_url = 'https://www.carelink.cn/hos/getHospital.htm?cityId=0&hl=0&sdId=0&sdsId=0' \
+                        '&pubPreId={}&priPreId={}'
 
     def start_requests(self):
         for each_url in self.start_urls:
@@ -57,28 +60,36 @@ class CarelinkSpider(scrapy.Spider):
         try:
             # data-type=1
             all_hospital_links = response.xpath('//ul[@id="hospital-list"]/li')
-            for each_hospital_link in all_hospital_links[0:1]:
-                hospital_link = each_hospital_link.xpath('a/@href').extract_first('')
-                hospital_name = each_hospital_link.xpath('div[2]/p[1]/a/text()').extract_first('')
-                data_type = each_hospital_link.xpath('div[1]/@data-type').extract_first('')
-                hospital_id = each_hospital_link.xpath('div[1]/@data-id').extract_first('')
-
-                # 获取医院信息
-                if hospital_link:
-                    hospital_link = urljoin(self.host, hospital_link)
-                    self.headers['Referer'] = response.url
-                    if data_type == '1':
-                        yield Request(hospital_link,
-                                      headers=self.headers,
-                                      callback=self.parse_hospital_info,
-                                      dont_filter=True,
-                                      meta={
-                                          'hospital_name': hospital_name,
-                                          'hospital_id': hospital_id,
-                                          'data_type': data_type
-                                      })
+            # for each_hospital_link in all_hospital_links[0:1]:
+            #     hospital_link = each_hospital_link.xpath('a/@href').extract_first('')
+            #     hospital_name = each_hospital_link.xpath('div[2]/p[1]/a/text()').extract_first('')
+            #     data_type = each_hospital_link.xpath('div[1]/@data-type').extract_first('')
+            #     hospital_id = each_hospital_link.xpath('div[1]/@data-id').extract_first('')
+            #
+            #     # 获取医院信息
+            #     if hospital_link:
+            #         hospital_link = urljoin(self.host, hospital_link)
+            #         self.headers['Referer'] = response.url
+            #         yield Request(hospital_link,
+            #                       headers=self.headers,
+            #                       callback=self.parse_hospital_info,
+            #                       dont_filter=True,
+            #                       meta={
+            #                           'hospital_name': hospital_name,
+            #                           'hospital_id': hospital_id,
+            #                           'data_type': data_type
+            #                       })
             # 翻页
+            has_next = response.xpath('//li[@id="more-hospital"]')
+            if has_next:
+                pub_pre_id = response.xpath('//ul[@id="hospital-list"]/li/div[1][@data-type="1"]/@data-id').extract()
+                pri_pre_id = response.xpath('//ul[@id="hospital-list"]/li/div[1][@data-type="2"]/@data-id').extract()
 
+                pub_pre_id = pub_pre_id[-1] if pub_pre_id else '0'
+                pri_pre_id = pri_pre_id[-1] if pri_pre_id else '0'
+
+                next_page_url = self.hospital_next_url.format(pub_pre_id, pri_pre_id)
+                yield Request(next_page_url, headers=self.headers, callback=self.parse_hospital_info2)
         except Exception as e:
             self.logger.error('在抓取医院信息的过程中出错了,原因是：{}'.format(repr(e)))
 
@@ -154,8 +165,79 @@ class CarelinkSpider(scrapy.Spider):
                                   'hospital_id': hospital_id
                               })
             elif data_type == '2':
-                pass
+                hospital_address = response.xpath('//p[@class="hospital-private-address-line fc-6"]'
+                                                  '[contains(text(),"地址")]/text()').extract_first('')
+                hospital_city = get_city('', hospital_address)
+                if hospital_city in MUNICIPALITY:
+                    hospital_pro = ''
+                hospital_county = get_county2('', match_special2(hospital_address))
+                loader = CommonLoader2(item=HospitalInfoItem(), response=response)
+                loader.add_xpath('hospital_name',
+                                 '//p[@class="hospital-private-content-tit"]/text()',
+                                 MapCompose(custom_remove_tags))
+                loader.add_value('hospital_addr', hospital_address, MapCompose(custom_remove_tags))
+                loader.add_value('hospital_pro', '')
+                loader.add_value('hospital_city', hospital_city)
+                loader.add_value('hospital_county', hospital_county, MapCompose(custom_remove_tags))
+                # loader.add_xpath('hospital_phone',
+                #                  '//div[@class="search-result-hospital-text"]/p[3]/text()',
+                #                  MapCompose(custom_remove_tags))
+                loader.add_xpath('hospital_intro',
+                                 '//li[@id="info"]/p',
+                                 MapCompose(remove_tags, custom_remove_tags))
+                loader.add_value('registered_channel', self.data_source_from)
+                loader.add_value('dataSource_from', self.data_source_from)
+                loader.add_value('crawled_url', response.url)
+                loader.add_value('update_time', now_day())
+                loader.add_xpath('hospital_route',
+                                 '//div[@class="search-result-hospital-text"]/p[5]/text()',
+                                 MapCompose(custom_remove_tags, match_special2))
+                loader.add_xpath('hospital_img_url', 'div[@class="search-result-hospital-img"]/img/@src')
+                loader.add_value('gmt_created', now_time())
+                loader.add_value('gmt_modified', now_time())
+                loader.add_value('hospital_id', hospital_id)
+                hospital_item = loader.load_item()
+                yield hospital_item
+
+                # 获取科室信息
+                # 从一级科室获取二级科室信息
+                all_dept = response.xpath('//ul[@id="parent-list"]/li[@id]')
+                for each_dept in all_dept:
+                    each_dept_id = each_dept.xpath('@id').extract_first('')
+                    each_dept_type = each_dept.xpath('div/span/text()').extract_first('')
+                    self.headers['Referer'] = response.url
+                    dept_link = self.dept_url.format(hospital_id, each_dept_id)
+                    yield Request(dept_link,
+                                  headers=self.headers,
+                                  callback=self.parse_hospital_dep,
+                                  meta={
+                                      'hospital_name': hospital_name,
+                                      'hospital_id': hospital_id,
+                                      'dept_type': each_dept_type
+                                  })
+
+                # 获取医生信息
+                self.headers['Referer'] = response.url
+                doctor_info_link = self.doctor_url.format(hospital_id, '1')
+                yield Request(doctor_info_link,
+                              headers=self.headers,
+                              callback=self.parse_doctor_info,
+                              meta={
+                                  'hospital_name': hospital_name,
+                                  'hospital_id': hospital_id
+                              })
             else:
+                pass
+        except Exception as e:
+            self.logger.error('在抓取医院详细信息过程中出错了,原因是：{}'.format(repr(e)))
+
+    def parse_hospital_info2(self, response):
+        hospital_name = response.meta.get('hospital_name')
+        self.logger.info('>>>>>>正在抓取[{}]医院详细信息>>>>>>'.format(hospital_name))
+        try:
+            res_js = json.loads(response.text)
+            all_hospital_info = res_js.get('data')
+            for each_hospital_info in all_hospital_info:
                 pass
         except Exception as e:
             self.logger.error('在抓取医院详细信息过程中出错了,原因是：{}'.format(repr(e)))
@@ -229,5 +311,16 @@ class CarelinkSpider(scrapy.Spider):
                                       'hospital_name': hospital_name,
                                       'hospital_id': hospital_id
                                   })
+        except Exception as e:
+            self.logger.error('在抓取医生详细信息的过程中出错了,原因是：{}'.format(repr(e)))
+
+    def parse_doctor_info_detail(self, response):
+        hospital_name = response.meta.get('hospital_name')
+        dept_name = response.meta.get('dept_name')
+        doctor_name = response.meta.get('doctor_name')
+        self.logger.info('>>>>>>正在抓取[{}]医院-[{}]医生详细信息>>>>>>'.format(hospital_name, doctor_name))
+        try:
+            # 获取医生信息
+            pass
         except Exception as e:
             self.logger.error('在抓取医生详细信息的过程中出错了,原因是：{}'.format(repr(e)))
