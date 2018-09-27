@@ -57,7 +57,7 @@ class CarelinkSpider(scrapy.Spider):
     pri_pre_id = '0'
 
     def start_requests(self):
-        for each_province in carelink_web3_provinces[0:2]:
+        for each_province in carelink_web3_provinces:
             province_name = each_province.get('name')
             carelink2_web3_city_location['provinceId'] = each_province.get('id')
             carelink2_web3_city_location['provinceName'] = province_name
@@ -66,11 +66,17 @@ class CarelinkSpider(scrapy.Spider):
                                 'carelink2_web3_city_location={2}'.format(quote(json.dumps(carelink_web3_hot_city)),
                                                                           quote(json.dumps(carelink_web3_provinces)),
                                                                           quote(json.dumps(carelink2_web3_city_location)))
-            cookies = care_link_cookies
+            # cookies = care_link_cookies
             # print(care_link_cookies)
+            # care_link_cookies2 = {
+            #     'carelink_web3_hot_city': quote(json.dumps(carelink_web3_hot_city)),
+            #     'carelink_web3_provinces': quote(json.dumps(carelink_web3_provinces)),
+            #     'carelink2_web3_city_location': quote(json.dumps(carelink2_web3_city_location))
+            # }
+            self.headers['Cookie'] = care_link_cookies
             yield Request(self.hospital_entry,
                           headers=self.headers,
-                          cookies=cookies,
+                          # cookies=care_link_cookies,
                           callback=self.parse,
                           dont_filter=True,
                           meta={
@@ -193,7 +199,7 @@ class CarelinkSpider(scrapy.Spider):
                 #                       'hospital_id': hospital_id,
                 #                       'dept_type': each_dept_type
                 #                   })
-                #
+
                 # # 获取医生信息
                 # self.headers['Referer'] = response.url
                 # doctor_info_link = self.doctor_url.format(hospital_id, '1')
