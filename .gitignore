@@ -103,3 +103,18 @@ ENV/
 # f139/cookies
 f139/data/f139_cookies.config
 .idea/
+
+shunqi/
+_trial_temp/
+data/
+dbs/
+gerapy/
+nohup.out
+my_data/
+Spider_Telnum
+images/
+*.json
+*.csv
+*.jpeg
+*.db
+setup.py
