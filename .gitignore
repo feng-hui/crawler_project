@@ -117,4 +117,5 @@ images/
 *.csv
 *.jpeg
 *.db
+*.rdb
 setup.py
